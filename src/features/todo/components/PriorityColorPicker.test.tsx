@@ -41,6 +41,10 @@ describe('PriorityColorPicker component', () => {
     expect(screen.getByText('优先级标记颜色')).toBeInTheDocument();
     expect(screen.getByText(/最高优先 \(P1\)/i)).toBeInTheDocument();
     expect(screen.getByText(/高优先级 \(P2\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/中优先级 \(P3\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/普通次要 \(P4\)/i)).toBeInTheDocument();
+    expect(screen.queryByText(/P5/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/P6/i)).not.toBeInTheDocument();
 
     const p1Btn = screen.getByText(/最高优先 \(P1\)/i);
     fireEvent.click(p1Btn);

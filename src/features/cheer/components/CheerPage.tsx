@@ -10,6 +10,7 @@ import {
   FiUser,
 } from 'react-icons/fi';
 import { usePageTransition } from '@/hooks/usePageTransition';
+import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { readTodoItems } from '@/features/todo/todoStorage';
 import { cn } from '@/lib/utils';
 import { TextEffect } from '@/components/core/text-effect';
@@ -26,6 +27,7 @@ const QUOTE_AUTO_ROTATE_MS = 15000;
 export default function CheerPage() {
   const shouldReduceMotion = useReducedMotion();
   const { transitionTo } = usePageTransition();
+  const { isFullscreen, isHeaderVisible } = useFullscreen();
 
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * INSPIRATIONAL_QUOTES.length));
@@ -176,7 +178,12 @@ export default function CheerPage() {
   return (
     <div
       data-page-view="cheer"
-      className="relative flex h-full w-full flex-col items-center justify-center overflow-y-auto px-4 py-8 landscape:py-3 landscape:pb-20 md:py-12 select-none"
+      className={cn(
+        'relative flex h-full w-full flex-col items-center justify-center overflow-y-auto px-4 select-none',
+        isFullscreen && !isHeaderVisible
+          ? 'py-4 md:py-6'
+          : 'py-6 lg:py-8 pb-24 lg:pb-16 landscape:py-2 landscape:pb-14'
+      )}
     >
       <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-5 sm:gap-6 my-auto">
         
@@ -185,7 +192,7 @@ export default function CheerPage() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="flex flex-col items-center gap-2 text-center mt-3 sm:mt-6"
+          className="flex flex-col items-center gap-2 text-center"
         >
           {/* 精致克制的时间展示（字号大小适中） */}
           <div className="flex items-baseline gap-1 font-mono tracking-tight font-medium text-gray-800 dark:text-gray-100">

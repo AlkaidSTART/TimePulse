@@ -25,8 +25,6 @@ import { CHATGPT_THEME_PRESETS } from '@/constants/colors';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Language } from '@/i18n/types';
 
-const AVATAR_PRESETS = ['专注', '自律', '沉静', '晨曦', '漫步', '远航', '求索', '笃行'];
-
 export default function PersonalSettingsPage() {
   const shouldReduceMotion = useReducedMotion();
   const { transitionTo } = usePageTransition();
@@ -39,48 +37,33 @@ export default function PersonalSettingsPage() {
 
   const {
     nickname,
-    avatar,
     customMotto,
     updateSettings,
     resetSettings,
   } = usePersonalSettingsStore();
 
   const cleanInitialNickname = nickname === '阳光旅人' ? '' : nickname;
-  const cleanInitialAvatar =
-    avatar === '☀️' || avatar === '太阳' || avatar === '专注'
-      ? ''
-      : avatar.replace(/☀️/g, '').replace(/太阳/g, '').trim();
 
   const [inputNickname, setInputNickname] = useState(cleanInitialNickname);
   const [inputMotto, setInputMotto] = useState(customMotto);
-  const [selectedAvatar, setSelectedAvatar] = useState(cleanInitialAvatar);
   const [saveToast, setSaveToast] = useState(false);
 
   useEffect(() => {
-    if (avatar.includes('☀️') || avatar.includes('太阳') || avatar === '专注') {
-      const cleaned = avatar.replace(/☀️/g, '').replace(/太阳/g, '').trim();
-      updateSettings({ avatar: cleaned });
-      setSelectedAvatar(cleaned);
-    }
     if (nickname === '阳光旅人') {
       updateSettings({ nickname: '' });
       setInputNickname('');
     }
-  }, [avatar, nickname, updateSettings]);
+  }, [nickname, updateSettings]);
 
   const nicknameInputId = useId();
   const mottoInputId = useId();
-  const customAvatarInputId = useId();
 
   // 保存个人资料修改
   const handleSaveProfile = () => {
-    const cleanAvatar = selectedAvatar.replace(/☀️/g, '').replace(/太阳/g, '').trim();
     updateSettings({
       nickname: inputNickname.trim(),
-      avatar: cleanAvatar,
       customMotto: inputMotto.trim(),
     });
-    setSelectedAvatar(cleanAvatar);
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 2000);
   };
@@ -132,7 +115,6 @@ export default function PersonalSettingsPage() {
                 resetSettings();
                 setInputNickname('');
                 setInputMotto('心怀热爱，奔赴每一个灿烂的日子');
-                setSelectedAvatar('');
               }
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"
@@ -160,45 +142,9 @@ export default function PersonalSettingsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white">
               <FiUser className="size-4 text-primary-500" />
-              <span>个人称谓与风格</span>
+              <span>个人称谓与签名</span>
             </div>
             <span className="text-xs text-gray-400">用于在问候卡片中称呼你</span>
-          </div>
-
-          {/* 风格标签快捷选择 */}
-          <div className="space-y-2">
-            <label className="text-xs font-medium text-gray-600 dark:text-gray-300">
-              选择专注风格标签
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {AVATAR_PRESETS.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => setSelectedAvatar(selectedAvatar === tag ? '' : tag)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                    selectedAvatar === tag
-                      ? 'bg-primary-500 text-white shadow-xs'
-                      : 'bg-black/[0.04] dark:bg-white/[0.06] text-gray-700 dark:text-gray-300 hover:bg-black/[0.08] dark:hover:bg-white/[0.12]'
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
-              <input
-                id={customAvatarInputId}
-                type="text"
-                maxLength={4}
-                value={selectedAvatar}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/☀️/g, '').replace(/太阳/g, '');
-                  setSelectedAvatar(val);
-                }}
-                placeholder=""
-                aria-label="自定义标签"
-                className="w-20 px-2.5 py-1.5 rounded-xl text-center text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/10 dark:border-white/15 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
           </div>
 
           {/* 昵称与座右铭输入 */}

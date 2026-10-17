@@ -186,8 +186,8 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
             {
               text: t('todo.presetChecklist1', '倒好温水并放好水杯'),
               type: 'checklist' as TodoType,
-              color: '#0EA5E9',
-              priority: 'focus' as PriorityLevel,
+              color: '#10B981',
+              priority: 'low' as PriorityLevel,
             },
             {
               text: t('todo.presetChecklist2', '手机开启勿扰 / 静音模式'),
@@ -204,8 +204,8 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
             {
               text: t('todo.presetChecklist4', '写下本轮番茄钟核心交付物'),
               type: 'checklist' as TodoType,
-              color: '#10B981',
-              priority: 'low' as PriorityLevel,
+              color: '#F59E0B',
+              priority: 'medium' as PriorityLevel,
             },
           ]
         : [
@@ -224,8 +224,8 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
             {
               text: t('todo.presetTodo3', '整理工作笔记与复盘今日进展'),
               type: 'todo' as TodoType,
-              color: '#0EA5E9',
-              priority: 'focus' as PriorityLevel,
+              color: '#10B981',
+              priority: 'low' as PriorityLevel,
             },
           ];
     dispatch({ type: 'batch_add', items: presets });
@@ -298,35 +298,35 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
         </div>
 
         {/* 页面主标题卡片 */}
-        <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-black/[0.06] bg-white/80 p-4 sm:p-5 md:p-6 shadow-xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-[#141416]/90">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative overflow-hidden rounded-2xl md:rounded-3xl border border-black/[0.06] bg-white/80 p-3.5 sm:p-5 md:p-6 shadow-md sm:shadow-xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-[#141416]/90">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <div className="flex size-7 sm:size-8 items-center justify-center rounded-xl text-white shadow-sm bg-sky-500">
-                  <FiCheck className="size-4 sm:size-4.5 stroke-[2.8]" />
+                <div className="flex size-6.5 sm:size-8 items-center justify-center rounded-lg sm:rounded-xl text-white shadow-sm bg-sky-500">
+                  <FiCheck className="size-3.5 sm:size-4.5 stroke-[2.8]" />
                 </div>
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                <h1 className="text-base sm:text-xl md:text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                   {t('todo.title', '待办与核对清单')}
                 </h1>
               </div>
-              <p className="mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
+              <p className="hidden sm:block mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
                 {t('todo.subtitle', '专注当下，逐项击破 · 让每一次专注高效且清晰')}
               </p>
             </div>
 
             {/* 顶部分类切换 Tabs */}
-            <div className="flex w-full md:w-auto items-center gap-1.5 rounded-2xl bg-black/5 p-1.5 dark:bg-white/10">
+            <div className="flex w-full md:w-auto items-center gap-1 sm:gap-1.5 rounded-xl sm:rounded-2xl bg-black/5 p-1 sm:p-1.5 dark:bg-white/10">
               <button
                 type="button"
                 aria-label={t('todo.switchToTodo', '切换到待办事项')}
                 onClick={() => dispatch({ type: 'set_tab', tab: 'todo' })}
-                className={`relative flex flex-1 md:flex-initial items-center justify-center gap-2 rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
+                className={`relative flex flex-1 md:flex-initial items-center justify-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
                   state.activeTab === 'todo'
-                    ? 'bg-white text-gray-950 shadow-sm dark:bg-neutral-800 dark:text-white'
+                    ? 'bg-white text-gray-950 shadow-xs sm:shadow-sm dark:bg-neutral-800 dark:text-white'
                     : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                 }`}
               >
-                <FiList className="size-4" />
+                <FiList className="size-3.5 sm:size-4" />
                 <span>{t('todo.tabTodo', '待办事项')}</span>
                 <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-bold dark:bg-white/10">
                   {todoCount}
@@ -337,13 +337,13 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                 type="button"
                 aria-label={t('todo.switchToChecklist', '切换到核对清单')}
                 onClick={() => dispatch({ type: 'set_tab', tab: 'checklist' })}
-                className={`relative flex flex-1 md:flex-initial items-center justify-center gap-2 rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
+                className={`relative flex flex-1 md:flex-initial items-center justify-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
                   state.activeTab === 'checklist'
-                    ? 'bg-white text-gray-950 shadow-sm dark:bg-neutral-800 dark:text-white'
+                    ? 'bg-white text-gray-950 shadow-xs sm:shadow-sm dark:bg-neutral-800 dark:text-white'
                     : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                 }`}
               >
-                <FiCheckCircle className="size-4" />
+                <FiCheckCircle className="size-3.5 sm:size-4" />
                 <span>{t('todo.tabChecklist', '核对清单')}</span>
                 <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-bold dark:bg-white/10">
                   {checklistCount}
@@ -353,20 +353,32 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
           </div>
 
           {/* 进度光条与统计数据 */}
-          <div className="mt-4 sm:mt-5 border-t border-gray-200/50 pt-3.5 sm:pt-4 dark:border-white/10">
-            <div className="flex items-center justify-between text-xs md:text-sm text-gray-600 dark:text-gray-300 pb-1.5">
+          <div className="mt-2.5 sm:mt-5 border-t border-gray-200/40 pt-2 sm:pt-4 dark:border-white/10">
+            <div className="flex items-center justify-between text-xs md:text-sm text-gray-600 dark:text-gray-300 pb-1 sm:pb-1.5">
               <span className="font-medium">
-                {state.activeTab === 'todo'
-                  ? t('todo.todoProgress', '待办事项完成度')
-                  : t('todo.checklistProgress', '专注流程核对进度')}
+                <span className="sm:hidden">
+                  {state.activeTab === 'todo'
+                    ? t('todo.todoProgressShort', '待办进度')
+                    : t('todo.checklistProgressShort', '核对进度')}
+                </span>
+                <span className="hidden sm:inline">
+                  {state.activeTab === 'todo'
+                    ? t('todo.todoProgress', '待办事项完成度')
+                    : t('todo.checklistProgress', '专注流程核对进度')}
+                </span>
               </span>
               <span className="font-semibold text-sky-600 dark:text-sky-400">
-                {completedCount} / {totalCount} {t('todo.progressSummary', '项完成')} (
-                {progressPercent}%)
+                <span className="sm:hidden">
+                  {completedCount}/{totalCount} ({progressPercent}%)
+                </span>
+                <span className="hidden sm:inline">
+                  {completedCount} / {totalCount} {t('todo.progressSummary', '项完成')} (
+                  {progressPercent}%)
+                </span>
               </span>
             </div>
 
-            <div className="relative h-2 sm:h-2.5 w-full overflow-hidden rounded-full bg-gray-200/70 dark:bg-white/10">
+            <div className="relative h-1.5 sm:h-2.5 w-full overflow-hidden rounded-full bg-gray-200/70 dark:bg-white/10">
               <motion.div
                 className="h-full rounded-full bg-sky-500"
                 initial={{ width: 0 }}
@@ -382,9 +394,9 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                   initial={{ opacity: 0, y: -6, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.95 }}
-                  className="mt-3 flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/15 py-2 px-4 text-xs md:text-sm font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                  className="mt-2.5 sm:mt-3 flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-emerald-500/15 py-1.5 sm:py-2 px-3 sm:px-4 text-xs md:text-sm font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                 >
-                  <FiCheckCircle className="size-4 text-emerald-500" />
+                  <FiCheckCircle className="size-3.5 sm:size-4 text-emerald-500 shrink-0" />
                   <span>
                     {t(
                       'todo.allDone',
@@ -481,7 +493,28 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
 
               {/* 使用 @hello-pangea/dnd 实现流畅的拖拽排序 */}
               <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId="todo-page-list">
+                <Droppable
+                  droppableId="todo-page-list"
+                  renderClone={(dragProvided, dragSnapshot, rubric) => {
+                    const item = currentTabItems[rubric.source.index];
+                    if (!item) return null;
+                    return (
+                      <TodoItemRow
+                        item={item}
+                        index={rubric.source.index}
+                        provided={dragProvided}
+                        snapshot={dragSnapshot}
+                        accentColor={accentColor}
+                        onToggle={handleToggle}
+                        onDelete={(id) => dispatch({ type: 'delete', id })}
+                        onEdit={(id, text) => dispatch({ type: 'edit', id, text })}
+                        onSetPriority={(id, color, priority) =>
+                          dispatch({ type: 'set_priority', id, color, priority })
+                        }
+                      />
+                    );
+                  }}
+                >
                   {(provided) => (
                     <div
                       ref={provided.innerRef}

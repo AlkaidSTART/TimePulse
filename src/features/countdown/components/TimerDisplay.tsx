@@ -334,7 +334,7 @@ function getInitialDisplaySnapshot(timer: Timer | null): {
 }
 
 export default function TimerDisplay() {
-  const { getActiveTimer, updateTimer } = useTimers();
+  const { getActiveTimer, updateTimer, activeTimerId, timers } = useTimers();
   const activeTimerAtMount = getActiveTimer() as Timer | null;
   const activeTimerTypeAtMount = activeTimerAtMount ? getTimerType(activeTimerAtMount) : null;
   const initialSnapshot = useMemo(() => getInitialDisplaySnapshot(activeTimerAtMount), [activeTimerAtMount?.id]);
@@ -579,7 +579,7 @@ export default function TimerDisplay() {
       clearScheduledUpdate();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [getActiveTimer, isFinished, isRunning]);
+  }, [getActiveTimer, isFinished, isRunning, activeTimerId, timers]);
   
   // 正计时控制函数
   const handleStopwatchControl = (action: StopwatchAction) => {

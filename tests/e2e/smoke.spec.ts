@@ -40,7 +40,7 @@ test('loads the static SPA and preserves the add-timer hash flow', async ({ page
   expect(viewport).not.toBeNull();
   expect(timerTypeBox!.y).toBeGreaterThan(0);
   expect(timerTypeBox!.y + timerTypeBox!.height).toBeLessThan(viewport!.height);
-  await expect(page.getByRole('button', { name: /倒计时/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /倒计时/ }).first()).toBeVisible();
   expect(runtimeErrors).toEqual([]);
 });
 
@@ -174,5 +174,39 @@ test('loads the todo page route without errors', async ({ page }) => {
   await expect(page.locator('[data-page-view="todo"]')).toBeVisible({ timeout: 10_000 });
   await expect(page.getByText('待办与核对清单')).toBeVisible();
   expect(runtimeErrors).toEqual([]);
+});
+
+test('supports drag and drop reordering on the todo page with correct positioning', async ({ page }) => {
+  await page.goto('/#todo', { waitUntil: 'commit' });
+  await expect(page.locator('[data-page-view="todo"]')).toBeVisible({ timeout: 10_000 });
+
+  const presetsBtn = page.getByRole('button', { name: /载入专注推荐清单预设|导入预设/ }).first();
+  if (await presetsBtn.isVisible()) {
+    await presetsBtn.click();
+    await page.waitForTimeout(300);
+  }
+
+  const items = page.locator('[data-rfd-draggable-id]');
+  await expect(items).toHaveCount(3);
+  const firstItemText = await items.first().innerText();
+
+  const handle = items.first().locator('[role="button"]').first();
+  const handleBox = await handle.boundingBox();
+  expect(handleBox).not.toBeNull();
+
+  // Drag down by ~120px to move past the second item
+  await page.mouse.move(handleBox!.x + handleBox!.width / 2, handleBox!.y + handleBox!.height / 2);
+  await page.mouse.down();
+  for (let i = 0; i <= 20; i++) {
+    await page.mouse.move(handleBox!.x + handleBox!.width / 2, handleBox!.y + handleBox!.height / 2 + i * 6);
+    await page.waitForTimeout(16);
+  }
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+
+  // The first item should now have moved down
+  const newSecondItemText = await items.nth(1).innerText();
+  const newThirdItemText = await items.nth(2).innerText();
+  expect(newSecondItemText.includes(firstItemText) || newThirdItemText.includes(firstItemText)).toBe(true);
 });
 

@@ -125,4 +125,21 @@ describe('Header component timezone display', () => {
     fireEvent.click(settingsBtn);
     expect(useNavigationStore.getState().view).toBe('settings');
   });
+
+  it('renders orientation toggle button in header and triggers click', async () => {
+    const { fireEvent } = await import('@testing-library/react');
+    render(
+      <ThemeProvider>
+        <FullscreenProvider>
+          <TimerProvider>
+            <Header />
+          </TimerProvider>
+        </FullscreenProvider>
+      </ThemeProvider>,
+    );
+
+    const orientationBtns = screen.getAllByRole('button', { name: /切换(横|竖)屏/ });
+    expect(orientationBtns.length).toBeGreaterThan(0);
+    expect(() => fireEvent.click(orientationBtns[0])).not.toThrow();
+  });
 });

@@ -33,10 +33,10 @@ export default function Home() {
   const { isFullscreen, isHeaderVisible } = useFullscreen();
   const { view, direction, transitionTo } = usePageTransition();
   const { t } = useTranslation();
-  const showCheerPage = view === 'cheer' && !isFullscreen;
-  const showTodoPage = view === 'todo' && !isFullscreen;
-  const showSettingsPage = view === 'settings' && !isFullscreen;
-  const showMainPage = (view === 'main' || isFullscreen) && !showCheerPage && !showTodoPage && !showSettingsPage;
+  const showCheerPage = view === 'cheer';
+  const showTodoPage = view === 'todo';
+  const showSettingsPage = view === 'settings';
+  const showMainPage = view === 'main';
   const [headerHeight, setHeaderHeight] = useState(0);
   
   const [isBackgroundSettingsOpen, setIsBackgroundSettingsOpen] = useState(false);
@@ -150,9 +150,16 @@ export default function Home() {
               exit="exit"
               className="absolute inset-0 z-10"
             >
-              <Suspense fallback={null}>
-                <CheerPage />
-              </Suspense>
+              <motion.div
+                initial={false}
+                animate={{ y: isFullscreen && !isHeaderVisible ? 0 : headerHeight / 2 }}
+                transition={{ y: { duration: shouldReduceMotion ? 0 : 0.45, ease: 'easeInOut' } }}
+                className="h-full w-full"
+              >
+                <Suspense fallback={null}>
+                  <CheerPage />
+                </Suspense>
+              </motion.div>
             </motion.div>
           ) : showMainPage ? (
             <motion.div

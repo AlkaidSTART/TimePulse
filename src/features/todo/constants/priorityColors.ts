@@ -73,32 +73,6 @@ export const PRIORITY_COLOR_PRESETS: readonly PriorityPreset[] = [
     bgLight: 'rgba(16, 185, 129, 0.12)',
     borderLight: 'rgba(16, 185, 129, 0.3)',
   },
-  {
-    id: 'p5_focus',
-    level: 'focus',
-    code: 'P5',
-    name: '专注聚焦 (P5)',
-    nameEn: 'Focus (P5)',
-    label: '本轮核心',
-    labelEn: 'In Focus',
-    color: '#0EA5E9', // 澄澈天青
-    weight: 5,
-    bgLight: 'rgba(14, 165, 233, 0.12)',
-    borderLight: 'rgba(14, 165, 233, 0.3)',
-  },
-  {
-    id: 'p6_idea',
-    level: 'idea',
-    code: 'P6',
-    name: '灵感备忘 (P6)',
-    nameEn: 'Idea (P6)',
-    label: '灵感待定',
-    labelEn: 'Idea / Backlog',
-    color: '#8B5CF6', // 暮霭浅紫
-    weight: 6,
-    bgLight: 'rgba(139, 92, 246, 0.12)',
-    borderLight: 'rgba(139, 92, 246, 0.3)',
-  },
 ];
 
 /**
@@ -106,21 +80,31 @@ export const PRIORITY_COLOR_PRESETS: readonly PriorityPreset[] = [
  */
 export function findPriorityPreset(color?: string, priority?: string): PriorityPreset | undefined {
   if (!color && !priority) return undefined;
-  return PRIORITY_COLOR_PRESETS.find(
+  const directMatch = PRIORITY_COLOR_PRESETS.find(
     (p) =>
       (color && p.color.toLowerCase() === color.toLowerCase()) ||
       (priority && p.level === priority) ||
       (priority && p.code.toLowerCase() === priority.toLowerCase()),
   );
+  if (directMatch) return directMatch;
+
+  // 兼容历史数据中的 focus 与 idea 等额外标记
+  if (priority === 'focus' || (color && color.toLowerCase() === '#0ea5e9')) {
+    return PRIORITY_COLOR_PRESETS.find((p) => p.level === 'medium');
+  }
+  if (priority === 'idea' || (color && color.toLowerCase() === '#8b5cf6')) {
+    return PRIORITY_COLOR_PRESETS.find((p) => p.level === 'low');
+  }
+  return undefined;
 }
 
 /**
- * 快速获取优先级排序权重 (1 ~ 6，无标记为 99)
+ * 快速获取优先级排序权重 (1 ~ 4，无标记为 99)
  */
 export function getPriorityWeight(color?: string, priority?: string): number {
   const preset = findPriorityPreset(color, priority);
   if (preset) return preset.weight;
-  // 如果是自定义设置了颜色但不在预设中，给予介于中间的权重 7
-  if (color) return 7;
+  // 如果是自定义设置了颜色但不在预设中，给予介于中间的权重 5
+  if (color) return 5;
   return 99;
 }

@@ -1,20 +1,20 @@
 import { expect, test } from '@playwright/test';
 
-test('mobile fullscreen test with F11', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
+test('cheer page immersive fullscreen after header auto-hides', async ({ page }) => {
   await page.goto('/', { waitUntil: 'commit' });
   await page.waitForTimeout(2000);
 
-  // Press F11
-  await page.keyboard.press('F11');
-  await page.waitForTimeout(1000);
+  // Click fullscreen
+  const fullscreenBtn = page.locator('[data-insightflare-event="fullscreen_toggle"]').first();
+  await fullscreenBtn.click();
 
-  await page.screenshot({ path: 'test-results/mobile-after-f11.png' });
+  // Wait 4 seconds for header to auto-hide
+  await page.waitForTimeout(4000);
 
-  const cheerVisible = await page.locator('[data-page-view="cheer"]').isVisible();
-  const mainVisible = await page.locator('[data-page-view="main"]').isVisible();
-  console.log('Mobile - cheer visible:', cheerVisible, 'main visible:', mainVisible);
+  // Capture screenshot of immersive fullscreen cheer page
+  await page.screenshot({ path: 'test-results/fullscreen-cheer-immersive.png' });
 
-  const textContent = await page.locator('body').innerText();
-  console.log('Mobile body text:', JSON.stringify(textContent));
+  // Cheer page should be completely visible
+  await expect(page.locator('[data-page-view="cheer"]')).toBeVisible();
+  await expect(page.getByText('时钟主页')).toBeVisible();
 });

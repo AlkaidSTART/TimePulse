@@ -117,5 +117,20 @@ describe('TodoPage component and Widget coexistence', () => {
     expect(sortBtn).toBeInTheDocument();
     fireEvent.click(sortBtn);
   });
+
+  it('renders both mobile-compact and desktop progress labels and supports tab switching', () => {
+    renderPage();
+
+    // 移动端精简进度标签与桌面完整进度标签
+    expect(screen.getByText('待办进度')).toBeInTheDocument();
+    expect(screen.getByText('待办事项完成度')).toBeInTheDocument();
+
+    // 切换到核对清单
+    const checklistBtn = screen.getByRole('button', { name: '切换到核对清单' });
+    fireEvent.click(checklistBtn);
+
+    expect(screen.getByText('核对进度')).toBeInTheDocument();
+    expect(screen.getByText('专注流程核对进度')).toBeInTheDocument();
+  });
 });
 

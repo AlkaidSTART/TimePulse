@@ -358,7 +358,28 @@ export default function TodoListWidget({
                 </div>
               ) : (
                 <DragDropContext onDragEnd={handleDragEnd}>
-                  <Droppable droppableId="todo-widget-list">
+                  <Droppable
+                    droppableId="todo-widget-list"
+                    renderClone={(dragProvided, dragSnapshot, rubric) => {
+                      const item = currentTabItems[rubric.source.index];
+                      if (!item) return null;
+                      return (
+                        <TodoItemRow
+                          item={item}
+                          index={rubric.source.index}
+                          provided={dragProvided}
+                          snapshot={dragSnapshot}
+                          accentColor={accentColor}
+                          onToggle={handleToggle}
+                          onDelete={(id) => dispatch({ type: 'delete', id })}
+                          onEdit={(id, text) => dispatch({ type: 'edit', id, text })}
+                          onSetPriority={(id, color, priority) =>
+                            dispatch({ type: 'set_priority', id, color, priority })
+                          }
+                        />
+                      );
+                    }}
+                  >
                     {(provided) => (
                       <div
                         ref={provided.innerRef}

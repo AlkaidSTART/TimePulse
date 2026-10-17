@@ -65,7 +65,7 @@ describe('TodoItemRow component', () => {
     expect(card.style.borderColor).toContain('var(--todo-item-border)');
   });
 
-  it('allows clicking flag in action area to open color presets', () => {
+  it('does not render priority flag button in action area to keep row clean', () => {
     const onSetPriority = vi.fn();
     renderRow({
       item: {
@@ -76,10 +76,6 @@ describe('TodoItemRow component', () => {
       onSetPriority,
     });
 
-    const flagBtn = screen.getByRole('button', { name: /修改或清除优先级颜色/i });
-    expect(flagBtn).toBeInTheDocument();
-    fireEvent.click(flagBtn);
-
-    expect(screen.getByText('优先级标记颜色')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /修改或清除优先级颜色|设置优先级颜色/i })).not.toBeInTheDocument();
   });
 });

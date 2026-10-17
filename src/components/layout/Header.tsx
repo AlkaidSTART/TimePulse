@@ -415,7 +415,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
   // 获取当前活动计时器
   const shouldReduceMotion = useReducedMotion();
   const activeTimer = timers.find(timer => timer.id === activeTimerId) || null;
-  const isTimerView = view === 'main' || isFullscreen;
+  const isTimerView = view === 'main';
   const timezoneInfo = isTimerView ? getActiveTimezoneInfo(activeTimer) : null;
 
   return (
@@ -462,19 +462,23 @@ export default function Header({ onHeightChange }: HeaderProps) {
           <RouteNavigation />
         </div>
 
-        {/* Center: Dynamic Island Capsule Switcher */}
-        <div className="flex items-center justify-center justify-self-center z-20 px-2 min-w-0">
-          <TimerTabs
-            timers={timers}
-            activeTimerId={activeTimerId}
-            setActiveTimerId={(id) => {
-              setActiveTimerId(id);
-              if (view === 'todo') {
-                transitionTo('main');
-              }
-            }}
-          />
-        </div>
+        {/* Center: Dynamic Island Capsule Switcher (Only on main timer view) */}
+        {view === 'main' ? (
+          <div className="flex items-center justify-center justify-self-center z-20 px-2 min-w-0">
+            <TimerTabs
+              timers={timers}
+              activeTimerId={activeTimerId}
+              setActiveTimerId={(id) => {
+                setActiveTimerId(id);
+                if (view !== 'main') {
+                  transitionTo('main');
+                }
+              }}
+            />
+          </div>
+        ) : (
+          <div className="justify-self-center" />
+        )}
 
         {/* Right Controls: Streamlined, clean, cohesive */}
         <div className="flex items-center justify-end justify-self-end z-10 gap-1.5 min-w-0">
@@ -736,6 +740,23 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     type="button"
                     onClick={() => {
                       setIsToolsOpen(false);
+                      void toggleOrientation();
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiRotateCw className={`size-4 text-emerald-500 transition-transform duration-300 ${isLandscape ? 'rotate-90' : ''}`} />
+                      <span>{t('header.toggleOrientation', '横竖屏切换')}</span>
+                    </div>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400">
+                      {isLandscape ? t('mobile.orientationLandscape', '横屏') : t('mobile.orientationPortrait', '竖屏')}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
                       openAboutModal('version');
                     }}
                     className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
@@ -907,6 +928,8 @@ export default function Header({ onHeightChange }: HeaderProps) {
             onClick={() => void toggleOrientation()}
             aria-label={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
             title={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
+            data-insightflare-event="orientation_toggle"
+            data-insightflare-event-to={isLandscape ? 'portrait' : 'landscape'}
           >
             <FiRotateCw className={`size-3.5 transition-transform duration-300 ${isLandscape ? 'rotate-90 text-primary-500' : ''}`} />
           </button>

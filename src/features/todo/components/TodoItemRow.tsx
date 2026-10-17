@@ -4,7 +4,6 @@ import { FiCheck, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import type { TodoItem, PriorityLevel } from '../types';
-import PriorityColorPicker from './PriorityColorPicker';
 import { useTranslation } from '@/i18n/useTranslation';
 
 export interface TodoItemRowProps {
@@ -82,16 +81,16 @@ export default function TodoItemRow({
       ref={provided?.innerRef}
       {...(provided?.draggableProps || {})}
       style={cardStyle}
-      className={`group relative flex items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 transition-all select-none overflow-visible ${
+      className={`group relative flex items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 select-none overflow-visible ${
         snapshot?.isDragging
-          ? 'shadow-2xl ring-2 ring-primary-500/60 bg-white/95 dark:bg-[#18181b] z-50 scale-[1.01]'
+          ? '!transition-none shadow-2xl ring-2 ring-primary-500/60 bg-white/95 dark:bg-[#18181b] z-50 scale-[1.01]'
           : item.completed
           ? item.color
-            ? 'opacity-65 hover:[background-color:var(--todo-item-bg-hover)] hover:[border-color:var(--todo-item-border-hover)]'
-            : 'border-black/[0.04] bg-black/[0.02] dark:border-white/[0.04] dark:bg-white/[0.02] opacity-60'
+            ? 'transition-all opacity-65 hover:[background-color:var(--todo-item-bg-hover)] hover:[border-color:var(--todo-item-border-hover)]'
+            : 'transition-all border-black/[0.04] bg-black/[0.02] dark:border-white/[0.04] dark:bg-white/[0.02] opacity-60'
           : item.color
-          ? 'shadow-xs hover:[background-color:var(--todo-item-bg-hover)] hover:[border-color:var(--todo-item-border-hover)]'
-          : 'border-black/[0.06] bg-white/75 hover:bg-white/95 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] shadow-xs'
+          ? 'transition-all shadow-xs hover:[background-color:var(--todo-item-bg-hover)] hover:[border-color:var(--todo-item-border-hover)]'
+          : 'transition-all border-black/[0.06] bg-white/75 hover:bg-white/95 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] shadow-xs'
       } backdrop-blur-md`}
     >
       {/* 左侧颜色预设指示条（标记了颜色时展示） */}
@@ -173,22 +172,8 @@ export default function TodoItemRow({
         )}
       </div>
 
-      {/* 快捷操作区：优先级标记、快速编辑与删除 */}
+      {/* 快捷操作区：快速编辑与删除 */}
       <div className="flex shrink-0 items-center gap-1 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-        {onSetPriority && (
-          <PriorityColorPicker
-            color={item.color}
-            priority={item.priority}
-            onSelect={(c, p) => onSetPriority(item.id, c, p)}
-            size="xs"
-            title={
-              item.color
-                ? t('todo.changePriorityColor', '修改或清除优先级颜色')
-                : t('todo.setPriorityColor', '设置优先级颜色')
-            }
-          />
-        )}
-
         {!isEditing && (
           <button
             type="button"
