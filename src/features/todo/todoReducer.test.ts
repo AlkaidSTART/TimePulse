@@ -159,4 +159,67 @@ describe('todoReducer', () => {
     expect(isAllCompleted(items, 'checklist')).toBe(false);
     expect(isAllCompleted([], 'todo')).toBe(false);
   });
+
+  it('adds item with priority and color', () => {
+    const initialState: TodoState = {
+      items: [],
+      activeTab: 'todo',
+    };
+
+    const nextState = todoReducer(initialState, {
+      type: 'add',
+      text: 'Urgent task',
+      color: '#EF4444',
+      priority: 'urgent',
+    });
+
+    expect(nextState.items[0].color).toBe('#EF4444');
+    expect(nextState.items[0].priority).toBe('urgent');
+  });
+
+  it('updates item priority and color with set_priority', () => {
+    const initialState: TodoState = {
+      items: [createItem('1', 'Normal task', false)],
+      activeTab: 'todo',
+    };
+
+    const nextState = todoReducer(initialState, {
+      type: 'set_priority',
+      id: '1',
+      color: '#F97316',
+      priority: 'high',
+    });
+
+    expect(nextState.items[0].color).toBe('#F97316');
+    expect(nextState.items[0].priority).toBe('high');
+  });
+
+  it('sorts items by priority (P1 Urgent -> P2 High -> P3 Medium -> ...)', () => {
+    const pLow: TodoItem = {
+      ...createItem('1', 'Low priority', false, 'todo'),
+      color: '#10B981',
+      priority: 'low',
+    };
+    const pUrgent: TodoItem = {
+      ...createItem('2', 'Urgent priority', false, 'todo'),
+      color: '#EF4444',
+      priority: 'urgent',
+    };
+    const pMedium: TodoItem = {
+      ...createItem('3', 'Medium priority', false, 'todo'),
+      color: '#F59E0B',
+      priority: 'medium',
+    };
+    const pNone: TodoItem = createItem('4', 'No priority', false, 'todo');
+
+    const initialState: TodoState = {
+      items: [pLow, pUrgent, pMedium, pNone],
+      activeTab: 'todo',
+    };
+
+    const nextState = todoReducer(initialState, { type: 'sort_by_priority' });
+    const ids = nextState.items.map((i) => i.id);
+
+    expect(ids).toEqual(['2', '3', '1', '4']);
+  });
 });

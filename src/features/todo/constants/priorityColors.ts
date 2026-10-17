@@ -3,7 +3,8 @@
  * 融合清新纯净调色与 GTD 敏捷优先级原则
  */
 
-export type PriorityLevel = 'urgent' | 'high' | 'medium' | 'low' | 'focus' | 'idea' | 'none';
+import type { PriorityLevel } from '../types';
+export type { PriorityLevel };
 
 export interface PriorityPreset {
   id: string;
