@@ -66,4 +66,17 @@ describe('TodoListWidget component', () => {
 
     expect(screen.getByPlaceholderText(/添加检查项/i)).toBeInTheDocument();
   });
+
+  it('renders correctly in English when ?lang=en is present', async () => {
+    delete (window as any).location;
+    (window as any).location = new URL('https://example.com/?lang=en');
+
+    renderWidget({ isOpen: true });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Switch to Checklist' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Switch to Tasks' })).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/Add task, press Enter/i)).toBeInTheDocument();
+    });
+  });
 });

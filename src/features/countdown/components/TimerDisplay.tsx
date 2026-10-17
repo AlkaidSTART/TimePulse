@@ -646,7 +646,7 @@ export default function TimerDisplay() {
       case 'stopwatch':
         return activeTimer.name;
       case 'worldclock':
-        return activeTimer.name; // 直接使用用户设置的名称
+        return ''; // 世界时钟不再在时间上方显示标题（时区统一展示在 header 栏）
       default:
         return activeTimer.name;
     }
@@ -657,7 +657,7 @@ export default function TimerDisplay() {
       case 'stopwatch':
         return isRunning ? t('timer.running') : t('timer.paused');
       case 'worldclock':
-        return `${activeTimer.country} - ${activeTimer.timezone}`;
+        return ''; // 世界时钟不再在时间下方显示 `${country} - ${timezone}`
       default:
         return `${t('timer.target')}: ${toDate((activeTimer as CountdownTimer).targetDate).toLocaleString()}`;
     }
