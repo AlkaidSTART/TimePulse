@@ -35,6 +35,9 @@
         const theme = savedTheme === 'light' ? 'light' : 'cream';
         if (theme === 'cream') {
           document.documentElement.classList.add('cream');
+        } else {
+          const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+          if (metaThemeColor) metaThemeColor.setAttribute('content', '#ffffff');
         }
         document.documentElement.classList.remove('dark');
         document.documentElement.style.colorScheme = 'light';

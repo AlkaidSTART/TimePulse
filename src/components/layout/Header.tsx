@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
-import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck } from 'react-icons/fi';
+import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo } from 'react-icons/fi';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTimers } from '@/app/providers/TimerProvider';
@@ -20,7 +20,7 @@ import MobileTabBar, { type MobileTab } from './MobileTabBar';
 import AnimatedLogo from './AnimatedLogo';
 import RouteNavigation from './RouteNavigation';
 import { usePageTransition } from '@/hooks/usePageTransition';
-import { useTodoStore } from '@/stores';
+import { useTodoStore, useVersionStore } from '@/stores';
 import { FiList } from 'react-icons/fi';
 
 type TimerUpdate = {
@@ -103,6 +103,40 @@ function TimerManageRow({
   );
 }
 
+function getActiveTimezoneInfo(timer: Timer | null): { text: string; full: string } | null {
+  if (!timer || timer.type === 'stopwatch') return null;
+  const timezone = timer.timezone || (typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC');
+  if (!timezone) return null;
+
+  let offset = '';
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'shortOffset',
+    }).formatToParts(new Date());
+    const offsetPart = parts.find((p) => p.type === 'timeZoneName')?.value;
+    if (offsetPart) {
+      offset = offsetPart.replace('GMT', 'UTC');
+    }
+  } catch {
+    // fallback if timezone string is invalid
+  }
+
+  if (timer.type === 'worldclock') {
+    const city = timer.city?.trim();
+    const country = timer.country?.trim();
+    const location = city || country || '';
+    const text = location ? `${location} · ${timezone}` : timezone;
+    const full = offset ? `${text} (${offset})` : text;
+    return { text, full };
+  }
+
+  // countdown timer
+  const text = timezone;
+  const full = offset ? `${text} (${offset})` : text;
+  return { text, full };
+}
+
 type HeaderProps = {
   onHeightChange?: (height: number) => void;
 };
@@ -126,6 +160,9 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const timerOrderRef = useRef(timerOrder);
   const isWidgetEnabled = useTodoStore((s) => s.isWidgetEnabled);
   const setWidgetEnabled = useTodoStore((s) => s.setWidgetEnabled);
+  const currentVersion = useVersionStore((s) => s.currentVersion);
+  const hasUpdate = useVersionStore((s) => s.hasUpdate);
+  const openAboutModal = useVersionStore((s) => s.openAboutModal);
   const navRef = useRef<HTMLElement>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
 
@@ -296,40 +333,6 @@ export default function Header({ onHeightChange }: HeaderProps) {
       }
     };
   }, [isFullscreen, headerHideDelay, showHeader, hideHeader]);
-
-function getActiveTimezoneInfo(timer: Timer | null): { text: string; full: string } | null {
-  if (!timer || timer.type === 'stopwatch') return null;
-  const timezone = timer.timezone || (typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC');
-  if (!timezone) return null;
-
-  let offset = '';
-  try {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      timeZoneName: 'shortOffset',
-    }).formatToParts(new Date());
-    const offsetPart = parts.find((p) => p.type === 'timeZoneName')?.value;
-    if (offsetPart) {
-      offset = offsetPart.replace('GMT', 'UTC');
-    }
-  } catch {
-    // fallback if timezone string is invalid
-  }
-
-  if (timer.type === 'worldclock') {
-    const city = timer.city?.trim();
-    const country = timer.country?.trim();
-    const location = city || country || '';
-    const text = location ? `${location} · ${timezone}` : timezone;
-    const full = offset ? `${text} (${offset})` : text;
-    return { text, full };
-  }
-
-  // countdown timer
-  const text = timezone;
-  const full = offset ? `${text} (${offset})` : text;
-  return { text, full };
-}
 
   // 获取当前活动计时器
   const activeTimer = timers.find(timer => timer.id === activeTimerId) || null;
@@ -581,6 +584,28 @@ function getActiveTimezoneInfo(timer: Timer | null): { text: string; full: strin
                     <span>{t('header.languagePreferences', '语言偏好 / Language')}</span>
                   </button>
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      openAboutModal();
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiInfo className="size-4 text-primary-500" />
+                      <span>{t('version.title', '版本与更新')}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {hasUpdate && (
+                        <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
+                      )}
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400">
+                        v{currentVersion}
+                      </span>
+                    </div>
+                  </button>
+
                   <div className="h-px bg-gray-200/60 dark:bg-white/10 my-1" />
 
                   <button
@@ -631,7 +656,17 @@ function getActiveTimezoneInfo(timer: Timer | null): { text: string; full: strin
         </div>
 
         {/* Minimal Quick Action */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {timezoneInfo && (
+            <div
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/40 dark:bg-white/10 border border-white/20 dark:border-white/10 text-[11px] font-medium text-gray-700 dark:text-gray-200 backdrop-blur-md select-none shrink-0"
+              title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
+            >
+              <FiGlobe className="size-3 shrink-0 text-primary-500 dark:text-primary-400" />
+              <span className="truncate max-w-[90px] xs:max-w-[130px]">{timezoneInfo.text}</span>
+            </div>
+          )}
+
           <button
             type="button"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-500/10 text-primary-600 hover:bg-primary-500/20 dark:bg-primary-500/15 dark:text-primary-300 font-medium text-xs cursor-pointer active:scale-95 transition-all"

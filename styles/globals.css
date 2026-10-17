@@ -35,7 +35,7 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
   --color-primary-700: rgba(var(--color-primary), 0.8);
   --color-primary-800: rgba(var(--color-primary), 0.7);
   --color-primary-900: rgba(var(--color-primary), 0.6);
-  --color-background-light: #ffffff;
+  --color-background-light: #fafbfd;
   --color-background-cream: #f7f4eb;
   --font-sans: Inter, ui-sans-serif, system-ui;
   --font-display: Poppins, sans-serif;
@@ -406,7 +406,7 @@ select,
 
 @layer components {
   .glass-card {
-    @apply bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm text-slate-800 dark:text-slate-100;
+    @apply bg-white/90 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/80 rounded-2xl shadow-xs text-slate-800 dark:text-slate-100;
     /* 添加硬件加速，避免Safari中的抖动问题 */
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
@@ -422,22 +422,21 @@ select,
     isolation: isolate;
     background: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.46) 0%,
-      rgba(255, 255, 255, 0.18) 45%,
-      rgba(255, 255, 255, 0.32) 100%
+      rgba(255, 255, 255, 0.86) 0%,
+      rgba(255, 255, 255, 0.58) 45%,
+      rgba(255, 255, 255, 0.74) 100%
     );
-    -webkit-backdrop-filter: blur(24px) saturate(190%) contrast(102%);
-    backdrop-filter: blur(24px) saturate(190%) contrast(102%);
-    border: 1px solid rgba(255, 255, 255, 0.72);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.95);
     box-shadow:
-      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.95),
-      inset 1px 0 1.5px 0 rgba(255, 255, 255, 0.55),
-      inset -1px 0 1.5px 0 rgba(255, 255, 255, 0.25),
-      inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.45),
-      inset 0 0 28px 0 rgba(255, 255, 255, 0.28),
-      inset 0 -8px 20px 0 rgba(0, 0, 0, 0.025),
-      0 14px 34px -4px rgba(15, 23, 42, 0.08),
-      0 4px 12px -2px rgba(15, 23, 42, 0.04);
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
+      inset 1px 0 1.5px 0 rgba(255, 255, 255, 0.8),
+      inset -1px 0 1.5px 0 rgba(255, 255, 255, 0.45),
+      inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.6),
+      inset 0 0 28px 0 rgba(255, 255, 255, 0.5),
+      0 12px 32px -4px rgba(0, 0, 0, 0.04),
+      0 4px 10px -2px rgba(0, 0, 0, 0.02);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     will-change: transform;
@@ -469,11 +468,11 @@ select,
     .liquid-glass-digit:hover {
       box-shadow:
         inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
-        inset 1px 0 2px 0 rgba(255, 255, 255, 0.7),
-        inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.6),
-        inset 0 0 32px 0 rgba(255, 255, 255, 0.4),
-        0 18px 40px -4px rgba(15, 23, 42, 0.12),
-        0 6px 16px -2px rgba(15, 23, 42, 0.06);
+        inset 1px 0 2px 0 rgba(255, 255, 255, 0.85),
+        inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.75),
+        inset 0 0 32px 0 rgba(255, 255, 255, 0.55),
+        0 16px 36px -4px rgba(0, 0, 0, 0.06),
+        0 6px 14px -2px rgba(0, 0, 0, 0.03);
     }
 
     .cream .liquid-glass-digit:hover {
@@ -492,18 +491,18 @@ select,
     position: relative;
     background: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.45) 0%,
-      rgba(255, 255, 255, 0.18) 50%,
-      rgba(255, 255, 255, 0.3) 100%
+      rgba(255, 255, 255, 0.82) 0%,
+      rgba(255, 255, 255, 0.54) 50%,
+      rgba(255, 255, 255, 0.72) 100%
     );
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    backdrop-filter: blur(16px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.68);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.9);
     box-shadow:
-      inset 0 1px 1px 0 rgba(255, 255, 255, 0.85),
-      inset 0 0 16px 0 rgba(255, 255, 255, 0.2),
-      0 8px 24px -4px rgba(15, 23, 42, 0.08),
-      0 2px 6px -1px rgba(15, 23, 42, 0.04);
+      inset 0 1px 1px 0 rgba(255, 255, 255, 1),
+      inset 0 0 16px 0 rgba(255, 255, 255, 0.4),
+      0 8px 24px -4px rgba(0, 0, 0, 0.04),
+      0 2px 6px -1px rgba(0, 0, 0, 0.02);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
     will-change: transform;
@@ -529,15 +528,15 @@ select,
     .liquid-glass-control:hover:not(:disabled) {
       background: linear-gradient(
         145deg,
-        rgba(255, 255, 255, 0.6) 0%,
-        rgba(255, 255, 255, 0.28) 50%,
-        rgba(255, 255, 255, 0.45) 100%
+        rgba(255, 255, 255, 0.92) 0%,
+        rgba(255, 255, 255, 0.65) 50%,
+        rgba(255, 255, 255, 0.82) 100%
       );
       box-shadow:
-        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95),
-        inset 0 0 20px 0 rgba(255, 255, 255, 0.35),
-        0 12px 28px -4px rgba(15, 23, 42, 0.12),
-        0 4px 10px -2px rgba(15, 23, 42, 0.06);
+        inset 0 1px 1.5px 0 rgba(255, 255, 255, 1),
+        inset 0 0 20px 0 rgba(255, 255, 255, 0.5),
+        0 12px 28px -4px rgba(0, 0, 0, 0.06),
+        0 4px 10px -2px rgba(0, 0, 0, 0.03);
       transform: translateY(-1px);
     }
 
@@ -572,24 +571,26 @@ select,
   /* 玻璃态操作按钮样式 - 用于取消、上一步等操作 */
   .btn-glass-secondary {
     @apply px-4 py-2 rounded-lg font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.8);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.08);
     color: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
 
   .cream .btn-glass-secondary {
     background: rgba(245, 240, 230, 0.65);
     border: 1px solid rgba(215, 205, 190, 0.55);
     color: #38332e;
+    box-shadow: none;
   }
 
   /* 触屏没有真正的悬停：统一包进 (hover: hover)，避免点击后样式粘住 */
   @media (hover: hover) {
     .btn-glass-secondary:hover {
-      background: rgba(255, 255, 255, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(0, 0, 0, 0.12);
     }
 
     .cream .btn-glass-secondary:hover {
@@ -881,11 +882,11 @@ select,
 
 /* 玻璃效果 - 降低Safari中的模糊强度，提高性能 */
 .glass-effect {
-  -webkit-backdrop-filter: blur(10px) saturate(180%);
-  backdrop-filter: blur(10px) saturate(180%);
-  background-color: rgba(255, 255, 255, 0.75); /* 增加不透明度 */
-  border: 1px solid rgba(200, 200, 200, 0.3); /* 增加边框可见度 */
-  color: rgba(0, 0, 0, 0.8); /* 确保文字颜色 */
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  backdrop-filter: blur(10px) saturate(160%);
+  background-color: rgba(255, 255, 255, 0.88); /* 纯白毛玻璃底色 */
+  border: 1px solid rgba(0, 0, 0, 0.06); /* 纯净微边框 */
+  color: rgba(0, 0, 0, 0.85); /* 确保文字颜色 */
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
 }
@@ -1214,7 +1215,7 @@ body {
   
   /* 强制Firefox忽略所有Tailwind背景类 - 调整透明度 */
   .modal-content[class*="bg-"] {
-    background: rgba(255, 255, 255, 0.55) !important;
+    background: rgba(255, 255, 255, 0.85) !important;
   }
 
   .cream .modal-content[class*="bg-"] {
@@ -1228,7 +1229,7 @@ body {
 
   /* 彻底重写毛玻璃卡片样式 - 调整透明度 */
   .glass-card[class*="bg-"] {
-    background: rgba(255, 255, 255, 0.55) !important;
+    background: rgba(255, 255, 255, 0.85) !important;
     backdrop-filter: blur(18px) !important;
     -webkit-backdrop-filter: blur(18px) !important;
   }

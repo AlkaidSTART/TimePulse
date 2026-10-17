@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Header from './Header';
 import UpdateToast from '@/features/notification/components/UpdateToast';
+import { OptimisticUpdateBanner, AboutVersionModal } from '@/features/version';
 import { ThemeColorSynchronizer } from '@/app/providers/ThemeProvider';
 
 type LayoutProps = {
@@ -19,6 +20,8 @@ export default function Layout({ children, onHeaderHeightChange }: LayoutProps) 
         </div>
 
         <UpdateToast />
+        <OptimisticUpdateBanner />
+        <AboutVersionModal />
       </div>
     </ThemeColorSynchronizer>
   );

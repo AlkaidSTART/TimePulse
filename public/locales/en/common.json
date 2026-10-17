@@ -461,5 +461,30 @@
     "view": "View",
     "timerColor": "Timer Color",
     "saveChanges": "Save Changes"
+  },
+  "version": {
+    "title": "Version & Updates",
+    "currentVersion": "Current Version",
+    "latestVersion": "Latest Version",
+    "checkUpdate": "Check for Updates",
+    "checking": "Checking...",
+    "upToDate": "You're on the latest version",
+    "upToDateDesc": "You are enjoying the latest TimePulse with optimal focus and flow.",
+    "newVersionFound": "New Version Available",
+    "optimisticPrompt": "A new version of TimePulse is ready. Download now to experience the latest features and optimizations!",
+    "goToDownload": "Download Now",
+    "downloadReleases": "Go to GitHub Releases",
+    "checkFailed": "Check failed",
+    "checkFailedDesc": "Could not connect to update service. You can visit GitHub Releases directly.",
+    "remindOnceNote": "You will only be prompted once for this release",
+    "dismiss": "Got it",
+    "later": "Later",
+    "aboutApp": "About TimePulse",
+    "releaseNotes": "Release Notes",
+    "openRepo": "GitHub Repository",
+    "license": "Open Source License",
+    "designedFor": "Designed for Focus & Flow",
+    "versionManagement": "Version & About",
+    "hasNewVersion": "New update available"
   }
 }

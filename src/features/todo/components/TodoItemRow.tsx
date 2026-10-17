@@ -90,8 +90,8 @@ export default function TodoItemRow({
         }}
         aria-label={
           currentLang === 'en-US'
-            ? `${item.completed ? t('todo.itemAriaCompleted') : t('todo.itemAriaUncompleted')}: ${item.text}`
-            : `将${item.text}${item.completed ? t('todo.itemAriaCompleted') : t('todo.itemAriaUncompleted')}`
+            ? `${item.completed ? t('todo.itemAriaCompleted', 'Mark as incomplete') : t('todo.itemAriaUncompleted', 'Mark as completed')}: ${item.text}`
+            : `将${item.text}${item.completed ? t('todo.itemAriaCompleted', '标记为未完成') : t('todo.itemAriaUncompleted', '标记为已完成')}`
         }
       >
         {item.completed && (

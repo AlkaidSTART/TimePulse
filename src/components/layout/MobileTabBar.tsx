@@ -18,6 +18,7 @@ import {
   FiShare2,
   FiCheck,
   FiCheckSquare,
+  FiInfo,
 } from 'react-icons/fi';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { Timer, TimerType } from '@/domain/timer';
@@ -25,7 +26,7 @@ import { useTranslation } from '@/i18n/useTranslation';
 import type { Language } from '@/i18n/types';
 import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
-import { useTodoStore } from '@/stores';
+import { useTodoStore, useVersionStore } from '@/stores';
 
 export type MobileTab = 'timer' | 'todo' | 'list' | 'background' | 'settings';
 
@@ -178,6 +179,9 @@ export default function MobileTabBar({
   const timerOrderRef = useRef(timerOrder);
   const isWidgetEnabled = useTodoStore((s) => s.isWidgetEnabled);
   const setWidgetEnabled = useTodoStore((s) => s.setWidgetEnabled);
+  const currentVersion = useVersionStore((s) => s.currentVersion);
+  const hasUpdate = useVersionStore((s) => s.hasUpdate);
+  const openAboutModal = useVersionStore((s) => s.openAboutModal);
 
   useEffect(() => {
     const availableIds = new Set(timers.map((timer) => timer.id));
@@ -915,14 +919,55 @@ export default function MobileTabBar({
                       </div>
                       <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">查看</span>
                     </button>
+
+                    {/* Version & About Modal Trigger */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onTabChange('timer');
+                        openAboutModal();
+                      }}
+                      className="w-full flex items-center justify-between p-3.5 text-left hover:bg-white/30 dark:hover:bg-white/5 transition-colors cursor-pointer border-t border-gray-100/50 dark:border-white/5"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="size-9 rounded-xl bg-orange-500/10 text-orange-500 dark:bg-orange-400/15 dark:text-orange-400 flex items-center justify-center">
+                          <FiInfo className="size-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {t('version.title', '版本与更新')}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {hasUpdate
+                              ? t('version.hasNewVersion', '发现新版本可供升级')
+                              : t('version.upToDate', '当前已是最新版本')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {hasUpdate && (
+                          <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
+                        )}
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300">
+                          v{currentVersion}
+                        </span>
+                      </div>
+                    </button>
                   </div>
                 </div>
 
                 {/* About TimePulse Note */}
                 <div className="text-center py-2">
-                  <p className="text-xs text-gray-400 dark:text-gray-500 font-display">
-                    TimePulse v0.7.0 · Designed for Focus & Flow
-                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onTabChange('timer');
+                      openAboutModal();
+                    }}
+                    className="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 font-display hover:text-primary-500 dark:hover:text-primary-400 transition-colors cursor-pointer"
+                  >
+                    <span>TimePulse v{currentVersion} · Designed for Focus & Flow</span>
+                  </button>
                 </div>
               </div>
             </motion.div>

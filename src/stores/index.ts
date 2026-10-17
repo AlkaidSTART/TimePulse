@@ -5,3 +5,4 @@ export * from './useNavigationStore';
 export * from './useTimerStore';
 export * from './useTodoStore';
 export * from './useUIStore';
+export * from './useVersionStore';

@@ -62,3 +62,7 @@ globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise
   }
   return new Response('{}', { status: 404 });
 };
+
+if (typeof window !== 'undefined') {
+  window.fetch = globalThis.fetch;
+}

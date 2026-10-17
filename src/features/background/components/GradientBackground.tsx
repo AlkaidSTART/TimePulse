@@ -35,7 +35,7 @@ export default function GradientBackground() {
             style={{
               background: theme === 'cream'
                 ? `linear-gradient(175deg, #FAF7F0 0%, color-mix(in srgb, ${color} 4%, #F4EFE6) 55%, #EDE7DC 100%)`
-                : `linear-gradient(175deg, #FAFBFD 0%, color-mix(in srgb, ${color} 4.5%, #F1F5F9) 55%, #EDF2F7 100%)`,
+                : `linear-gradient(180deg, #FFFFFF 0%, color-mix(in srgb, ${color} 0.8%, #FFFFFF) 50%, #FCFCFD 100%)`,
             }}
           />
         </div>

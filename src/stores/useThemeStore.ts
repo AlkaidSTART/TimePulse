@@ -43,6 +43,10 @@ export function applyThemeToDom(theme: Theme): void {
   document.documentElement.classList.toggle('cream', theme === 'cream');
   document.documentElement.classList.remove('dark');
   document.documentElement.style.colorScheme = 'light';
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+  if (metaThemeColor) {
+    metaThemeColor.setAttribute('content', theme === 'cream' ? '#f7f4eb' : '#ffffff');
+  }
 }
 
 export function updateCssVariables(color: string): void {
