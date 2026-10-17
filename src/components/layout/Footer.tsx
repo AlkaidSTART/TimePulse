@@ -120,7 +120,7 @@ export default function Footer() {
             
             <div className="mb-3 md:mb-4">
               <a 
-                href="https://github.com/RavelloH/TimePulse" 
+                href="https://github.com/AlkaidSTART/TimePulse" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="btn-glass-secondary inline-flex items-center rounded-full px-3 py-1.5 text-sm transition-colors"
@@ -218,7 +218,7 @@ export default function Footer() {
         
         <div className="mt-3 md:mt-4 pt-2 border-t border-gray-300 dark:border-white/10 text-center text-xs text-gray-600 dark:text-gray-300">
           <p>
-            © {new Date().getFullYear()} <a className="underline" href="https://timepulse.ravelloh.top/">TimePulse</a> by <a className="underline" href="https://ravelloh.top/">RavelloH</a>. {t('footer.builtWith', '使用 Vite 和 Framer Motion 构建')}。
+            © {new Date().getFullYear()} <a className="underline" href="https://time-pulse-two.vercel.app/">TimePulse</a> by <a className="underline" href="https://ravelloh.top/">RavelloH</a>. {t('footer.builtWith', '使用 Vite 和 Framer Motion 构建')}。
           </p>
         </div>
       </div>

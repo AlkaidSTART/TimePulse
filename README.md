@@ -6,7 +6,7 @@
 
 TimePulse 是一个具有现代化 UI 和交互的计时器网页应用，支持多计时器管理、数据分享、全屏展示等功能，可进行倒计时、正计时和显示世界时钟。采用玻璃态设计和流畅动画效果，提供极佳的视觉体验。
 
-预览: [TimePulse](https://timepulse.ravelloh.top/)
+在线体验: [TimePulse](https://time-pulse-two.vercel.app/)
 
 ![image](https://raw.ravelloh.top/20250323/image.2obow0upmh.webp)
 ![image](https://raw.ravelloh.top/20250323/image.7zqlgqhqss.webp)
@@ -54,13 +54,13 @@ TimePulse 是一个具有现代化 UI 和交互的计时器网页应用，支持
 > 另外，你也可以下载 [Releases](https://github.com/AlkaidSTART/TimePulse/releases) 中的静态预构建资源（形如site-vx.x.x.zip），将其部署在Github Pages、Cloudflare Pages或其他任何静态托管服务商上
 
 ### Vercel一键部署
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRavelloH%2FTimePulse)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FAlkaidSTART%2FTimePulse)
 
 ### 本地运行
 
 1. 克隆仓库
 ```bash
-git clone https://github.com/RavelloH/TimePulse.git
+git clone https://github.com/AlkaidSTART/TimePulse.git
 cd TimePulse
 ```
 

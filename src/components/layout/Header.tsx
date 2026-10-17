@@ -299,7 +299,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
             className="logo-gradient text-xl md:text-2xl font-bold font-display bg-clip-text text-transparent"
             style={{ '--logo-accent': accentColor } as CSSProperties}
           >
-            <a href="https://timepulse.ravelloh.top/">TimePulse</a>
+            <a href="https://time-pulse-two.vercel.app/">TimePulse</a>
           </h1>
         </motion.div>
 
