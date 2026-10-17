@@ -19,18 +19,15 @@ import {
   FiCheck,
   FiCheckSquare,
 } from 'react-icons/fi';
+import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Language } from '@/i18n/types';
 import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
-import {
-  readTodoWidgetVisible,
-  writeTodoWidgetVisible,
-  TODO_STORAGE_EVENT,
-} from '@/features/todo';
+import { useTodoStore } from '@/stores';
 
-export type MobileTab = 'timer' | 'list' | 'background' | 'settings';
+export type MobileTab = 'timer' | 'todo' | 'list' | 'background' | 'settings';
 
 interface MobileTabBarProps {
   activeTab: MobileTab;
@@ -104,11 +101,7 @@ function MobileTimerRow({
         onPointerDown={(e) => dragControls.start(e)}
         aria-label="拖动排序"
       >
-        <span aria-hidden="true" className="grid grid-cols-2 gap-[3px]">
-          {Array.from({ length: 6 }, (_, index) => (
-            <span key={index} className="size-[3px] rounded-full bg-current" />
-          ))}
-        </span>
+        <RxDragHandleDots2 className="size-5 text-current" />
       </button>
 
       {/* Timer Info - Tap to select */}
@@ -183,17 +176,8 @@ export default function MobileTabBar({
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [timerOrder, setTimerOrder] = useState(() => timers.map((t) => t.id));
   const timerOrderRef = useRef(timerOrder);
-  const [isWidgetEnabled, setIsWidgetEnabled] = useState(() => readTodoWidgetVisible());
-
-  useEffect(() => {
-    const handleWidgetSync = () => setIsWidgetEnabled(readTodoWidgetVisible());
-    window.addEventListener(TODO_STORAGE_EVENT, handleWidgetSync);
-    window.addEventListener('storage', handleWidgetSync);
-    return () => {
-      window.removeEventListener(TODO_STORAGE_EVENT, handleWidgetSync);
-      window.removeEventListener('storage', handleWidgetSync);
-    };
-  }, []);
+  const isWidgetEnabled = useTodoStore((s) => s.isWidgetEnabled);
+  const setWidgetEnabled = useTodoStore((s) => s.setWidgetEnabled);
 
   useEffect(() => {
     const availableIds = new Set(timers.map((timer) => timer.id));
@@ -284,9 +268,9 @@ export default function MobileTabBar({
 
   const tabsConfig = [
     { id: 'timer' as MobileTab, label: t('header.timers', '计时'), icon: FiClock },
-    { id: 'list' as MobileTab, label: t('header.manage', '列表'), icon: FiList, badge: timers.length },
+    { id: 'todo' as MobileTab, label: t('header.todo', '待办'), icon: FiCheckSquare },
     { id: 'add' as const, label: '新建', icon: FiPlus, isAction: true },
-    { id: 'background' as MobileTab, label: '背景', icon: FiImage },
+    { id: 'list' as MobileTab, label: t('header.manage', '列表'), icon: FiList, badge: timers.length },
     { id: 'settings' as MobileTab, label: t('header.settings', '设置'), icon: FiSettings },
   ];
 
@@ -467,7 +451,7 @@ export default function MobileTabBar({
         </div>
       </motion.nav>
 
-      {/* iOS-Style Bottom Sheet: 📋 列表 (Timers List & Management) */}
+      {/* iOS-Style Bottom Sheet: 列表 (Timers List & Management) */}
       <AnimatePresence>
         {activeTab === 'list' && (
           <div data-page-transition-ignore="true" className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
@@ -674,7 +658,7 @@ export default function MobileTabBar({
         )}
       </AnimatePresence>
 
-      {/* iOS-Style Bottom Sheet: ⚙️ 设置 (Settings & Functions) */}
+      {/* iOS-Style Bottom Sheet: 设置 (Settings & Functions) */}
       <AnimatePresence>
         {activeTab === 'settings' && (
           <div data-page-transition-ignore="true" className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
@@ -718,7 +702,7 @@ export default function MobileTabBar({
                 {/* Section: 外观与显示 */}
                 <div>
                   <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-1">
-                    外观与显示
+                    {t('mobile.appearance', '外观与显示')}
                   </h4>
                   <div className="rounded-2xl border border-white/20 bg-white/40 dark:border-white/10 dark:bg-white/5 divide-y divide-gray-200/40 dark:divide-white/5 backdrop-blur-md overflow-hidden">
                     {/* Theme Toggle */}
@@ -728,17 +712,20 @@ export default function MobileTabBar({
                           {theme === 'cream' ? <FiCoffee className="size-5" /> : <FiSun className="size-5" />}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">米白色模式</p>
-                          <p className="text-xs text-gray-500">
-                            {theme === 'cream' ? '已开启温润米白模式' : '当前为浅白模式'}
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {t('mobile.creamMode', '米白色模式')}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {theme === 'cream' ? t('mobile.creamActive', '已开启温润米白模式') : t('mobile.lightActive', '当前为浅白模式')}
                           </p>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={toggleTheme}
+                        aria-label={t('header.themeToggle', '切换主题')}
                         className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer ${
-                          theme === 'cream' ? 'bg-amber-600/80' : 'bg-gray-300'
+                          theme === 'cream' ? 'bg-amber-600/80' : 'bg-gray-300 dark:bg-white/20'
                         }`}
                       >
                         <motion.span
@@ -766,13 +753,13 @@ export default function MobileTabBar({
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {isFullscreen ? '退出全屏' : '进入全屏'}
+                            {isFullscreen ? t('header.exitFullscreen', '退出全屏') : t('header.fullscreen', '进入全屏')}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">纯净沉浸式体验</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('mobile.immersiveDesc', '纯净沉浸式体验')}</p>
                         </div>
                       </div>
                       <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">
-                        {isFullscreen ? '已全屏' : '切换'}
+                        {isFullscreen ? t('mobile.fullscreenActive', '已全屏') : t('mobile.fullscreenInactive', '切换')}
                       </span>
                     </button>
 
@@ -790,11 +777,11 @@ export default function MobileTabBar({
                           <FiImage className="size-5" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">背景壁纸</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">渐变、壁纸与毛玻璃模糊度</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('mobile.wallpaper', '背景壁纸')}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('mobile.wallpaperDesc', '渐变、壁纸与毛玻璃模糊度')}</p>
                         </div>
                       </div>
-                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">定制</span>
+                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">{t('mobile.customize', '定制')}</span>
                     </button>
                   </div>
                 </div>
@@ -802,29 +789,48 @@ export default function MobileTabBar({
                 {/* Section: 偏好与分享 */}
                 <div>
                   <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-1">
-                    偏好与分享
+                    {t('mobile.preferences', '偏好与分享')}
                   </h4>
                   <div className="rounded-2xl border border-white/20 bg-white/40 dark:border-white/10 dark:bg-white/5 divide-y divide-gray-200/40 dark:divide-white/5 backdrop-blur-md overflow-hidden">
-                    {/* Language Switch */}
+                    {/* International Segmented Language Switch */}
                     <div className="flex items-center justify-between p-3.5">
                       <div className="flex items-center gap-3">
                         <div className="size-9 rounded-xl bg-teal-500/10 text-teal-500 dark:bg-teal-400/15 dark:text-teal-400 flex items-center justify-center">
                           <FiGlobe className="size-5" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">语言 / Language</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {t('mobile.language', '语言 / Language')}
+                          </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {currentLang === 'zh-CN' ? '简体中文' : 'English (US)'}
+                            {currentLang === 'zh-CN' ? '简体中文 · zh-CN' : 'English · en-US'}
                           </p>
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => changeLanguage(currentLang === 'zh-CN' ? 'en-US' : 'zh-CN')}
-                        className="px-3 py-1.5 rounded-xl border border-gray-200/60 dark:border-white/10 bg-white/20 dark:bg-black/20 text-xs font-semibold text-gray-800 dark:text-gray-200 cursor-pointer hover:bg-white/40"
-                      >
-                        {currentLang === 'zh-CN' ? 'EN' : '中文'}
-                      </button>
+                      <div className="flex items-center p-1 rounded-xl bg-black/5 dark:bg-white/10 border border-black/5 dark:border-white/10 text-xs font-semibold">
+                        <button
+                          type="button"
+                          onClick={() => currentLang !== 'zh-CN' && changeLanguage('zh-CN')}
+                          className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                            currentLang === 'zh-CN'
+                              ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-300 shadow-xs'
+                              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                          }`}
+                        >
+                          中文
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => currentLang !== 'en-US' && changeLanguage('en-US')}
+                          className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-sans ${
+                            currentLang === 'en-US'
+                              ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-300 shadow-xs'
+                              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                          }`}
+                        >
+                          EN
+                        </button>
+                      </div>
                     </div>
 
                     {/* Todo & Checklist Page Trigger */}
@@ -841,11 +847,17 @@ export default function MobileTabBar({
                           <FiCheckSquare className="size-5" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">待办清单 (独立新页面)</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">大屏全景待办、支持拖拽与振动反馈</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {t('mobile.todoPageTitle', '待办清单 (独立新页面)')}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {t('mobile.todoPageDesc', '大屏全景待办、支持拖拽与振动反馈')}
+                          </p>
                         </div>
                       </div>
-                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">进入新页面</span>
+                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">
+                        {t('mobile.enterPage', '进入新页面')}
+                      </span>
                     </button>
 
                     {/* Todo & Checklist Floating Widget Trigger */}
@@ -853,8 +865,7 @@ export default function MobileTabBar({
                       type="button"
                       onClick={() => {
                         const next = !isWidgetEnabled;
-                        setIsWidgetEnabled(next);
-                        writeTodoWidgetVisible(next);
+                        setWidgetEnabled(next);
                         if (next) {
                           window.location.hash = 'todo-widget';
                           onTabChange('timer');
@@ -867,8 +878,12 @@ export default function MobileTabBar({
                           <FiList className="size-5" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">桌面待办悬浮挂件</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">右下角悬浮胶囊与轻量弹窗</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {t('mobile.todoWidgetTitle', '桌面待办悬浮挂件')}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {t('mobile.todoWidgetDesc', '右下角悬浮胶囊与轻量弹窗')}
+                          </p>
                         </div>
                       </div>
                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
@@ -876,7 +891,7 @@ export default function MobileTabBar({
                           ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400'
                           : 'bg-black/5 text-gray-400 dark:bg-white/10 dark:text-gray-500'
                       }`}>
-                        {isWidgetEnabled ? '显示中' : '已隐藏'}
+                        {isWidgetEnabled ? t('header.active', '显示中') : t('header.inactive', '已隐藏')}
                       </span>
                     </button>
 

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Reorder, useDragControls, motion } from 'framer-motion';
 import { FiCheck, FiTrash2, FiEdit2, FiCheckSquare, FiSquare } from 'react-icons/fi';
+import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { TodoItem } from '../types';
 
 interface TodoItemRowProps {
@@ -72,11 +73,7 @@ export default function TodoItemRow({
         aria-label="拖拽排序"
         title="拖拽排序"
       >
-        <span aria-hidden="true" className="grid grid-cols-2 gap-[2.5px]">
-          {Array.from({ length: 6 }, (_, index) => (
-            <span key={index} className="size-[2.5px] rounded-full bg-current" />
-          ))}
-        </span>
+        <RxDragHandleDots2 className="size-4.5 text-current" />
       </button>
 
       {/* 完成勾选框 */}

@@ -125,8 +125,11 @@ function CalendarTimeRows({
       aria-hidden="true"
       layout="position"
       transition={{ layout: { type: 'tween', duration: 0.24, ease: 'easeOut' } }}
-      className={`relative ${separatorClassName} font-thin text-gray-400`}
-      style={{ top: -separatorVerticalOffset }}
+      className={`relative ${separatorClassName} font-thin text-gray-400 select-none`}
+      style={{
+        top: -separatorVerticalOffset,
+        textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)',
+      }}
     >
       :
     </motion.span>
@@ -203,7 +206,8 @@ function CalendarTimeRows({
                   ease: 'easeOut',
                   layout: { type: 'tween', duration: 0.28, ease: 'easeInOut' },
                 }}
-                className={`${separatorClassName} font-thin text-gray-400`}
+                className={`${separatorClassName} font-thin text-gray-400 select-none`}
+                style={{ textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)' }}
               >
                 :
               </motion.span>
@@ -242,8 +246,11 @@ function CalendarTimeRows({
               transition: { duration: 0.2, delay: calendarExitDelay, ease: 'easeOut' },
             }}
             transition={{ duration: 0.2, ease: 'easeOut', layout: { type: 'tween', duration: 0.28, ease: 'easeInOut' } }}
-            className={`relative ${hasOnlyDays ? 'mx-2 inline-block sm:hidden lg:inline-block' : 'hidden lg:mx-2 lg:inline-block'} ${separatorClassName} font-thin text-gray-400`}
-            style={{ top: -separatorVerticalOffset }}
+            className={`relative ${hasOnlyDays ? 'mx-2 inline-block sm:hidden lg:inline-block' : 'hidden lg:mx-2 lg:inline-block'} ${separatorClassName} font-thin text-gray-400 select-none`}
+            style={{
+              top: -separatorVerticalOffset,
+              textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)',
+            }}
           >
             :
           </motion.span>
@@ -751,7 +758,7 @@ export default function TimerDisplay() {
               >
                 <button
                   onClick={() => handleStopwatchControl(isRunning ? 'pause' : 'play')}
-                  className="glass-card p-4 rounded-full hover:bg-white/10 dark:hover:bg-black/10 transition-colors cursor-pointer select-none"
+                  className="liquid-glass-control p-4 rounded-full cursor-pointer select-none"
                   style={{ color: activeTimer.color, zIndex: 41, position: 'relative', pointerEvents: 'auto', userSelect: 'none' }}
                 >
                   {isRunning ? <FiPause className="text-xl pointer-events-none" /> : <FiPlay className="text-xl pointer-events-none" />}
@@ -760,7 +767,7 @@ export default function TimerDisplay() {
               <button
                 onClick={() => handleStopwatchControl('lap')}
                 disabled={!isRunning}
-                className="glass-card p-4 rounded-full hover:bg-white/10 dark:hover:bg-black/10 transition-colors cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed"
+                className="liquid-glass-control p-4 rounded-full cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ color: activeTimer.color, zIndex: 41, position: 'relative', pointerEvents: 'auto', userSelect: 'none' }}
               >
                 <FiFlag className="text-xl pointer-events-none" />
@@ -768,7 +775,7 @@ export default function TimerDisplay() {
               <button
                 onClick={() => setIsStopwatchStopDialogOpen(true)}
                 aria-label={t('controls.stop')}
-                className="glass-card p-4 rounded-full hover:bg-white/10 dark:hover:bg-black/10 transition-colors cursor-pointer select-none"
+                className="liquid-glass-control p-4 rounded-full cursor-pointer select-none"
                 style={{ color: activeTimer.color, zIndex: 41, position: 'relative', pointerEvents: 'auto', userSelect: 'none' }}
               >
                 <FiSquare className="text-xl pointer-events-none" />
@@ -787,7 +794,7 @@ export default function TimerDisplay() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="glass-card px-6 py-4 rounded-xl"
+              className="liquid-glass-control px-6 py-4 rounded-xl"
             >
               <p className="text-lg font-medium text-gray-800 dark:text-gray-200">{t('timer.finished')}</p>
             </motion.div>
@@ -815,7 +822,7 @@ export default function TimerDisplay() {
         >
           {activeStopwatchTimer && activeStopwatchTimer.laps && activeStopwatchTimer.laps.length > 0 ? (
             <motion.button
-              className="glass-card px-6 py-3 rounded-xl hover:bg-white/10 dark:hover:bg-black/10 transition-colors cursor-pointer"
+              className="liquid-glass-control px-6 py-3 rounded-xl cursor-pointer"
               style={{ color: activeTimer.color, zIndex: 10, position: 'relative', pointerEvents: 'auto' }}
               onClick={() => { setIsLapModalOpen(true); track('lap_modal_open'); }}
               initial={{ opacity: 0, y: 20 }}

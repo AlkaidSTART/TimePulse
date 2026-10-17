@@ -316,8 +316,8 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                   exit={{ opacity: 0, y: -6, scale: 0.95 }}
                   className="mt-3 flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/15 py-2 px-4 text-xs md:text-sm font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                 >
-                  <FiZap className="size-4 animate-bounce" />
-                  <span>太棒了！全部清单项已顺利完成，手机已触发振动庆祝 🎉</span>
+                  <FiCheckCircle className="size-4 text-emerald-500" />
+                  <span>太棒了！全部清单项已顺利完成，已触发触觉反馈</span>
                 </motion.div>
               )}
             </AnimatePresence>

@@ -316,8 +316,8 @@ export default function TodoListWidget({
                     exit={{ opacity: 0, y: -4, scale: 0.9 }}
                     className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-emerald-500/15 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400"
                   >
-                    <FiZap className="size-3.5 animate-bounce" />
-                    <span>全部完成！手机已振动反馈 🎉</span>
+                    <FiCheckCircle className="size-3.5 text-emerald-500" />
+                    <span>全部任务已顺利完成，已触发触觉反馈</span>
                   </motion.div>
                 )}
               </AnimatePresence>

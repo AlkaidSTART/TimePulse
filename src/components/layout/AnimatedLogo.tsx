@@ -4,6 +4,9 @@ import { motion, useReducedMotion } from 'framer-motion';
 const LETTERS = ['T', 'i', 'm', 'e', 'P', 'u', 'l', 's', 'e'] as const;
 
 type AnimatedLogoProps = {
+  /** Logo 颜色，默认为活力暖橙 (#f97316) */
+  color?: string;
+  /** 兼容旧的 accentColor 属性名 */
   accentColor?: string;
   size?: 'md' | 'lg';
   className?: string;
@@ -12,7 +15,8 @@ type AnimatedLogoProps = {
 };
 
 export default function AnimatedLogo({
-  accentColor = '#0ea5e9',
+  color,
+  accentColor,
   size = 'lg',
   className = '',
   onClick,
@@ -21,6 +25,13 @@ export default function AnimatedLogo({
   const shouldReduceMotion = useReducedMotion();
   const [waveKey, setWaveKey] = useState(0);
   const isHoveredRef = useRef(false);
+
+  // 优先使用传入的 color 或 accentColor，默认使用高品质橙色
+  const effectiveColor = color ?? accentColor ?? '#f97316';
+  const isOrange = effectiveColor.toLowerCase() === '#f97316' || effectiveColor.toLowerCase() === 'orange';
+  const gradientImage = isOrange
+    ? 'linear-gradient(45deg, #f97316, #fb923c)'
+    : `linear-gradient(45deg, ${effectiveColor}, color-mix(in srgb, ${effectiveColor} 40%, transparent))`;
 
   // Periodic ambient pulse (subtle wave every ~8s when user is not actively hovering)
   useEffect(() => {
@@ -55,7 +66,7 @@ export default function AnimatedLogo({
     <h1
       aria-label="TimePulse"
       className={`font-bold font-display select-none cursor-pointer inline-flex items-center ${sizeClass} ${className}`}
-      style={{ '--logo-accent': accentColor } as CSSProperties}
+      style={{ '--logo-accent': effectiveColor } as CSSProperties}
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -67,13 +78,18 @@ export default function AnimatedLogo({
         onClick={onLinkClick}
       >
         {LETTERS.map((char, index) => {
+          const charStyle: CSSProperties = {
+            '--logo-accent': effectiveColor,
+            backgroundImage: gradientImage,
+          } as CSSProperties;
+
           if (shouldReduceMotion) {
             return (
               <span
                 key={index}
                 aria-hidden="true"
                 className="logo-gradient inline-block bg-clip-text text-transparent"
-                style={{ '--logo-accent': accentColor } as CSSProperties}
+                style={charStyle}
               >
                 {char}
               </span>
@@ -87,7 +103,7 @@ export default function AnimatedLogo({
               key={`${index}-${waveKey}`}
               aria-hidden="true"
               className="logo-gradient inline-block bg-clip-text text-transparent origin-bottom cursor-pointer will-change-transform"
-              style={{ '--logo-accent': accentColor } as CSSProperties}
+              style={charStyle}
               initial={waveKey === 0 ? { opacity: 0, y: 7, scale: 0.92 } : false}
               animate={{
                 opacity: 1,

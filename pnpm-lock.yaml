@@ -53,6 +53,9 @@ importers:
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
+      zustand:
+        specifier: ^5.0.15
+        version: 5.0.15(@types/react@19.2.18)(react@19.3.0)
     devDependencies:
       '@playwright/test':
         specifier: ^1.63.0
@@ -2858,6 +2861,24 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
+  zustand@5.0.15:
+    resolution: {integrity: sha512-MpSEjRiBkA9crSYeOUH32rJC7SVqAbm0Fqcqge/bUi2PPoLcBWKOsG+C8mevmpr8TwXHBVkChbbJiyvkE+i/3A==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      immer: '>=9.0.6'
+      react: '>=18.0.0'
+      use-sync-external-store: '>=1.2.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      immer:
+        optional: true
+      react:
+        optional: true
+      use-sync-external-store:
+        optional: true
+
 snapshots:
 
   '@adobe/css-tools@4.5.0': {}
@@ -5358,3 +5379,8 @@ snapshots:
   xmlchars@2.2.0: {}
 
   yocto-queue@0.1.0: {}
+
+  zustand@5.0.15(@types/react@19.2.18)(react@19.3.0):
+    optionalDependencies:
+      '@types/react': 19.2.18
+      react: 19.3.0

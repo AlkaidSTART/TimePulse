@@ -148,6 +148,7 @@ select,
   .glass-card,
   .moving-circle,
   .digit-column,
+  .liquid-glass-digit,
   .modal-container,
   .modal-content {
     transform: translateZ(0);
@@ -293,7 +294,8 @@ select,
     /* 为Safari增加硬件加速 */
     .glass-card,
     .moving-circle,
-    .digit-column {
+    .digit-column,
+    .liquid-glass-digit {
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
     }
@@ -412,6 +414,147 @@ select,
     /* Firefox优化：避免透明度闪烁 */
     backface-visibility: hidden;
     perspective: 1000px;
+  }
+
+  /* 液态玻璃时间卡片 - Liquid Glass Time Display */
+  .liquid-glass-digit {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.46) 0%,
+      rgba(255, 255, 255, 0.18) 45%,
+      rgba(255, 255, 255, 0.32) 100%
+    );
+    -webkit-backdrop-filter: blur(24px) saturate(190%) contrast(102%);
+    backdrop-filter: blur(24px) saturate(190%) contrast(102%);
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    box-shadow:
+      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.95),
+      inset 1px 0 1.5px 0 rgba(255, 255, 255, 0.55),
+      inset -1px 0 1.5px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.45),
+      inset 0 0 28px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -8px 20px 0 rgba(0, 0, 0, 0.025),
+      0 14px 34px -4px rgba(15, 23, 42, 0.08),
+      0 4px 12px -2px rgba(15, 23, 42, 0.04);
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+    perspective: 1000px;
+    transition: width 0.24s ease-out, border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .cream .liquid-glass-digit {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.58) 0%,
+      rgba(255, 252, 245, 0.26) 45%,
+      rgba(255, 250, 240, 0.4) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow:
+      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98),
+      inset 1px 0 1.5px 0 rgba(255, 255, 255, 0.65),
+      inset -1px 0 1.5px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.55),
+      inset 0 0 28px 0 rgba(255, 250, 240, 0.38),
+      inset 0 -8px 20px 0 rgba(140, 120, 95, 0.025),
+      0 14px 34px -4px rgba(140, 120, 95, 0.09),
+      0 4px 12px -2px rgba(140, 120, 95, 0.04);
+  }
+
+  @media (hover: hover) {
+    .liquid-glass-digit:hover {
+      box-shadow:
+        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
+        inset 1px 0 2px 0 rgba(255, 255, 255, 0.7),
+        inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.6),
+        inset 0 0 32px 0 rgba(255, 255, 255, 0.4),
+        0 18px 40px -4px rgba(15, 23, 42, 0.12),
+        0 6px 16px -2px rgba(15, 23, 42, 0.06);
+    }
+
+    .cream .liquid-glass-digit:hover {
+      box-shadow:
+        inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
+        inset 1px 0 2px 0 rgba(255, 255, 255, 0.75),
+        inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.65),
+        inset 0 0 32px 0 rgba(255, 250, 240, 0.45),
+        0 18px 40px -4px rgba(140, 120, 95, 0.12),
+        0 6px 16px -2px rgba(140, 120, 95, 0.06);
+    }
+  }
+
+  /* 液态玻璃控件与按钮 - Liquid Glass Controls */
+  .liquid-glass-control {
+    position: relative;
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.18) 50%,
+      rgba(255, 255, 255, 0.3) 100%
+    );
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.68);
+    box-shadow:
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.85),
+      inset 0 0 16px 0 rgba(255, 255, 255, 0.2),
+      0 8px 24px -4px rgba(15, 23, 42, 0.08),
+      0 2px 6px -1px rgba(15, 23, 42, 0.04);
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .cream .liquid-glass-control {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.58) 0%,
+      rgba(255, 252, 245, 0.26) 50%,
+      rgba(255, 250, 240, 0.4) 100%
+    );
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    box-shadow:
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 0 16px 0 rgba(255, 250, 240, 0.3),
+      0 8px 24px -4px rgba(140, 120, 95, 0.09),
+      0 2px 6px -1px rgba(140, 120, 95, 0.04);
+  }
+
+  @media (hover: hover) {
+    .liquid-glass-control:hover:not(:disabled) {
+      background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.6) 0%,
+        rgba(255, 255, 255, 0.28) 50%,
+        rgba(255, 255, 255, 0.45) 100%
+      );
+      box-shadow:
+        inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95),
+        inset 0 0 20px 0 rgba(255, 255, 255, 0.35),
+        0 12px 28px -4px rgba(15, 23, 42, 0.12),
+        0 4px 10px -2px rgba(15, 23, 42, 0.06);
+      transform: translateY(-1px);
+    }
+
+    .cream .liquid-glass-control:hover:not(:disabled) {
+      background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.72) 0%,
+        rgba(255, 252, 245, 0.38) 50%,
+        rgba(255, 250, 240, 0.55) 100%
+      );
+      box-shadow:
+        inset 0 1px 1.5px 0 rgba(255, 255, 255, 1),
+        inset 0 0 20px 0 rgba(255, 250, 240, 0.45),
+        0 12px 28px -4px rgba(140, 120, 95, 0.12),
+        0 4px 10px -2px rgba(140, 120, 95, 0.06);
+      transform: translateY(-1px);
+    }
   }
 
   .btn {

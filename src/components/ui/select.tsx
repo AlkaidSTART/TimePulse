@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Select as SelectPrimitive } from 'radix-ui';
 
 import { cn } from './utils';
+import { FiChevronDown, FiChevronUp, FiCheck } from 'react-icons/fi';
 
 const Select = SelectPrimitive.Root;
 const SelectGroup = SelectPrimitive.Group;
@@ -21,7 +22,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon aria-hidden className="ml-2 opacity-70">
-      <span aria-hidden>⌄</span>
+      <FiChevronDown className="size-4" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));
@@ -41,12 +42,12 @@ const SelectContent = React.forwardRef<
       )}
       {...props}
     >
-      <SelectPrimitive.ScrollUpButton className="flex h-6 cursor-default items-center justify-center">
-        <span aria-hidden>⌃</span>
+      <SelectPrimitive.ScrollUpButton className="flex h-6 cursor-default items-center justify-center text-gray-500">
+        <FiChevronUp className="size-3.5" />
       </SelectPrimitive.ScrollUpButton>
       <SelectPrimitive.Viewport className="p-1">{children}</SelectPrimitive.Viewport>
-      <SelectPrimitive.ScrollDownButton className="flex h-6 cursor-default items-center justify-center">
-        <span aria-hidden>⌄</span>
+      <SelectPrimitive.ScrollDownButton className="flex h-6 cursor-default items-center justify-center text-gray-500">
+        <FiChevronDown className="size-3.5" />
       </SelectPrimitive.ScrollDownButton>
     </SelectPrimitive.Content>
   </SelectPrimitive.Portal>
@@ -74,7 +75,9 @@ const SelectItem = React.forwardRef<
     {...props}
   >
     <span className="absolute left-2 flex size-3.5 items-center justify-center">
-      <SelectPrimitive.ItemIndicator>✓</SelectPrimitive.ItemIndicator>
+      <SelectPrimitive.ItemIndicator>
+        <FiCheck className="size-3.5 stroke-[2.5]" />
+      </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
   </SelectPrimitive.Item>

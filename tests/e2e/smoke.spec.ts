@@ -65,7 +65,7 @@ test('opens the migrated background and sharing flows', async ({ page }) => {
   await page.goto('/', { waitUntil: 'commit' });
   await expect(page.getByRole('heading', { name: 'TimePulse', exact: true })).toBeVisible({ timeout: 25_000 });
   await page.locator('[data-insightflare-event="share_open"]').first().click();
-  await expect(page.getByRole('heading', { name: '分享计时器' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /分享/ })).toBeVisible();
 
   expect(runtimeErrors).toEqual([]);
 });

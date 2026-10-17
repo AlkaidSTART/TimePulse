@@ -1,7 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
-import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare } from 'react-icons/fi';
+import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck } from 'react-icons/fi';
+import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
@@ -17,12 +18,9 @@ import { AutoResizer, AutoTransition } from '@/components/ui';
 import { LinearDialogTransition } from '@/components/composed';
 import MobileTabBar, { type MobileTab } from './MobileTabBar';
 import AnimatedLogo from './AnimatedLogo';
+import RouteNavigation from './RouteNavigation';
 import { usePageTransition } from '@/hooks/usePageTransition';
-import {
-  readTodoWidgetVisible,
-  writeTodoWidgetVisible,
-  TODO_STORAGE_EVENT,
-} from '@/features/todo';
+import { useTodoStore } from '@/stores';
 import { FiList } from 'react-icons/fi';
 
 type TimerUpdate = {
@@ -75,11 +73,7 @@ function TimerManageRow({
         aria-label={`${dragLabel}: ${timer.name}`}
         title={dragLabel}
       >
-        <span aria-hidden="true" className="grid grid-cols-2 gap-[3px] text-current transition-colors">
-          {Array.from({ length: 6 }, (_, index) => (
-            <span key={index} className="size-[3px] rounded-full bg-current" />
-          ))}
-        </span>
+        <RxDragHandleDots2 className="size-5 text-current" />
       </button>
       <div className="min-w-0 flex-1">
         <h3 className="truncate font-medium">{timer.name}</h3>
@@ -118,7 +112,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const { theme, toggleTheme, accentColor } = useTheme();
   const { isFullscreen, isHeaderVisible, headerHideDelay, showHeader, hideHeader, toggleFullscreen } = useFullscreen();
   const { view, transitionTo } = usePageTransition();
-  const { t, changeLanguage } = useTranslation();
+  const { t, currentLang, changeLanguage } = useTranslation();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>('timer');
   const [isManageOpen, setIsManageOpen] = useState(false);
@@ -130,20 +124,10 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const [isTimerCreationOpen, setIsTimerCreationOpen] = useState(false);
   const [timerOrder, setTimerOrder] = useState(() => timers.map((timer) => timer.id));
   const timerOrderRef = useRef(timerOrder);
-  const [isWidgetEnabled, setIsWidgetEnabled] = useState(() => readTodoWidgetVisible());
+  const isWidgetEnabled = useTodoStore((s) => s.isWidgetEnabled);
+  const setWidgetEnabled = useTodoStore((s) => s.setWidgetEnabled);
   const navRef = useRef<HTMLElement>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
-
-  // 同步悬浮挂件启用状态
-  useEffect(() => {
-    const syncWidget = () => setIsWidgetEnabled(readTodoWidgetVisible());
-    window.addEventListener(TODO_STORAGE_EVENT, syncWidget);
-    window.addEventListener('storage', syncWidget);
-    return () => {
-      window.removeEventListener(TODO_STORAGE_EVENT, syncWidget);
-      window.removeEventListener('storage', syncWidget);
-    };
-  }, []);
 
   // Close tools dropdown on outside click
   useEffect(() => {
@@ -332,29 +316,37 @@ export default function Header({ onHeightChange }: HeaderProps) {
         ref={navRef}
         className="hidden md:flex w-full items-center justify-between relative px-6 md:px-10 py-3.5 bg-transparent"
       >
-        {/* Logo */}
-        <motion.div 
-          className="flex items-center justify-start z-10 shrink-0"
-          initial={{ opacity: 0, x: -15 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <AnimatedLogo
-            accentColor={accentColor}
-            size="lg"
-            onClick={() => {
-              if (view === 'todo') transitionTo('main');
-            }}
-            onLinkClick={(e) => {
-              if (view === 'todo') {
-                e.preventDefault();
-                transitionTo('main');
-              }
-            }}
-          />
-        </motion.div>
+        {/* Left: Logo & Route Navigation */}
+        <div className="flex items-center gap-3.5 z-10 shrink-0">
+          <motion.div 
+            className="flex items-center justify-start shrink-0"
+            initial={{ opacity: 0, x: -15 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <AnimatedLogo
+              color="#f97316"
+              size="lg"
+              onClick={() => {
+                if (view === 'todo') transitionTo('main');
+              }}
+              onLinkClick={(e) => {
+                if (view === 'todo') {
+                  e.preventDefault();
+                  transitionTo('main');
+                }
+              }}
+            />
+          </motion.div>
 
-        {/* Center: Dynamic Island Capsule Switcher */}
+          {/* Subtle separator */}
+          <div className="h-4 w-px bg-gray-300/60 dark:bg-white/15 hidden sm:block" />
+
+          {/* Route Navigation with Hover Effects and Active Route Display */}
+          <RouteNavigation />
+        </div>
+
+        {/* Center: Dynamic Island Capsule Switcher (always visible) */}
         <TimerTabs
           timers={timers}
           activeTimerId={activeTimerId}
@@ -393,7 +385,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
             onClick={() => {
               if (window.location.hash !== '#background') window.location.hash = 'background';
             }}
-            title="背景设置"
+            title={t('header.background', '背景设置')}
             data-insightflare-event="background_open"
           >
             <FiImage className="size-4.5" />
@@ -414,34 +406,12 @@ export default function Header({ onHeightChange }: HeaderProps) {
             <FiShare2 className="size-4.5" />
           </button>
 
-          {/* Todo & Checklist */}
-          <button
-            type="button"
-            className={`size-8.5 rounded-full inline-flex items-center justify-center cursor-pointer transition-all ${
-              view === 'todo'
-                ? 'bg-primary-500/20 text-primary-600 dark:text-primary-300 ring-1 ring-primary-500/40 shadow-xs'
-                : 'hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300'
-            }`}
-            onClick={() => {
-              if (view === 'todo') {
-                transitionTo('main');
-              } else {
-                transitionTo('todo');
-              }
-            }}
-            title={view === 'todo' ? '返回计时器' : '待办与核对清单'}
-            aria-label={view === 'todo' ? '返回计时器' : '待办与核对清单'}
-            data-insightflare-event="todo_widget_toggle"
-          >
-            <FiCheckSquare className="size-4.5" />
-          </button>
-
           {/* Theme Toggle */}
           <button
             type="button"
             className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
             onClick={toggleTheme}
-            title={theme === 'cream' ? '切换浅色模式' : '切换米白色模式'}
+            title={theme === 'cream' ? t('header.themeLight', '切换浅色模式') : t('header.themeCream', '切换米白色模式')}
             data-insightflare-event="theme_toggle"
             data-insightflare-event-to={theme === 'cream' ? 'light' : 'cream'}
           >
@@ -453,7 +423,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
             type="button"
             className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
             onClick={toggleFullscreen}
-            title={isFullscreen ? '退出全屏' : '全屏显示'}
+            title={isFullscreen ? t('header.exitFullscreen', '退出全屏') : t('header.fullscreen', '全屏显示')}
             data-insightflare-event="fullscreen_toggle"
             data-insightflare-event-to={isFullscreen ? 'off' : 'on'}
           >
@@ -494,7 +464,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
                   >
                     <FiImage className="size-4 text-purple-500" />
-                    <span>背景设置</span>
+                    <span>{t('header.background', '背景设置')}</span>
                   </button>
 
                   <button
@@ -519,7 +489,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
                   >
                     <FiCheckSquare className="size-4 text-emerald-500" />
-                    <span>待办清单 (新页面)</span>
+                    <span>{t('header.todoPage', '待办清单 (新页面)')}</span>
                   </button>
 
                   <button
@@ -527,8 +497,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     onClick={() => {
                       setIsToolsOpen(false);
                       const next = !isWidgetEnabled;
-                      setIsWidgetEnabled(next);
-                      writeTodoWidgetVisible(next);
+                      setWidgetEnabled(next);
                       if (next) {
                         if (view === 'todo') {
                           transitionTo('main');
@@ -540,7 +509,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                   >
                     <div className="flex items-center gap-2.5">
                       <FiList className="size-4 text-blue-500" />
-                      <span>桌面悬浮挂件</span>
+                      <span>{t('header.todoWidget', '桌面悬浮挂件')}</span>
                     </div>
                     <span
                       className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
@@ -549,7 +518,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                           : 'bg-black/5 text-gray-400 dark:bg-white/10 dark:text-gray-500'
                       }`}
                     >
-                      {isWidgetEnabled ? '显示中' : '已隐藏'}
+                      {isWidgetEnabled ? t('header.active', '显示中') : t('header.inactive', '已隐藏')}
                     </span>
                   </button>
 
@@ -562,7 +531,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
                   >
                     <FiGlobe className="size-4 text-teal-500" />
-                    <span>切换语言 ({t('header.language')})</span>
+                    <span>{t('header.languagePreferences', '语言偏好 / Language')}</span>
                   </button>
 
                   <div className="h-px bg-gray-200/60 dark:bg-white/10 my-1" />
@@ -577,7 +546,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
                   >
                     <FiSettings className="size-4 text-gray-500" />
-                    <span>管理全部计时器</span>
+                    <span>{t('header.manageAllTimers', '管理全部计时器')}</span>
                   </button>
                 </motion.div>
               )}
@@ -587,28 +556,32 @@ export default function Header({ onHeightChange }: HeaderProps) {
       </nav>
 
       {/* Mobile Top Bar: Completely transparent */}
-      <div className="md:hidden flex items-center justify-between px-5 pt-3 pb-1 w-full pointer-events-auto bg-transparent">
-        {/* Minimal Brand Logo */}
-        <motion.div
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4 }}
-          className="flex items-center"
-        >
-          <AnimatedLogo
-            accentColor={accentColor}
-            size="md"
-            onClick={() => {
-              if (view === 'todo') transitionTo('main');
-            }}
-            onLinkClick={(e) => {
-              if (view === 'todo') {
-                e.preventDefault();
-                transitionTo('main');
-              }
-            }}
-          />
-        </motion.div>
+      <div className="md:hidden flex items-center justify-between px-4 pt-3 pb-1 w-full pointer-events-auto bg-transparent">
+        {/* Minimal Brand Logo & Route Switcher */}
+        <div className="flex items-center gap-2">
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex items-center shrink-0"
+          >
+            <AnimatedLogo
+              color="#f97316"
+              size="md"
+              onClick={() => {
+                if (view === 'todo') transitionTo('main');
+              }}
+              onLinkClick={(e) => {
+                if (view === 'todo') {
+                  e.preventDefault();
+                  transitionTo('main');
+                }
+              }}
+            />
+          </motion.div>
+
+          <RouteNavigation compact />
+        </div>
 
         {/* Minimal Quick Action */}
         <div className="flex items-center gap-2">
@@ -823,57 +796,111 @@ export default function Header({ onHeightChange }: HeaderProps) {
             onClick={() => setIsLanguageOpen(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="glass-card w-full max-w-sm m-4 p-6 rounded-2xl"
+              initial={{ scale: 0.94, opacity: 0, y: 12 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.94, opacity: 0, y: 12 }}
+              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              className="glass-card w-full max-w-md m-4 p-6 sm:p-7 rounded-3xl shadow-2xl border border-white/30 dark:border-white/10 backdrop-blur-2xl"
               onClick={(e: ReactMouseEvent<HTMLDivElement>) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">{t('header.selectLanguage')}</h2>
+              {/* Header with international Globe Icon */}
+              <div className="flex justify-between items-start mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-2xl bg-primary-500/10 text-primary-600 dark:bg-primary-500/20 dark:text-primary-300">
+                    <FiGlobe className="size-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                      {t('header.languagePreferences', '语言偏好 / Language')}
+                    </h2>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {t('header.languageDescription', '选择界面的显示语言，设置将即时生效')}
+                    </p>
+                  </div>
+                </div>
                 <button
-                  className="p-1 rounded-full btn-ghost cursor-pointer"
+                  type="button"
+                  className="size-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-black/5 dark:hover:bg-white/10 dark:hover:text-gray-200 transition-colors cursor-pointer"
                   onClick={() => setIsLanguageOpen(false)}
+                  aria-label={t('common.close', '关闭')}
                 >
-                  <FiX className="text-xl" />
+                  <FiX className="size-5" />
                 </button>
               </div>
 
-              <div className="space-y-2">
+              {/* Language Options List */}
+              <div className="space-y-2.5">
+                {/* 简体中文 (Chinese Simplified) */}
                 <button
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 hover:bg-white/20 dark:hover:bg-black/20 text-left transition-all cursor-pointer"
+                  type="button"
+                  className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer group ${
+                    currentLang === 'zh-CN'
+                      ? 'border-primary-500 bg-primary-500/10 dark:bg-primary-500/15 ring-2 ring-primary-500/25 shadow-xs'
+                      : 'border-black/6 bg-white/40 hover:bg-white/80 dark:border-white/8 dark:bg-white/5 dark:hover:bg-white/10'
+                  }`}
                   onClick={() => switchLanguage('zh-CN')}
                   data-insightflare-event="language_change"
                   data-insightflare-event-lang="zh-CN"
                 >
-                  <div className="flex items-center">
-                    <span className="text-2xl mr-3">🇨🇳</span>
-                    <div>
-                      <div className="font-medium">{t('header.chinese')}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{t('header.chineseSimplified')}</div>
-                    </div>
+                  <div className="flex flex-col">
+                    <span className="text-base font-semibold text-gray-900 dark:text-white tracking-tight">
+                      简体中文
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {t('header.chineseDesc', '中文 (简体) · zh-CN')}
+                    </span>
                   </div>
+
+                  {currentLang === 'zh-CN' ? (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-500 text-white text-[11px] font-semibold shadow-xs">
+                      <FiCheck className="size-3.5 stroke-[3]" />
+                      <span>{t('header.currentActive', '当前使用')}</span>
+                    </div>
+                  ) : (
+                    <span className="size-5 rounded-full border border-gray-300 dark:border-gray-600 group-hover:border-primary-400 transition-colors" />
+                  )}
                 </button>
 
+                {/* English (United States) */}
                 <button
-                  className="w-full px-4 py-3 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 hover:bg-white/20 dark:hover:bg-black/20 text-left transition-all cursor-pointer"
+                  type="button"
+                  className={`w-full p-4 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer group ${
+                    currentLang === 'en-US'
+                      ? 'border-primary-500 bg-primary-500/10 dark:bg-primary-500/15 ring-2 ring-primary-500/25 shadow-xs'
+                      : 'border-black/6 bg-white/40 hover:bg-white/80 dark:border-white/8 dark:bg-white/5 dark:hover:bg-white/10'
+                  }`}
                   onClick={() => switchLanguage('en-US')}
                   data-insightflare-event="language_change"
                   data-insightflare-event-lang="en-US"
                 >
-                  <div className="flex items-center">
-                    <span className="text-2xl mr-3">🇺🇸</span>
-                    <div>
-                      <div className="font-medium">{t('header.english')}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">{t('header.englishUS')}</div>
-                    </div>
+                  <div className="flex flex-col">
+                    <span className="text-base font-semibold text-gray-900 dark:text-white tracking-tight font-sans">
+                      English
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {t('header.englishDesc', 'English (United States) · en-US')}
+                    </span>
                   </div>
+
+                  {currentLang === 'en-US' ? (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-500 text-white text-[11px] font-semibold shadow-xs">
+                      <FiCheck className="size-3.5 stroke-[3]" />
+                      <span>{t('header.currentActive', 'Active')}</span>
+                    </div>
+                  ) : (
+                    <span className="size-5 rounded-full border border-gray-300 dark:border-gray-600 group-hover:border-primary-400 transition-colors" />
+                  )}
                 </button>
               </div>
 
-              <div className="flex justify-start pt-4">
-                <button className="btn-glass-secondary" onClick={() => setIsLanguageOpen(false)}>
-                  {t('common.cancel')}
+              {/* Bottom cancel action */}
+              <div className="flex justify-end pt-5">
+                <button
+                  type="button"
+                  className="px-5 py-2 rounded-xl text-xs md:text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  onClick={() => setIsLanguageOpen(false)}
+                >
+                  {t('common.cancel', '取消')}
                 </button>
               </div>
             </motion.div>
@@ -901,8 +928,18 @@ export default function Header({ onHeightChange }: HeaderProps) {
 
     {/* Mobile Bottom TabBar with iOS Liquid Droplet Capsule Animation */}
     <MobileTabBar
-      activeTab={mobileTab}
-      onTabChange={setMobileTab}
+      activeTab={view === 'todo' ? 'todo' : mobileTab}
+      onTabChange={(tab) => {
+        if (tab === 'todo') {
+          transitionTo('todo');
+          setMobileTab('todo');
+        } else {
+          if (view === 'todo') {
+            transitionTo('main');
+          }
+          setMobileTab(tab);
+        }
+      }}
       timers={timers}
       activeTimerId={activeTimerId}
       setActiveTimerId={setActiveTimerId}
