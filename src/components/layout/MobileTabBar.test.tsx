@@ -74,6 +74,18 @@ describe('MobileTabBar component', () => {
     expect(activeLabel.className).toContain('text-gray-950');
   });
 
+  it('renders convex lens dome reflection and meniscus surface tension line in water droplet indicator', () => {
+    const { container } = render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="timer" />
+      </ThemeProvider>,
+    );
+
+    const droplet = container.querySelector('.liquid-droplet-pill');
+    expect(droplet).not.toBeNull();
+    expect(droplet?.children.length).toBeGreaterThanOrEqual(2);
+  });
+
   it('synchronizes Mobile and Pad layout by using lg:hidden on nav container', () => {
     const { container } = render(
       <ThemeProvider>
@@ -83,6 +95,19 @@ describe('MobileTabBar component', () => {
 
     const nav = container.querySelector('nav');
     expect(nav?.className).toContain('lg:hidden');
+  });
+
+  it('renders center action + button as transparent liquid droplet without blue background', () => {
+    render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} />
+      </ThemeProvider>,
+    );
+
+    const addButton = screen.getByLabelText('新建计时器');
+    expect(addButton).not.toBeNull();
+    expect(addButton.className).toContain('liquid-droplet-button');
+    expect(addButton.style.backgroundColor).toBe('');
   });
 
   it('renders settings and functions bottom sheet in single-screen layout when activeTab is settings', () => {

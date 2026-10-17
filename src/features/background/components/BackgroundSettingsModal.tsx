@@ -202,9 +202,9 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
         </div>
 
         {/* Tab 切换 */}
-        <div className="flex space-x-2 pb-6">
+        <div className="flex gap-1.5 sm:gap-2 pb-5">
           <button
-            className={`flex-1 py-3 px-4 rounded-lg border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-sm font-medium transition-all ${
+            className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-2 sm:px-4 text-xs sm:text-sm h-11 rounded-lg border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-sm font-medium transition-all ${
               activeTab === 'url' ? 'shadow-sm' : 'hover:bg-white/20 dark:hover:bg-black/20'
             }`}
             style={
@@ -218,11 +218,11 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
             }
             onClick={() => selectTab('url')}
           >
-            <FiLink className="inline mr-2" />
-            图片 URL
+            <FiLink className="size-3.5 sm:size-4 shrink-0" />
+            <span className="truncate">图片 URL</span>
           </button>
           <button
-            className={`flex-1 py-3 px-4 rounded-lg border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-sm font-medium transition-all ${
+            className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-2 sm:px-4 text-xs sm:text-sm h-11 rounded-lg border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-sm font-medium transition-all ${
               activeTab === 'file' ? 'shadow-sm' : 'hover:bg-white/20 dark:hover:bg-black/20'
             }`}
             style={
@@ -236,11 +236,11 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
             }
             onClick={() => selectTab('file')}
           >
-            <FiUpload className="inline mr-2" />
-            上传文件
+            <FiUpload className="size-3.5 sm:size-4 shrink-0" />
+            <span className="truncate">上传文件</span>
           </button>
           <button
-            className={`flex-1 py-3 px-4 rounded-lg border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-sm font-medium transition-all ${
+            className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-2 sm:px-4 text-xs sm:text-sm h-11 rounded-lg border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-sm font-medium transition-all ${
               activeTab === 'preview' ? 'shadow-sm' : 'hover:bg-white/20 dark:hover:bg-black/20'
             }`}
             style={
@@ -254,8 +254,8 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
             }
             onClick={() => selectTab('preview')}
           >
-            <FiEye className="inline mr-2" />
-            预览与调整
+            <FiEye className="size-3.5 sm:size-4 shrink-0" />
+            <span className="truncate">预览调整</span>
           </button>
         </div>
 

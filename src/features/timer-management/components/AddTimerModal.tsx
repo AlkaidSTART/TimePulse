@@ -187,7 +187,7 @@ export default function AddTimerModal({ onClose, onBack, embedded = false }: Add
               
               <div>
                 <label className="block text-sm font-medium mb-1">{t('modal.countdown.date', '目标日期')}</label>
-                <div className="flex items-center">
+                <div className="relative flex items-center">
                   <span className="absolute pl-3 text-gray-500 z-10"><FiCalendar /></span>
                   <input
                     type="date"
@@ -202,7 +202,7 @@ export default function AddTimerModal({ onClose, onBack, embedded = false }: Add
               
               <div>
                 <label className="block text-sm font-medium mb-1">{t('modal.countdown.time', '目标时间')}</label>
-                <div className="flex items-center">
+                <div className="relative flex items-center">
                   <span className="absolute pl-3 text-gray-500 z-10"><FiClock /></span>
                   <input
                     type="time"

@@ -134,7 +134,7 @@ export default function TodoItemRow({
       </div>
 
       {/* 快捷操作：编辑与删除 */}
-      <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+      <div className="flex shrink-0 items-center gap-1 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
         {!isEditing && (
           <button
             type="button"

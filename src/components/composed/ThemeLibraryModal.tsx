@@ -220,13 +220,13 @@ export default function ThemeLibraryModal({
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 mb-1.5 font-medium">
                   推荐搭配色
                 </p>
-                <div className="grid grid-cols-10 gap-1.5">
+                <div className="grid grid-cols-5 gap-2 pt-0.5">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color}
                       type="button"
                       onClick={() => handleCustomColorChange(color)}
-                      className={`size-6 rounded-full border border-black/10 dark:border-white/15 transition-transform hover:scale-110 active:scale-95 ${
+                      className={`w-full aspect-square rounded-full border border-black/10 dark:border-white/15 transition-transform hover:scale-110 active:scale-95 ${
                         customHex.toLowerCase() === color.toLowerCase()
                           ? 'ring-2 ring-black dark:ring-white'
                           : ''

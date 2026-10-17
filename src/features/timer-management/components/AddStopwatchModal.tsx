@@ -158,7 +158,7 @@ export default function AddStopwatchModal({ onClose, onBack, embedded = false }:
                     <label className="block text-sm font-medium mb-1" htmlFor="stopwatch-start-time">
                       {t('modal.addStopwatch.customStartTime', '自定义时间')}
                     </label>
-                    <div className="flex items-center">
+                    <div className="relative flex items-center">
                       <span className="absolute pl-3 text-gray-500 z-10"><FiCalendar /></span>
                       <input
                         id="stopwatch-start-time"

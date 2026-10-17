@@ -183,6 +183,10 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
     <div
       data-page-view="todo"
       className={`relative flex h-full min-h-0 w-full flex-col overflow-y-auto px-4 pt-16 pb-28 lg:pt-20 lg:pb-12 ${className}`}
+      style={{
+        paddingTop: 'max(4.25rem, calc(3.5rem + env(safe-area-inset-top, 0px)))',
+        paddingBottom: 'max(6.5rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)))',
+      }}
     >
       <div className="mx-auto w-full max-w-2xl flex flex-col gap-5">
         {/* 顶部操作条：返回主页 + 标题 + 振动控制 */}
@@ -376,7 +380,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between px-1 pb-1 text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 px-1 pb-1 text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
                 <span>{t('todo.dragTip', '提示：按住左侧手柄可上下拖拽自由排序')}</span>
                 <span>{t('todo.editTip', '双击文本可快速修改')}</span>
               </div>

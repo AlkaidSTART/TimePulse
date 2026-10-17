@@ -714,17 +714,17 @@ export default function Header({ onHeightChange }: HeaderProps) {
         <div className="flex items-center gap-1.5">
           {timezoneInfo && (
             <div
-              className="inline-flex h-8 items-center gap-1 px-2.5 rounded-full bg-white/60 dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/10 text-[11px] font-medium text-gray-700 dark:text-gray-200 shadow-xs backdrop-blur-xl select-none shrink-0"
+              className="inline-flex h-8 items-center gap-1 px-2.5 rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-[11px] font-medium text-gray-700 dark:text-gray-200 shadow-xs backdrop-blur-xl select-none shrink-0"
               title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
             >
-              <FiGlobe className="size-3 shrink-0 text-gray-500 dark:text-gray-400" />
+              <FiGlobe className="size-3 shrink-0" style={{ color: accentColor || '#0ea5e9' }} />
               <span className="truncate max-w-[100px] xs:max-w-[140px]">{timezoneInfo.text}</span>
             </div>
           )}
 
           <button
             type="button"
-            className="inline-flex size-8 items-center justify-center rounded-full bg-white/60 dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
+            className="inline-flex size-8 items-center justify-center rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
             onClick={() => setIsShareOpen(true)}
             aria-label="分享"
             title="分享与二维码"
