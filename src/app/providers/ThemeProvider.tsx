@@ -6,9 +6,13 @@ export type { Theme };
 export type ThemeContextValue = {
   theme: Theme;
   accentColor: string;
+  themePresetId: string;
   toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
   updateAccentColor: (color: string) => void;
+  setThemePreset: (presetId: string, customColor?: string) => void;
 };
+
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
