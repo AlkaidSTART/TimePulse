@@ -20,7 +20,8 @@
     "patch:android-icons": "node scripts/patch-android-icons.mjs",
     "patch:android-orientation": "node scripts/patch-android-orientation.mjs",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "capture:screenshots": "node scripts/capture-docs-screenshots.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
