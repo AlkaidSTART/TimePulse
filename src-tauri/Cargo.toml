@@ -1,0 +1,28 @@
+[package]
+name = "time-pulse"
+version = "0.7.0"
+description = "TimePulse - 现代化计时器应用"
+authors = ["AlkaidSTART"]
+license = "Apache-2.0"
+repository = "https://github.com/AlkaidSTART/TimePulse"
+edition = "2024"
+rust-version = "1.90"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "time_pulse_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
