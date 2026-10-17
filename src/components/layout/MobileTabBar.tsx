@@ -314,21 +314,30 @@ export default function MobileTabBar({
         <div className="relative mx-auto flex h-[58px] w-full items-center justify-around rounded-full border border-black/[0.08] bg-white/85 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] backdrop-blur-2xl dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)]">
           {tabsConfig.map((item) => {
             if (item.isAction) {
-              // Center Action: "+" Button - Modern solid glowing button
+              // Center Action: "+" Button - Apple Liquid Glass Transparent Water Droplet (Zero Blue)
               return (
                 <div key={item.id} className="relative flex flex-1 items-center justify-center px-1">
                   <motion.button
                     type="button"
                     onClick={handleAddClick}
                     whileTap={{ scale: 0.9 }}
-                    className="relative flex size-10.5 items-center justify-center rounded-full text-white cursor-pointer transition-transform focus:outline-none"
-                    style={{
-                      backgroundColor: accentColor || '#0ea5e9',
-                      boxShadow: `0 4px 14px color-mix(in srgb, ${accentColor || '#0ea5e9'} 45%, transparent)`,
-                    }}
+                    className="relative flex size-10.5 items-center justify-center rounded-full text-gray-900 dark:text-white cursor-pointer transition-all focus:outline-none border border-white/60 dark:border-white/20 bg-white/30 dark:bg-white/10 backdrop-blur-xl shadow-[inset_0_1.5px_1px_rgba(255,255,255,0.85),inset_0_-1px_1px_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.06)] active:bg-white/50 dark:active:bg-white/20 overflow-hidden"
                     aria-label="新建计时器"
                   >
-                    <FiPlus className="size-5 stroke-[2.4]" />
+                    {/* Top specular dome reflection on the droplet */}
+                    <div
+                      className="pointer-events-none absolute inset-x-0 top-0 h-[48%] overflow-hidden rounded-t-full"
+                      aria-hidden="true"
+                    >
+                      <div
+                        className="w-full h-full"
+                        style={{
+                          background:
+                            'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.1) 60%, transparent 100%)',
+                        }}
+                      />
+                    </div>
+                    <FiPlus className="size-5 stroke-[2.4] relative z-10" />
                   </motion.button>
                 </div>
               );
@@ -348,13 +357,37 @@ export default function MobileTabBar({
                   aria-selected={isActive}
                   role="tab"
                 >
-                  {/* Clean Minimalist Active Tab Capsule Indicator */}
+                  {/* Apple Liquid Glass Transparent Water Droplet Active Indicator */}
                   {isActive && (
                     <motion.div
                       layoutId="mobile-active-tab-indicator"
-                      className="liquid-droplet-pill absolute inset-1 rounded-full pointer-events-none"
+                      className="liquid-droplet-pill absolute inset-1 rounded-full pointer-events-none overflow-hidden"
                       transition={tabSpring}
-                    />
+                    >
+                      {/* Top Specular Lens Dome Highlight */}
+                      <div
+                        className="pointer-events-none absolute inset-x-0 top-0 h-[48%] overflow-hidden rounded-t-full"
+                        aria-hidden="true"
+                      >
+                        <div
+                          className="w-full h-full"
+                          style={{
+                            background:
+                              'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 60%, transparent 100%)',
+                          }}
+                        />
+                      </div>
+
+                      {/* Bottom Meniscus Surface Tension Line */}
+                      <div
+                        className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] rounded-full opacity-65"
+                        style={{
+                          background:
+                            'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 50%, transparent 100%)',
+                        }}
+                        aria-hidden="true"
+                      />
+                    </motion.div>
                   )}
 
                   {/* Content: Icon + Label */}
@@ -628,36 +661,36 @@ export default function MobileTabBar({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 360 }}
-              className="relative z-10 flex max-h-[92vh] flex-col rounded-t-[28px] border-t border-white/25 bg-white/90 px-4 pt-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-neutral-900/90"
+              className="relative z-10 flex max-h-[92vh] flex-col rounded-t-[32px] border-t border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-3xl dark:border-white/[0.08] dark:bg-[#141416]/95"
             >
               {/* Grab Bar */}
-              <div className="mx-auto h-1 w-10 rounded-full bg-gray-400/40 dark:bg-gray-600/60 mb-2" />
+              <div className="mx-auto h-1 w-9 rounded-full bg-black/15 dark:bg-white/20 mb-2.5" />
 
               {/* Sheet Header */}
-              <div className="flex items-center justify-between pb-2.5 border-b border-gray-200/50 dark:border-white/10">
+              <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.06] dark:border-white/[0.06]">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white font-display">
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white font-display tracking-tight">
                     {t('header.settingsAndTools', '设置与功能')}
                   </h3>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.08] text-gray-500 dark:text-gray-400">
                     v{currentVersion}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => onTabChange('timer')}
-                  className="size-7 inline-flex items-center justify-center rounded-full bg-gray-200/60 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-300/60 cursor-pointer transition-colors"
+                  className="size-7.5 inline-flex items-center justify-center rounded-full bg-black/[0.04] dark:bg-white/[0.08] text-gray-500 dark:text-gray-300 hover:bg-black/[0.08] dark:hover:bg-white/[0.14] cursor-pointer transition-colors"
                   aria-label="关闭"
                 >
                   <FiX className="size-4" />
                 </button>
               </div>
 
-              {/* Grouped Controls - Compact single-screen layout */}
-              <div className="mt-2.5 flex flex-col gap-2.5 overflow-y-auto">
+              {/* Grouped Controls - Apple-style grouped layout */}
+              <div className="mt-3 flex flex-col gap-3.5 overflow-y-auto">
                 {/* Section 1: 快捷开关 (2x2 Grid) */}
                 <div>
-                  <div className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">
+                  <div className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-0.5">
                     {t('mobile.quickControls', '快捷开关')}
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -665,24 +698,24 @@ export default function MobileTabBar({
                     <button
                       type="button"
                       onClick={toggleTheme}
-                      className={`flex items-center justify-between p-2.5 rounded-xl border text-left cursor-pointer transition-all active:scale-[0.98] ${
+                      className={`flex items-center justify-between p-2.5 rounded-2xl border text-left cursor-pointer transition-all active:scale-[0.98] ${
                         theme === 'cream'
-                          ? 'border-amber-500/40 bg-amber-500/12 dark:bg-amber-500/18 shadow-xs'
-                          : 'border-white/30 bg-white/50 dark:border-white/10 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10'
+                          ? 'border-black/15 bg-white dark:border-white/20 dark:bg-white/[0.1] shadow-xs'
+                          : 'border-black/[0.06] bg-white/60 dark:border-white/[0.06] dark:bg-white/[0.03] hover:bg-white/80 dark:hover:bg-white/[0.06]'
                       } backdrop-blur-md`}
                     >
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className={`size-7.5 rounded-lg flex items-center justify-center shrink-0 ${
+                          className={`size-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                             theme === 'cream'
-                              ? 'bg-amber-500/25 text-amber-600 dark:text-amber-400'
-                              : 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300'
+                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                              : 'bg-black/[0.04] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300'
                           }`}
                         >
                           {theme === 'cream' ? <FiCoffee className="size-4" /> : <FiSun className="size-4" />}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate tracking-tight">
                             {t('mobile.creamMode', '米白模式')}
                           </p>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
@@ -691,11 +724,12 @@ export default function MobileTabBar({
                         </div>
                       </div>
                       <div
-                        className={`size-4 rounded-full flex items-center justify-center shrink-0 border ${
+                        className={`size-4.5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
                           theme === 'cream'
-                            ? 'bg-amber-500 border-amber-600 text-white'
-                            : 'border-gray-300 dark:border-gray-600 bg-transparent'
+                            ? 'border-transparent text-white'
+                            : 'border-black/20 dark:border-white/20 bg-transparent'
                         }`}
+                        style={theme === 'cream' ? { backgroundColor: accentColor || '#0ea5e9' } : undefined}
                       >
                         {theme === 'cream' && <FiCheck className="size-2.5 stroke-[3]" />}
                       </div>
@@ -708,24 +742,24 @@ export default function MobileTabBar({
                         toggleFullscreen();
                         onTabChange('timer');
                       }}
-                      className={`flex items-center justify-between p-2.5 rounded-xl border text-left cursor-pointer transition-all active:scale-[0.98] ${
+                      className={`flex items-center justify-between p-2.5 rounded-2xl border text-left cursor-pointer transition-all active:scale-[0.98] ${
                         isFullscreen
-                          ? 'border-primary-500/40 bg-primary-500/12 dark:bg-primary-500/18 shadow-xs'
-                          : 'border-white/30 bg-white/50 dark:border-white/10 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10'
+                          ? 'border-black/15 bg-white dark:border-white/20 dark:bg-white/[0.1] shadow-xs'
+                          : 'border-black/[0.06] bg-white/60 dark:border-white/[0.06] dark:bg-white/[0.03] hover:bg-white/80 dark:hover:bg-white/[0.06]'
                       } backdrop-blur-md`}
                     >
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className={`size-7.5 rounded-lg flex items-center justify-center shrink-0 ${
+                          className={`size-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                             isFullscreen
-                              ? 'bg-primary-500/25 text-primary-600 dark:text-primary-400'
-                              : 'bg-indigo-500/10 text-indigo-500 dark:bg-indigo-400/15 dark:text-indigo-400'
+                              ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400'
+                              : 'bg-black/[0.04] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300'
                           }`}
                         >
                           {isFullscreen ? <FiMinimize className="size-4" /> : <FiMaximize className="size-4" />}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate tracking-tight">
                             {isFullscreen ? t('header.exitFullscreen', '退出全屏') : t('header.fullscreen', '全屏显示')}
                           </p>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
@@ -734,11 +768,12 @@ export default function MobileTabBar({
                         </div>
                       </div>
                       <div
-                        className={`size-4 rounded-full flex items-center justify-center shrink-0 border ${
+                        className={`size-4.5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
                           isFullscreen
-                            ? 'bg-primary-500 border-primary-600 text-white'
-                            : 'border-gray-300 dark:border-gray-600 bg-transparent'
+                            ? 'border-transparent text-white'
+                            : 'border-black/20 dark:border-white/20 bg-transparent'
                         }`}
+                        style={isFullscreen ? { backgroundColor: accentColor || '#0ea5e9' } : undefined}
                       >
                         {isFullscreen && <FiCheck className="size-2.5 stroke-[3]" />}
                       </div>
@@ -755,24 +790,24 @@ export default function MobileTabBar({
                           onTabChange('timer');
                         }
                       }}
-                      className={`flex items-center justify-between p-2.5 rounded-xl border text-left cursor-pointer transition-all active:scale-[0.98] ${
+                      className={`flex items-center justify-between p-2.5 rounded-2xl border text-left cursor-pointer transition-all active:scale-[0.98] ${
                         isWidgetEnabled
-                          ? 'border-emerald-500/40 bg-emerald-500/12 dark:bg-emerald-500/18 shadow-xs'
-                          : 'border-white/30 bg-white/50 dark:border-white/10 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10'
+                          ? 'border-black/15 bg-white dark:border-white/20 dark:bg-white/[0.1] shadow-xs'
+                          : 'border-black/[0.06] bg-white/60 dark:border-white/[0.06] dark:bg-white/[0.03] hover:bg-white/80 dark:hover:bg-white/[0.06]'
                       } backdrop-blur-md`}
                     >
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
                         <div
-                          className={`size-7.5 rounded-lg flex items-center justify-center shrink-0 ${
+                          className={`size-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                             isWidgetEnabled
-                              ? 'bg-emerald-500/25 text-emerald-600 dark:text-emerald-400'
-                              : 'bg-blue-500/10 text-blue-500 dark:bg-blue-400/15 dark:text-blue-400'
+                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-black/[0.04] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300'
                           }`}
                         >
                           <FiList className="size-4" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate tracking-tight">
                             {t('mobile.todoWidgetTitle', '桌面挂件')}
                           </p>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
@@ -781,24 +816,25 @@ export default function MobileTabBar({
                         </div>
                       </div>
                       <div
-                        className={`size-4 rounded-full flex items-center justify-center shrink-0 border ${
+                        className={`size-4.5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
                           isWidgetEnabled
-                            ? 'bg-emerald-500 border-emerald-600 text-white'
-                            : 'border-gray-300 dark:border-gray-600 bg-transparent'
+                            ? 'border-transparent text-white'
+                            : 'border-black/20 dark:border-white/20 bg-transparent'
                         }`}
+                        style={isWidgetEnabled ? { backgroundColor: accentColor || '#0ea5e9' } : undefined}
                       >
                         {isWidgetEnabled && <FiCheck className="size-2.5 stroke-[3]" />}
                       </div>
                     </button>
 
                     {/* Language Switcher Card */}
-                    <div className="flex items-center justify-between p-2.5 rounded-xl border border-white/30 bg-white/50 dark:border-white/10 dark:bg-white/5 backdrop-blur-md">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="size-7.5 rounded-lg bg-teal-500/10 text-teal-600 dark:bg-teal-400/15 dark:text-teal-400 flex items-center justify-center shrink-0">
+                    <div className="flex items-center justify-between p-2.5 rounded-2xl border border-black/[0.06] bg-white/60 dark:border-white/[0.06] dark:bg-white/[0.03] backdrop-blur-md">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="size-8 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300 flex items-center justify-center shrink-0">
                           <FiGlobe className="size-4" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate tracking-tight">
                             {t('mobile.language', '语言')}
                           </p>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
@@ -806,14 +842,14 @@ export default function MobileTabBar({
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center p-0.5 rounded-lg bg-black/6 dark:bg-white/10 text-[10px] font-semibold shrink-0">
+                      <div className="flex items-center p-0.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] text-[10px] font-semibold shrink-0 border border-black/[0.04] dark:border-white/[0.04]">
                         <button
                           type="button"
                           onClick={() => currentLang !== 'zh-CN' && changeLanguage('zh-CN')}
-                          className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
+                          className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
                             currentLang === 'zh-CN'
-                              ? 'bg-primary-500 text-white shadow-xs font-bold'
-                              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                              ? 'bg-white dark:bg-white/[0.16] text-gray-900 dark:text-white shadow-xs font-bold'
+                              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                           }`}
                         >
                           中
@@ -821,10 +857,10 @@ export default function MobileTabBar({
                         <button
                           type="button"
                           onClick={() => currentLang !== 'en-US' && changeLanguage('en-US')}
-                          className={`px-2 py-0.5 rounded-md transition-all cursor-pointer font-sans ${
+                          className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer font-sans ${
                             currentLang === 'en-US'
-                              ? 'bg-primary-500 text-white shadow-xs font-bold'
-                              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                              ? 'bg-white dark:bg-white/[0.16] text-gray-900 dark:text-white shadow-xs font-bold'
+                              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                           }`}
                         >
                           EN
@@ -834,27 +870,27 @@ export default function MobileTabBar({
                   </div>
                 </div>
 
-                {/* Section 2: 功能与服务 (Compact Unified List Card) */}
+                {/* Section 2: 功能与服务 (Apple Grouped List Style) */}
                 <div>
-                  <div className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 px-0.5">
+                  <div className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-0.5">
                     {t('mobile.preferences', '功能与偏好')}
                   </div>
-                  <div className="rounded-xl border border-white/30 bg-white/50 dark:border-white/10 dark:bg-white/5 divide-y divide-gray-200/40 dark:divide-white/5 backdrop-blur-md overflow-hidden">
+                  <div className="rounded-2xl border border-black/[0.06] bg-white/70 dark:border-white/[0.06] dark:bg-white/[0.03] divide-y divide-black/[0.04] dark:divide-white/[0.04] backdrop-blur-xl overflow-hidden shadow-xs">
                     {/* Theme Color Palette */}
                     <button
                       type="button"
                       onClick={() => setIsThemeLibraryOpen(true)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-white/40 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+                      className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
                         <div
-                          className="size-7 rounded-lg flex items-center justify-center shrink-0 shadow-xs text-white"
-                          style={{ backgroundColor: accentColor || '#10A37F' }}
+                          className="size-7.5 rounded-xl flex items-center justify-center shrink-0 shadow-xs text-white"
+                          style={{ backgroundColor: accentColor || '#0ea5e9' }}
                         >
-                          <LuPalette className="size-3.5 stroke-[2.2]" />
+                          <LuPalette className="size-4 stroke-[2.2]" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white tracking-tight truncate">
                             {t('theme.title', '主题配色库')}
                           </p>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
@@ -862,31 +898,30 @@ export default function MobileTabBar({
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0 pl-2">
+                      <div className="flex items-center gap-2 text-xs text-gray-500 shrink-0 pl-2">
                         <span
-                          className="size-3.5 rounded-full border border-black/10 dark:border-white/20 inline-block shadow-xs"
-                          style={{ backgroundColor: accentColor || '#10A37F' }}
+                          className="size-4 rounded-full border border-black/10 dark:border-white/20 inline-block shadow-xs"
+                          style={{ backgroundColor: accentColor || '#0ea5e9' }}
                         />
                         <FiChevronRight className="size-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </button>
 
                     {/* Background Settings */}
-
                     <button
                       type="button"
                       onClick={() => {
                         onOpenBackground();
                         onTabChange('timer');
                       }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-white/40 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+                      className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="size-7 rounded-lg bg-purple-500/10 text-purple-600 dark:bg-purple-400/15 dark:text-purple-400 flex items-center justify-center shrink-0">
-                          <FiImage className="size-3.5" />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-7.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                          <FiImage className="size-4" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white tracking-tight truncate">
                             {t('mobile.wallpaper', '背景壁纸')}
                           </p>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
@@ -895,7 +930,7 @@ export default function MobileTabBar({
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-primary-600 dark:text-primary-400 text-xs shrink-0 pl-2">
-                        <span>{t('mobile.customize', '定制')}</span>
+                        <span className="text-[11px] font-medium">{t('mobile.customize', '定制')}</span>
                         <FiChevronRight className="size-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </button>
@@ -907,14 +942,14 @@ export default function MobileTabBar({
                         window.location.hash = 'todo';
                         onTabChange('timer');
                       }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-white/40 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+                      className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="size-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                          <FiCheckSquare className="size-3.5" />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-7.5 rounded-xl bg-teal-500/10 text-teal-600 dark:bg-teal-400/15 dark:text-teal-400 flex items-center justify-center shrink-0">
+                          <FiCheckSquare className="size-4" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white tracking-tight truncate">
                             {t('mobile.todoPageTitle', '待办清单')}
                           </p>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
@@ -923,7 +958,7 @@ export default function MobileTabBar({
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-primary-600 dark:text-primary-400 text-xs shrink-0 pl-2">
-                        <span>{t('mobile.enterPage', '进入')}</span>
+                        <span className="text-[11px] font-medium">{t('mobile.enterPage', '进入')}</span>
                         <FiChevronRight className="size-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </button>
@@ -935,14 +970,14 @@ export default function MobileTabBar({
                         onOpenShare();
                         onTabChange('timer');
                       }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-white/40 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+                      className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="size-7 rounded-lg bg-blue-500/10 text-blue-600 dark:bg-blue-400/15 dark:text-blue-400 flex items-center justify-center shrink-0">
-                          <FiShare2 className="size-3.5" />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-7.5 rounded-xl bg-sky-500/10 text-sky-600 dark:bg-sky-400/15 dark:text-sky-400 flex items-center justify-center shrink-0">
+                          <FiShare2 className="size-4" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white tracking-tight truncate">
                             {t('share.title', '分享与二维码')}
                           </p>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
@@ -951,7 +986,7 @@ export default function MobileTabBar({
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-primary-600 dark:text-primary-400 text-xs shrink-0 pl-2">
-                        <span>查看</span>
+                        <span className="text-[11px] font-medium">查看</span>
                         <FiChevronRight className="size-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </button>
@@ -963,14 +998,14 @@ export default function MobileTabBar({
                         onTabChange('timer');
                         openAboutModal();
                       }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-white/40 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+                      className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="size-7 rounded-lg bg-orange-500/10 text-orange-600 dark:bg-orange-400/15 dark:text-orange-400 flex items-center justify-center shrink-0">
-                          <FiInfo className="size-3.5" />
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-7.5 rounded-xl bg-neutral-500/10 text-neutral-600 dark:bg-white/10 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                          <FiInfo className="size-4" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white tracking-tight truncate">
                             {t('version.title', '版本与更新')}
                           </p>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
@@ -984,7 +1019,7 @@ export default function MobileTabBar({
                         {hasUpdate && (
                           <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
                         )}
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300">
                           v{currentVersion}
                         </span>
                         <FiChevronRight className="size-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
@@ -994,7 +1029,7 @@ export default function MobileTabBar({
                 </div>
 
                 {/* Footer branding */}
-                <div className="text-center pt-0.5 pb-0.5">
+                <div className="text-center pt-1 pb-1">
                   <button
                     type="button"
                     onClick={() => {

@@ -82,6 +82,21 @@ function DigitColumn({
         }}
         transition={{ type: 'spring', stiffness: 380, damping: 25 }}
       >
+        {/* Top hairline specular highlight */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 dark:via-white/25 to-transparent"
+          aria-hidden="true"
+        />
+
+        {/* Ambient glow matching digit color */}
+        <div
+          className="pointer-events-none absolute -bottom-6 inset-x-2 h-10 rounded-full blur-xl opacity-20 dark:opacity-35 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(ellipse at center, ${color} 0%, transparent 75%)`,
+          }}
+          aria-hidden="true"
+        />
+
         <NumberFlow
           value={isValueVisible ? value : 0}
           format={{ minimumIntegerDigits: 2, useGrouping: false }}
@@ -104,11 +119,11 @@ function DigitColumn({
         />
       </motion.div>
 
-      <div className={`relative mt-2 flex w-full items-center justify-center ${labelSlotHeightClasses[labelFontSize]}`}>
+      <div className={`relative mt-2.5 flex w-full items-center justify-center ${labelSlotHeightClasses[labelFontSize]}`}>
         <AnimatePresence initial={false} mode="wait">
           <motion.span
             key={label}
-            className={`absolute inset-x-0 whitespace-nowrap text-center ${labelFontSizeClasses[labelFontSize]} text-gray-500 dark:text-gray-400`}
+            className={`absolute inset-x-0 whitespace-nowrap text-center ${labelFontSizeClasses[labelFontSize]} font-medium tracking-wider text-gray-500/90 dark:text-gray-400/90`}
             initial={{ opacity: 0, y: 3 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -3 }}

@@ -231,7 +231,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
         </div>
 
         {/* 页面主标题卡片 */}
-        <div className="relative overflow-hidden rounded-3xl border border-white/30 bg-white/60 p-5 md:p-6 shadow-xl backdrop-blur-2xl dark:border-white/10 dark:bg-neutral-900/70">
+        <div className="relative overflow-hidden rounded-3xl border border-black/[0.06] bg-white/80 p-5 md:p-6 shadow-xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-[#141416]/90">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
@@ -328,7 +328,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
 
         {/* 快速添加任务输入栏 */}
         <form onSubmit={handleAddItem} className="w-full">
-          <div className="flex items-center gap-2 rounded-2xl border border-white/40 bg-white/70 p-2 pl-4 shadow-lg backdrop-blur-xl transition-all focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/20 dark:border-white/10 dark:bg-neutral-900/80">
+          <div className="flex items-center gap-2 rounded-2xl border border-black/[0.06] bg-white/80 p-2 pl-4 shadow-sm backdrop-blur-xl transition-all focus-within:border-black/20 focus-within:ring-2 focus-within:ring-black/5 dark:border-white/[0.08] dark:bg-[#141416]/90 dark:focus-within:border-white/20 dark:focus-within:ring-white/5">
             <input
               ref={inputRef}
               type="text"
@@ -344,7 +344,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
             <button
               type="submit"
               disabled={!inputText.trim()}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 font-semibold text-xs md:text-sm text-white shadow-sm disabled:opacity-40 transition-all cursor-pointer shrink-0"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 font-semibold text-xs md:text-sm text-white shadow-xs disabled:opacity-40 transition-all cursor-pointer shrink-0"
               style={{ backgroundColor: accentColor || '#0ea5e9' }}
               aria-label={t('todo.add', '添加')}
             >
@@ -355,7 +355,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
         </form>
 
         {/* 任务列表主体 */}
-        <div className="flex flex-col gap-2 rounded-3xl border border-white/30 bg-white/60 p-4 md:p-5 shadow-xl backdrop-blur-2xl dark:border-white/10 dark:bg-neutral-900/70 min-h-[280px]">
+        <div className="flex flex-col gap-2 rounded-3xl border border-black/[0.06] bg-white/80 p-4 md:p-5 shadow-xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-[#141416]/90 min-h-[280px]">
           {currentTabItems.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center py-12 text-center text-gray-400 dark:text-gray-500">
               <div className="flex size-14 items-center justify-center rounded-2xl bg-black/5 dark:bg-white/5 mb-3">

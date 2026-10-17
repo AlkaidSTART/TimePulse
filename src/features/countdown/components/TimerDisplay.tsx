@@ -126,10 +126,9 @@ function CalendarTimeRows({
       aria-hidden="true"
       layout="position"
       transition={{ layout: { type: 'tween', duration: 0.24, ease: 'easeOut' } }}
-      className={`relative ${separatorClassName} font-thin text-gray-400 select-none`}
+      className={`relative ${separatorClassName} font-light text-gray-400/80 dark:text-gray-500/80 select-none`}
       style={{
         top: -separatorVerticalOffset,
-        textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)',
       }}
     >
       :

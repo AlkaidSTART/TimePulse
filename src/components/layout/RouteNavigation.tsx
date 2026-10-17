@@ -106,18 +106,11 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               onMouseLeave={() => setHoveredRoute(null)}
               whileHover={{ y: -0.5 }}
               whileTap={{ scale: 0.94 }}
-              style={
-                isActive
-                  ? {
-                      backgroundColor: accentColor || '#10A37F',
-                    }
-                  : undefined
-              }
               className={`group relative flex items-center justify-center gap-1.5 rounded-full select-none cursor-pointer outline-none transition-all duration-200 ${
                 compact ? 'px-2.5 py-1 text-[11px]' : 'px-3 py-1.5 text-xs'
               } ${
                 isActive
-                  ? 'text-white font-semibold shadow-xs'
+                  ? 'text-gray-950 dark:text-white font-semibold'
                   : 'text-gray-700 hover:text-gray-950 dark:text-gray-200 dark:hover:text-white font-medium bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.08] dark:hover:bg-white/[0.12]'
               }`}
               data-insightflare-event={route.id === 'todo' ? 'todo_route_toggle' : 'timer_route_toggle'}
@@ -134,19 +127,30 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                 />
               )}
 
-              {/* Active Route Pill Slider */}
+              {/* Active Route Pill Slider - Apple Liquid Glass Transparent Water Droplet */}
               {isActive && (
                 <motion.div
                   layoutId="route-nav-active-pill"
                   initial={false}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 rounded-full pointer-events-none shadow-xs"
-                  style={{
-                    backgroundColor: accentColor || '#10A37F',
-                  }}
+                  className="liquid-droplet-pill absolute inset-0 rounded-full pointer-events-none overflow-hidden"
                   transition={{ type: 'spring', stiffness: 450, damping: 28 }}
-                />
+                >
+                  {/* Top Specular Lens Dome Highlight */}
+                  <div
+                    className="pointer-events-none absolute inset-x-0 top-0 h-[48%] overflow-hidden rounded-t-full"
+                    aria-hidden="true"
+                  >
+                    <div
+                      className="w-full h-full"
+                      style={{
+                        background:
+                          'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 60%, transparent 100%)',
+                      }}
+                    />
+                  </div>
+                </motion.div>
               )}
 
 
@@ -165,7 +169,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                     compact ? 'size-3' : 'size-3.5'
                   } ${
                     isActive
-                      ? 'text-white stroke-[2.3]'
+                      ? 'text-gray-950 dark:text-white stroke-[2.3]'
                       : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white stroke-[1.8]'
                   }`}
                 />
@@ -175,7 +179,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               <span
                 className={`relative z-10 tracking-tight transition-colors duration-150 whitespace-nowrap ${
                   isActive
-                    ? 'font-semibold text-white'
+                    ? 'font-semibold text-gray-950 dark:text-white'
                     : 'text-gray-700 dark:text-gray-200 group-hover:text-gray-950 dark:group-hover:text-white'
                 }`}
               >
@@ -187,8 +191,8 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                 <span
                   className={`relative z-10 ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold transition-colors ${
                     isActive
-                      ? 'bg-white/25 text-white'
-                      : 'bg-primary-500/15 text-primary-600 dark:text-primary-300'
+                      ? 'bg-black/10 text-gray-900 dark:bg-white/15 dark:text-white'
+                      : 'bg-black/5 text-gray-600 dark:bg-white/10 dark:text-gray-300'
                   }`}
                   title={`${pendingTodoCount} 个待办事项待完成`}
                 >

@@ -61,11 +61,11 @@ export default function TodoItemRow({
       dragListener={false}
       dragControls={dragControls}
       onDragEnd={onDragEnd}
-      className={`group relative flex items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 transition-colors select-none ${
+      className={`group relative flex items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 transition-all select-none ${
         item.completed
-          ? 'border-black/5 bg-black/5 dark:border-white/5 dark:bg-white/5 opacity-75'
-          : 'border-white/20 bg-white/40 hover:bg-white/60 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
-      } backdrop-blur-md shadow-xs`}
+          ? 'border-black/[0.04] bg-black/[0.02] dark:border-white/[0.04] dark:bg-white/[0.02] opacity-60'
+          : 'border-black/[0.06] bg-white/75 hover:bg-white/95 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] shadow-xs'
+      } backdrop-blur-md`}
     >
       {/* 拖拽手柄 */}
       <button
