@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   FiClock,
   FiCheckSquare,
@@ -20,6 +20,9 @@ import {
   type TimeSlotConfig,
 } from '../cheerData';
 
+// 15秒无限轮播间隔（落在用户期望的10-20s区间，兼顾阅读节奏与动态感）
+const QUOTE_AUTO_ROTATE_MS = 15000;
+
 export default function CheerPage() {
   const shouldReduceMotion = useReducedMotion();
   const { transitionTo } = usePageTransition();
@@ -27,7 +30,11 @@ export default function CheerPage() {
   const [currentTime, setCurrentTime] = useState(() => new Date());
   const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * INSPIRATIONAL_QUOTES.length));
   const [isCopied, setIsCopied] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [pendingTodosCount, setPendingTodosCount] = useState(0);
+  const elapsedRef = useRef(0);
 
   // 每秒更新当前时间
   useEffect(() => {
@@ -88,14 +95,34 @@ export default function CheerPage() {
 
   const currentQuote = INSPIRATIONAL_QUOTES[quoteIndex] || INSPIRATIONAL_QUOTES[0];
 
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // 切换金句
-  const handleNextQuote = useCallback(() => {
-    setIsRefreshing(true);
+  // 切换金句（支持手动点击或自动轮播触发，切换时重置进度）
+  const handleNextQuote = useCallback((manual = false) => {
+    elapsedRef.current = 0;
+    setProgress(0);
+    if (manual) {
+      setIsRefreshing(true);
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
     setQuoteIndex((prev) => (prev + 1) % INSPIRATIONAL_QUOTES.length);
-    setTimeout(() => setIsRefreshing(false), 500);
   }, []);
+
+  // 15秒无限轮播定时器（悬停、已复制或页面不可见时暂停，移开后无缝恢复计时）
+  useEffect(() => {
+    if (isHovered || isCopied) return;
+
+    const timer = setInterval(() => {
+      if (document.hidden) return;
+
+      elapsedRef.current += 100;
+      if (elapsedRef.current >= QUOTE_AUTO_ROTATE_MS) {
+        handleNextQuote(false);
+      } else {
+        setProgress(elapsedRef.current / QUOTE_AUTO_ROTATE_MS);
+      }
+    }, 100);
+
+    return () => clearInterval(timer);
+  }, [isHovered, isCopied, handleNextQuote]);
 
   // 复制金句
   const handleCopyQuote = useCallback(() => {
@@ -154,16 +181,21 @@ export default function CheerPage() {
           </div>
         </motion.div>
 
-        {/* 今日灵感一言（固定高度避免布局跳动，集成 TextEffect 字符动效） */}
+        {/* 今日灵感一言（15s无限轮播卡片，悬停暂停，集成细腻流转动效） */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.08 }}
-          className="relative w-full rounded-2xl border border-black/[0.05] dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-4 sm:p-5 backdrop-blur-xl h-[148px] sm:h-[140px] flex flex-col justify-between overflow-hidden"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchStart={() => setIsHovered(true)}
+          onTouchEnd={() => setIsHovered(false)}
+          onTouchCancel={() => setIsHovered(false)}
+          className="relative w-full rounded-2xl border border-black/[0.05] dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-4 sm:p-5 backdrop-blur-xl h-[148px] sm:h-[140px] flex flex-col justify-between overflow-hidden group select-none"
         >
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/[0.04] dark:border-white/[0.06] shrink-0">
             <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500 dark:text-gray-400">
-              <span className="size-1.5 rounded-full bg-primary-500" />
+              <span className={cn('size-1.5 rounded-full bg-primary-500 transition-transform duration-300', !isHovered && !isCopied && 'animate-pulse')} />
               <span>今日灵感</span>
             </div>
             <div className="flex items-center gap-1">
@@ -187,7 +219,7 @@ export default function CheerPage() {
               </button>
               <button
                 type="button"
-                onClick={handleNextQuote}
+                onClick={() => handleNextQuote(true)}
                 title="换一句"
                 className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
               >
@@ -197,28 +229,42 @@ export default function CheerPage() {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col justify-between min-h-0 pt-0.5">
-            <div className="flex-1 flex items-center min-h-0 overflow-hidden">
-              <TextEffect
-                key={currentQuote.text}
-                per="char"
-                preset="fade-in-blur"
-                speedReveal={1.6}
-                speedSegment={1.2}
-                className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic select-text"
+          <div className="relative flex-1 flex flex-col justify-between min-h-0 pt-0.5 overflow-hidden">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={quoteIndex}
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 6, filter: 'blur(3px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, filter: 'blur(3px)' }}
+                transition={{ duration: 0.28, ease: 'easeInOut' }}
+                className="flex-1 flex flex-col justify-between min-h-0"
               >
-                {`“${currentQuote.text}”`}
-              </TextEffect>
-            </div>
-            <motion.div
-              key={`author-${currentQuote.author}-${quoteIndex}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.35, delay: 0.15 }}
-              className="mt-1 text-right text-[11px] text-gray-400 dark:text-gray-500 shrink-0"
-            >
-              —— {currentQuote.author}
-            </motion.div>
+                <div className="flex-1 flex items-center min-h-0 overflow-hidden">
+                  <TextEffect
+                    per="char"
+                    preset="fade-in-blur"
+                    speedReveal={1.6}
+                    speedSegment={1.2}
+                    className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic select-text"
+                  >
+                    {`“${currentQuote.text}”`}
+                  </TextEffect>
+                </div>
+                <div className="mt-1 text-right text-[11px] text-gray-400 dark:text-gray-500 shrink-0">
+                  —— {currentQuote.author}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* 轮播倒计时微进度指示条（极简雅致，悬停时暂停） */}
+          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-black/[0.03] dark:bg-white/[0.04] overflow-hidden pointer-events-none">
+            <div
+              className="h-full bg-primary-500/35 dark:bg-primary-400/35 transition-all duration-100 ease-linear rounded-full"
+              style={{
+                width: `${Math.min(100, Math.max(0, progress * 100))}%`,
+              }}
+            />
           </div>
         </motion.div>
 
