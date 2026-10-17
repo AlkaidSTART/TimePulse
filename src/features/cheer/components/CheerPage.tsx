@@ -8,6 +8,7 @@ import {
   FiCopy,
   FiCheck,
   FiUser,
+  FiLoader,
 } from 'react-icons/fi';
 import { usePageTransition } from '@/hooks/usePageTransition';
 import { readTodoItems } from '@/features/todo/todoStorage';
@@ -32,6 +33,7 @@ export default function CheerPage() {
   const [isCopied, setIsCopied] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [pendingTodosCount, setPendingTodosCount] = useState(0);
   const elapsedRef = useRef(0);
@@ -95,15 +97,66 @@ export default function CheerPage() {
 
   const currentQuote = INSPIRATIONAL_QUOTES[quoteIndex] || INSPIRATIONAL_QUOTES[0];
 
-  // 切换金句（支持手动点击或自动轮播触发，切换时重置进度）
+  const lastSwitchTimeRef = useRef(0);
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 清理所有挂起的定时器
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+      if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    };
+  }, []);
+
+  // 鼠标与触摸交互防抖：进入立即响应暂停，离开提供 200ms 缓冲防抖，防止短时间误划启停
+  const handleMouseEnter = useCallback(() => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setIsHovered(true);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      setIsHovered(false);
+    }, 200);
+  }, []);
+
+  // 切换金句（支持手动点击防抖与自动轮播触发，呈现极简 loading 状态）
   const handleNextQuote = useCallback((manual = false) => {
+    const now = Date.now();
+    // 手动点击防抖/节流：450ms 内忽略重复高频点击，防止高频误触
+    if (manual && now - lastSwitchTimeRef.current < 450) {
+      return;
+    }
+    lastSwitchTimeRef.current = now;
+
     elapsedRef.current = 0;
     setProgress(0);
+    setIsLoading(true);
+
     if (manual) {
       setIsRefreshing(true);
-      setTimeout(() => setIsRefreshing(false), 500);
+      if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+      refreshTimeoutRef.current = setTimeout(() => {
+        setIsRefreshing(false);
+      }, 500);
     }
-    setQuoteIndex((prev) => (prev + 1) % INSPIRATIONAL_QUOTES.length);
+
+    if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+    loadingTimeoutRef.current = setTimeout(() => {
+      setQuoteIndex((prev) => (prev + 1) % INSPIRATIONAL_QUOTES.length);
+      setIsLoading(false);
+    }, 350);
   }, []);
 
   // 15秒无限轮播定时器（悬停、已复制或页面不可见时暂停，移开后无缝恢复计时）
@@ -124,16 +177,21 @@ export default function CheerPage() {
     return () => clearInterval(timer);
   }, [isHovered, isCopied, handleNextQuote]);
 
-  // 复制金句
+  // 复制金句（防抖保护，处于复制反馈态时忽略重复点击）
   const handleCopyQuote = useCallback(() => {
+    if (isCopied) return;
+
     const textToCopy = `“${currentQuote.text}” —— ${currentQuote.author}`;
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(textToCopy).then(() => {
         setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 1800);
+        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+        copyTimeoutRef.current = setTimeout(() => setIsCopied(false), 1800);
+      }).catch(() => {
+        // clipboard failure fallback
       });
     }
-  }, [currentQuote]);
+  }, [currentQuote, isCopied]);
 
   return (
     <div className="relative flex h-full w-full flex-col items-center justify-center overflow-y-auto px-4 py-8 landscape:py-3 landscape:pb-20 md:py-12 select-none">
@@ -186,11 +244,11 @@ export default function CheerPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.08 }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          onTouchStart={() => setIsHovered(true)}
-          onTouchEnd={() => setIsHovered(false)}
-          onTouchCancel={() => setIsHovered(false)}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleMouseEnter}
+          onTouchEnd={handleMouseLeave}
+          onTouchCancel={handleMouseLeave}
           className="relative w-full rounded-2xl border border-black/[0.05] dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-4 sm:p-5 backdrop-blur-xl h-[148px] sm:h-[140px] flex flex-col justify-between overflow-hidden group select-none"
         >
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/[0.04] dark:border-white/[0.06] shrink-0">
@@ -201,9 +259,13 @@ export default function CheerPage() {
             <div className="flex items-center gap-1">
               <button
                 type="button"
+                disabled={isCopied}
                 onClick={handleCopyQuote}
                 title="复制此句"
-                className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                className={cn(
+                  'flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer',
+                  isCopied && 'cursor-default'
+                )}
               >
                 {isCopied ? (
                   <>
@@ -219,9 +281,13 @@ export default function CheerPage() {
               </button>
               <button
                 type="button"
+                disabled={isRefreshing || isLoading}
                 onClick={() => handleNextQuote(true)}
                 title="换一句"
-                className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                className={cn(
+                  'flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer',
+                  (isRefreshing || isLoading) && 'opacity-60 cursor-not-allowed'
+                )}
               >
                 <FiRefreshCw className={cn('size-3 transition-transform duration-500', isRefreshing && 'rotate-180')} />
                 <span>换一句</span>
@@ -231,29 +297,44 @@ export default function CheerPage() {
 
           <div className="relative flex-1 flex flex-col justify-between min-h-0 pt-0.5 overflow-hidden">
             <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={quoteIndex}
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 6, filter: 'blur(3px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, filter: 'blur(3px)' }}
-                transition={{ duration: 0.28, ease: 'easeInOut' }}
-                className="flex-1 flex flex-col justify-between min-h-0"
-              >
-                <div className="flex-1 flex items-center min-h-0 overflow-hidden">
-                  <TextEffect
-                    per="char"
-                    preset="fade-in-blur"
-                    speedReveal={1.6}
-                    speedSegment={1.2}
-                    className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic select-text"
-                  >
-                    {`“${currentQuote.text}”`}
-                  </TextEffect>
-                </div>
-                <div className="mt-1 text-right text-[11px] text-gray-400 dark:text-gray-500 shrink-0">
-                  —— {currentQuote.author}
-                </div>
-              </motion.div>
+              {isLoading ? (
+                <motion.div
+                  key="quote-loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex-1 flex flex-col items-center justify-center gap-1.5 select-none"
+                  role="status"
+                  aria-label="正在加载名言"
+                  data-testid="quote-loading"
+                >
+                  <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+                    <FiLoader className="size-3.5 animate-spin text-primary-500" />
+                    <span className="font-mono tracking-wider text-[11px] font-medium uppercase">
+                      Loading...
+                    </span>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={quoteIndex}
+                  initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1 flex flex-col justify-between min-h-0"
+                >
+                  <div className="flex-1 flex items-center min-h-0">
+                    <p className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic select-text">
+                      “{currentQuote.text}”
+                    </p>
+                  </div>
+                  <div className="mt-1 text-right text-[11px] text-gray-400 dark:text-gray-500 shrink-0">
+                    —— {currentQuote.author}
+                  </div>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
 
