@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { FiClock, FiCheckSquare } from 'react-icons/fi';
 import { usePageTransition, type PageView } from '@/hooks/usePageTransition';
 import { useTheme } from '@/app/providers/ThemeProvider';
@@ -22,6 +22,7 @@ type RouteItem = {
 };
 
 export default function RouteNavigation({ compact = false, className = '' }: RouteNavigationProps) {
+  const shouldReduceMotion = useReducedMotion();
   const { view, transitionTo } = usePageTransition();
   const { accentColor } = useTheme();
   const { timers, activeTimerId } = useTimers();
@@ -123,7 +124,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="absolute inset-0 rounded-full bg-black/6 dark:bg-white/12 pointer-events-none"
-                  transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 500, damping: 32 }}
                 />
               )}
 
@@ -135,7 +136,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="liquid-droplet-pill absolute inset-0 rounded-full pointer-events-none overflow-hidden"
-                  transition={{ type: 'spring', stiffness: 450, damping: 28 }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 450, damping: 28 }}
                 >
                   {/* Top Specular Lens Dome Highlight */}
                   <div
@@ -158,11 +159,11 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               <motion.span
                 className="relative z-10 flex shrink-0 items-center justify-center"
                 animate={
-                  isHovered && !isActive
+                  !shouldReduceMotion && isHovered && !isActive
                     ? { scale: 1.18, rotate: route.id === 'todo' ? -6 : 6 }
                     : { scale: 1, rotate: 0 }
                 }
-                transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+                transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 18 }}
               >
                 <Icon
                   className={`transition-colors duration-150 ${

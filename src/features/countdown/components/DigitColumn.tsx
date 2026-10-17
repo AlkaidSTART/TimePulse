@@ -1,6 +1,6 @@
 import NumberFlow, { NumberFlowElement } from '@number-flow/react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { memo } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { memo, useMemo } from 'react';
 
 type FontSize = 'small' | 'medium' | 'large';
 
@@ -38,16 +38,6 @@ const labelSlotHeightClasses: Record<FontSize, string> = {
   large: 'h-7',
 };
 
-const numberFlowTiming = {
-  duration: 580,
-  easing: NumberFlowElement.defaultProps.transformTiming.easing,
-};
-
-const numberFlowOpacityTiming = {
-  duration: 580,
-  easing: NumberFlowElement.defaultProps.opacityTiming.easing,
-};
-
 function DigitColumn({
   value,
   label,
@@ -58,25 +48,31 @@ function DigitColumn({
   trend,
   isValueVisible,
 }: DigitColumnProps) {
+  const shouldReduceMotion = useReducedMotion();
   const digitCount = Math.max(2, Math.abs(value).toString().length);
   const widthClass = digitCount >= 3
     ? 'w-24 sm:w-32 md:w-40'
     : 'w-20 sm:w-24 md:w-32';
 
+  const numberFlowTiming = useMemo(() => ({
+    duration: shouldReduceMotion ? 0 : 420,
+    easing: NumberFlowElement.defaultProps.transformTiming.easing,
+  }), [shouldReduceMotion]);
+
+  const numberFlowOpacityTiming = useMemo(() => ({
+    duration: shouldReduceMotion ? 0 : 420,
+    easing: NumberFlowElement.defaultProps.opacityTiming.easing,
+  }), [shouldReduceMotion]);
+
   return (
     <motion.div
-      layout="position"
-      transition={{ layout: { type: 'tween', duration: 0.24, ease: 'easeOut' } }}
+      layout={shouldReduceMotion ? false : 'position'}
+      transition={{ layout: { type: 'tween', duration: 0.22, ease: 'easeOut' } }}
       className="flex flex-col items-center"
     >
       <motion.div
         className={`${widthClass} h-24 sm:h-32 md:h-36 rounded-2xl liquid-glass-digit flex items-center justify-center relative overflow-hidden`}
-        style={{
-          transform: 'translateZ(0)',
-          WebkitTransform: 'translateZ(0)',
-          willChange: 'transform',
-        }}
-        whileHover={{
+        whileHover={shouldReduceMotion ? undefined : {
           scale: 1.025,
           y: -2,
         }}
@@ -124,10 +120,10 @@ function DigitColumn({
           <motion.span
             key={label}
             className={`absolute inset-x-0 whitespace-nowrap text-center ${labelFontSizeClasses[labelFontSize]} font-medium tracking-wider text-gray-500/90 dark:text-gray-400/90`}
-            initial={{ opacity: 0, y: 3 }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 3 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -3 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -3 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.18, ease: 'easeOut' }}
             whileHover={{ color }}
           >
             {label}

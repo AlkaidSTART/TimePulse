@@ -4,6 +4,7 @@ import { useTimers } from '@/app/providers/TimerProvider';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import DigitColumn from './DigitColumn';
+import TimerLoadingBox from './TimerLoadingBox';
 import { addNotification } from '@/services/notificationManager';
 import { track, bucketDurationMs } from '@/services/analytics';
 import { FiPlay, FiPause, FiSquare, FiFlag, FiList } from 'react-icons/fi';
@@ -206,8 +207,11 @@ function CalendarTimeRows({
                   ease: 'easeOut',
                   layout: { type: 'tween', duration: 0.28, ease: 'easeInOut' },
                 }}
-                className={`${separatorClassName} font-thin text-gray-400 select-none`}
-                style={{ textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)' }}
+                className={`relative ${separatorClassName} font-thin text-gray-400 select-none`}
+                style={{
+                  top: -separatorVerticalOffset,
+                  textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)',
+                }}
               >
                 :
               </motion.span>
@@ -630,8 +634,8 @@ export default function TimerDisplay() {
 
   if (!activeTimer) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-xl text-gray-400">{t('timer.noActiveTimer')}</p>
+      <div className="flex items-center justify-center min-h-[160px] py-12">
+        <TimerLoadingBox />
       </div>
     );
   }
@@ -660,17 +664,38 @@ export default function TimerDisplay() {
   };
   
   return (
-    <motion.div 
-      className="flex flex-col items-center justify-center text-center px-4 relative z-10"
-      initial={{ opacity: 0, scale: 0.96, y: 24 }}
-      animate={isDisplayVisible
-        ? { opacity: 1, scale: 1, y: 0 }
-        : { opacity: 0, scale: 0.96, y: 24 }}
-      transition={{ duration: 0.42, ease: 'easeOut' }}
-      aria-hidden={!isDisplayVisible}
-      inert={!isDisplayVisible}
-    >
-      <div className="relative flex flex-col items-center">
+    <div className="relative flex flex-col items-center justify-center w-full min-h-[160px]">
+      <AnimatePresence>
+        {!isDisplayVisible && (
+          <motion.div
+            key="timer-loading-box"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{
+              opacity: 0,
+              scale: 0.85,
+              y: -16,
+              transition: { duration: 0.28, ease: 'easeIn' },
+            }}
+            className="flex items-center justify-center py-10"
+          >
+            <TimerLoadingBox color={activeTimer.color} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div 
+        className="flex flex-col items-center justify-center text-center px-4 relative z-10 w-full"
+        initial={{ opacity: 0, scale: 0.96, y: 56 }}
+        animate={isDisplayVisible
+          ? { opacity: 1, scale: 1, y: 0 }
+          : { opacity: 0, scale: 0.96, y: 56 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        aria-hidden={!isDisplayVisible}
+        inert={!isDisplayVisible}
+        style={!isDisplayVisible ? { position: 'absolute', pointerEvents: 'none' } : undefined}
+      >
+        <div className="relative flex flex-col items-center">
       {/* 计时器名称 */}
       {getTimerTitle() ? (
         <AnimatedRegion
@@ -877,6 +902,7 @@ export default function TimerDisplay() {
           </Suspense>
         ) : null}
       </AutoTransition>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }

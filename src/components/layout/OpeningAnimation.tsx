@@ -113,8 +113,8 @@ export default function OpeningAnimation() {
         initial={{ opacity: 0, scale: 0.94 }}
         animate={
           isExiting
-            ? { opacity: 0, scale: 1.04, filter: 'blur(6px)' }
-            : { opacity: 1, scale: 1, filter: 'blur(0px)' }
+            ? { opacity: 0, scale: 1.04 }
+            : { opacity: 1, scale: 1 }
         }
         transition={{ duration: isExiting ? 0.34 : 0.32, ease: [0.4, 0, 0.2, 1] }}
       >
@@ -128,6 +128,7 @@ export default function OpeningAnimation() {
               style={{
                 backgroundColor: palette[tile],
                 boxShadow: '0 4px 14px -2px rgba(0, 0, 0, 0.08)',
+                transform: 'translateZ(0)',
               }}
             />
           ))}

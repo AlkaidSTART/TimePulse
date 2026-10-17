@@ -80,4 +80,36 @@ describe('TimerDisplay component', () => {
 
     expect(screen.getByRole('heading', { level: 2, name: '考研倒计时', hidden: true })).toBeInTheDocument();
   });
+
+  it('renders loading box while timer display is not yet visible', () => {
+    useTimerStore.setState({
+      timers: [
+        {
+          id: 'test-worldclock',
+          name: '本地时间',
+          type: 'worldclock',
+          timezone: 'Asia/Shanghai',
+          city: '本地',
+          country: '本地',
+          color: '#0EA5E9',
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      activeTimerId: 'test-worldclock',
+      isLoaded: true,
+    });
+
+    render(
+      <ThemeProvider>
+        <FullscreenProvider>
+          <TimerProvider>
+            <TimerDisplay />
+          </TimerProvider>
+        </FullscreenProvider>
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByTestId('timer-loading-box')).toBeInTheDocument();
+  });
 });
+

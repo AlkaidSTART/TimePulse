@@ -678,14 +678,17 @@ export default function Header({ onHeightChange }: HeaderProps) {
       </nav>
 
       {/* Mobile Top Bar: Refined Minimal Header */}
-      <div className="md:hidden flex items-center justify-between px-4 pt-3.5 pb-1 w-full pointer-events-auto bg-transparent">
-        {/* Brand Logo & Title with subtle ambient highlight */}
+      <div
+        className="md:hidden flex items-center justify-between px-4 pt-3.5 pb-1 w-full pointer-events-auto bg-transparent"
+        style={{ paddingTop: 'max(0.875rem, env(safe-area-inset-top, 0px))' }}
+      >
+        {/* Brand Logo with subtle ambient highlight */}
         <div className="flex items-center gap-2.5">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="flex items-center gap-2 shrink-0 cursor-pointer"
+            className="flex items-center shrink-0 cursor-pointer"
             onClick={() => {
               if (view === 'todo') transitionTo('main');
             }}
@@ -703,9 +706,6 @@ export default function Header({ onHeightChange }: HeaderProps) {
                 }
               }}
             />
-            <span className="font-display font-bold text-sm tracking-tight text-gray-900/90 dark:text-white/95">
-              TimePulse
-            </span>
           </motion.div>
         </div>
 
@@ -713,7 +713,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
         <div className="flex items-center gap-1.5">
           {timezoneInfo && (
             <div
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/60 dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/10 text-[11px] font-medium text-gray-700 dark:text-gray-200 shadow-xs backdrop-blur-xl select-none shrink-0"
+              className="inline-flex h-8 items-center gap-1 px-2.5 rounded-full bg-white/60 dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/10 text-[11px] font-medium text-gray-700 dark:text-gray-200 shadow-xs backdrop-blur-xl select-none shrink-0"
               title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
             >
               <FiGlobe className="size-3 shrink-0 text-primary-500 dark:text-primary-400" />

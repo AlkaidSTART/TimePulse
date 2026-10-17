@@ -49,10 +49,19 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
   --color-foreground: 15, 23, 42;
   --color-primary: 14, 165, 233;
   --color-accent: 99, 102, 241;
+  --hue-1: rgb(var(--color-primary));
   --transition-duration: 250ms;
   --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
   --text-color-transition-duration: 350ms;
 }
+
+.box {
+  width: 100px;
+  height: 100px;
+  background-color: var(--hue-1);
+  border-radius: 10px;
+}
+
 
 /* 安全区（Android 边到边 / iOS 刘海屏）。
    Tauri 2.8 起 Android 模板默认 enableEdgeToEdge()，WebView 会绘制到状态栏与手势条之下；
@@ -383,8 +392,13 @@ select,
   }
 
   @media (prefers-reduced-motion: reduce) {
-    :where(body *, body *::before, body *::after) {
-      transition-duration: 0ms;
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
   }
 
@@ -409,7 +423,6 @@ select,
     /* 添加硬件加速，避免Safari中的抖动问题 */
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    will-change: transform;
     /* Firefox优化：避免透明度闪烁 */
     backface-visibility: hidden;
     perspective: 1000px;
@@ -435,7 +448,6 @@ select,
       0 4px 12px -2px rgba(0, 0, 0, 0.03);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    will-change: transform;
     backface-visibility: hidden;
     perspective: 1000px;
     transition: width 0.24s ease-out, border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;

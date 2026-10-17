@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
-import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
+import { AnimatePresence, Reorder, motion, useDragControls, useReducedMotion } from 'framer-motion';
 import {
   FiClock,
   FiList,
@@ -275,12 +275,16 @@ export default function MobileTabBar({
     setShowColorPicker(false);
   };
 
+  const shouldReduceMotion = useReducedMotion();
+
   // Minimal smooth spring physics
-  const tabSpring = {
-    type: 'spring' as const,
-    stiffness: 450,
-    damping: 32,
-  };
+  const tabSpring = shouldReduceMotion
+    ? { duration: 0 }
+    : {
+        type: 'spring' as const,
+        stiffness: 450,
+        damping: 32,
+      };
 
   const tabsConfig = [
     { id: 'timer' as MobileTab, label: t('header.timersShort', '计时'), icon: FiClock },
@@ -307,7 +311,7 @@ export default function MobileTabBar({
           y: isVisible ? 0 : 96,
           opacity: isVisible ? 1 : 0,
         }}
-        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
         className="fixed bottom-3 inset-x-3 z-40 md:hidden max-w-[420px] mx-auto pointer-events-auto"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
@@ -316,7 +320,7 @@ export default function MobileTabBar({
             if (item.isAction) {
               // Center Action: "+" Button - Apple Liquid Glass Transparent Water Droplet (Zero Blue)
               return (
-                <div key={item.id} className="relative flex flex-1 items-center justify-center px-1">
+                <div key={item.id} className="relative flex flex-1 h-full items-center justify-center px-0.5">
                   <motion.button
                     type="button"
                     onClick={handleAddClick}
@@ -454,18 +458,18 @@ export default function MobileTabBar({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 360 }}
-              className="relative z-10 flex max-h-[82vh] flex-col rounded-t-[28px] border-t border-white/20 bg-white/80 p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:p-5 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-neutral-900/85"
+              className="relative z-10 flex max-h-[88vh] flex-col rounded-t-[32px] border-t border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-3xl dark:border-white/[0.08] dark:bg-[#141416]/95"
             >
               {/* Grab Bar */}
-              <div className="mx-auto h-1.5 w-12 rounded-full bg-gray-400/40 dark:bg-gray-600/60 mb-3" />
+              <div className="mx-auto h-1 w-9 rounded-full bg-black/15 dark:bg-white/20 mb-2.5" />
 
               {/* Sheet Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-gray-200/50 dark:border-white/10">
+              <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.06] dark:border-white/[0.06]">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white font-display">
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white font-display tracking-tight">
                     全部计时器
                   </h3>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary-500/15 text-primary-600 dark:text-primary-400 font-semibold">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-500/15 text-primary-600 dark:text-primary-400">
                     {timers.length} 个
                   </span>
                 </div>
@@ -475,15 +479,17 @@ export default function MobileTabBar({
                     onClick={() => {
                       onOpenAdd();
                     }}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary-500 text-white text-xs font-semibold shadow-xs hover:bg-primary-600 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-white text-xs font-semibold shadow-xs cursor-pointer active:scale-95 transition-all"
+                    style={{ backgroundColor: accentColor || '#0ea5e9' }}
                   >
-                    <FiPlus className="size-3.5" />
+                    <FiPlus className="size-3.5 stroke-[2.4]" />
                     新建
                   </button>
                   <button
                     type="button"
                     onClick={() => onTabChange('timer')}
-                    className="size-8 inline-flex items-center justify-center rounded-full bg-gray-200/60 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-300/60 cursor-pointer transition-colors"
+                    className="size-7.5 inline-flex items-center justify-center rounded-full bg-black/[0.04] dark:bg-white/[0.08] text-gray-500 dark:text-gray-300 hover:bg-black/[0.08] dark:hover:bg-white/[0.14] cursor-pointer transition-colors"
+                    aria-label="关闭"
                   >
                     <FiX className="size-4" />
                   </button>

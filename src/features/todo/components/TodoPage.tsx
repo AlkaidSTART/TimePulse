@@ -202,7 +202,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
               <button
                 type="button"
                 onClick={onOpenAsWidget}
-                className="group inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/30 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm backdrop-blur-md transition-all hover:bg-white/60 active:scale-95 dark:border-white/10 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20 cursor-pointer"
+                className="hidden md:inline-flex group items-center gap-1.5 rounded-full border border-white/20 bg-white/30 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm backdrop-blur-md transition-all hover:bg-white/60 active:scale-95 dark:border-white/10 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20 cursor-pointer"
                 title={t('todo.widgetModeAria', '切回桌面小窗挂件模式')}
                 aria-label={t('todo.widgetModeAria', '切回桌面小窗挂件模式')}
               >
@@ -224,8 +224,9 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
               } backdrop-blur-md`}
               title={hapticActive ? t('todo.hapticOnTip', '手机触觉反馈已开启（点击关闭）') : t('todo.hapticOffTip', '手机触觉反馈已关闭（点击开启）')}
             >
-              <FiSmartphone className="size-3.5" />
-              <span>{hapticActive ? t('todo.hapticEnabled', '触觉反馈已开启') : t('todo.hapticDisabled', '触觉反馈已关闭')}</span>
+              <FiSmartphone className="size-3.5 shrink-0" />
+              <span className="hidden sm:inline">{hapticActive ? t('todo.hapticEnabled', '触觉反馈已开启') : t('todo.hapticDisabled', '触觉反馈已关闭')}</span>
+              <span className="sm:hidden">{hapticActive ? '触觉开启' : '触觉关闭'}</span>
             </button>
           </div>
         </div>
@@ -251,12 +252,12 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
             </div>
 
             {/* 顶部分类切换 Tabs */}
-            <div className="flex items-center gap-1.5 rounded-2xl bg-black/5 p-1.5 dark:bg-white/10">
+            <div className="flex w-full md:w-auto items-center gap-1.5 rounded-2xl bg-black/5 p-1.5 dark:bg-white/10">
               <button
                 type="button"
                 aria-label={t('todo.switchToTodo', '切换到待办事项')}
                 onClick={() => dispatch({ type: 'set_tab', tab: 'todo' })}
-                className={`relative flex items-center gap-2 rounded-xl px-4 py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
+                className={`relative flex flex-1 md:flex-initial items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
                   state.activeTab === 'todo'
                     ? 'bg-white text-gray-950 shadow-sm dark:bg-neutral-800 dark:text-white'
                     : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
@@ -273,7 +274,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                 type="button"
                 aria-label={t('todo.switchToChecklist', '切换到核对清单')}
                 onClick={() => dispatch({ type: 'set_tab', tab: 'checklist' })}
-                className={`relative flex items-center gap-2 rounded-xl px-4 py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
+                className={`relative flex flex-1 md:flex-initial items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
                   state.activeTab === 'checklist'
                     ? 'bg-white text-gray-950 shadow-sm dark:bg-neutral-800 dark:text-white'
                     : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
