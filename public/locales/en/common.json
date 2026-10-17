@@ -63,7 +63,7 @@
   },
   "theme": {
     "title": "Font Color Library",
-    "subtitle": "Inspired by ChatGPT aesthetics. Customize timer typography colors.",
+    "subtitle": "Customize timer typography colors.",
     "note": "Only changes font and digit colors without altering cream or light themes",
     "presetDefault": "Default",
     "presetBlue": "Blue",

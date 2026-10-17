@@ -63,7 +63,7 @@
   },
   "theme": {
     "title": "字体配色库",
-    "subtitle": "灵感源自 ChatGPT 极简美学，仅调整倒计时字体颜色",
+    "subtitle": "仅调整倒计时字体颜色",
     "note": "仅改变数字与字体颜色，不影响米白色或白色主题",
     "presetDefault": "默认",
     "presetBlue": "蓝色",

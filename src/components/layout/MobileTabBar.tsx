@@ -913,7 +913,7 @@ export default function MobileTabBar({
                             {t('theme.title', '字体配色')}
                           </p>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                            {t('theme.subtitle', '灵感源自 ChatGPT 极简美学，仅调整倒计时字体颜色')}
+                            {t('theme.subtitle', '仅调整倒计时字体颜色')}
                           </p>
                         </div>
                       </div>
@@ -1066,7 +1066,7 @@ export default function MobileTabBar({
         )}
       </AnimatePresence>
 
-      {/* ChatGPT Theme Color Palette Library Modal */}
+      {/* Theme Color Palette Library Modal */}
       <ThemeLibraryModal
         isOpen={isThemeLibraryOpen}
         onClose={() => setIsThemeLibraryOpen(false)}

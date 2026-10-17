@@ -1109,7 +1109,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
       reorderTimers={reorderTimers}
     />
 
-    {/* ChatGPT Theme Color Palette Library Modal */}
+    {/* Theme Color Palette Library Modal */}
     <ThemeLibraryModal
       isOpen={isThemeLibraryOpen}
       onClose={() => setIsThemeLibraryOpen(false)}
