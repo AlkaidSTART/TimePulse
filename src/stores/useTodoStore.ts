@@ -17,10 +17,11 @@ export interface TodoState {
   isWidgetOpen: boolean;
   isLoaded: boolean;
 
-  addItem: (text: string, type?: TodoType) => void;
+  addItem: (text: string, type?: TodoType, color?: string, priority?: TodoItem['priority']) => void;
   toggleItem: (id: string) => void;
   deleteItem: (id: string) => void;
   updateItemText: (id: string, text: string) => void;
+  setItemPriority: (id: string, color?: string, priority?: TodoItem['priority']) => void;
   reorderItems: (orderedIds: string[], type?: TodoType) => void;
   clearCompleted: (type: TodoType) => void;
   setActiveTab: (tab: TodoType) => void;
@@ -48,7 +49,7 @@ export const useTodoStore = create<TodoState>((set, get) => ({
     });
   },
 
-  addItem: (text: string, customType?: TodoType) => {
+  addItem: (text: string, customType?: TodoType, color?: string, priority?: TodoItem['priority']) => {
     const trimmed = text.trim();
     if (!trimmed) return;
     const targetType = customType || get().activeTab;
@@ -58,8 +59,18 @@ export const useTodoStore = create<TodoState>((set, get) => ({
       completed: false,
       type: targetType,
       createdAt: Date.now(),
+      color,
+      priority,
     };
     const nextItems = [newItem, ...get().items];
+    set({ items: nextItems });
+    writeTodoItems(nextItems);
+  },
+
+  setItemPriority: (id: string, color?: string, priority?: TodoItem['priority']) => {
+    const nextItems = get().items.map((item) =>
+      item.id === id ? { ...item, color, priority } : item,
+    );
     set({ items: nextItems });
     writeTodoItems(nextItems);
   },

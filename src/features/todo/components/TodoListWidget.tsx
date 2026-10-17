@@ -173,23 +173,7 @@ export default function TodoListWidget({
     await triggerHaptic('test');
   };
 
-  // 一键载入专注预设清单
-  const handleLoadFocusPresets = () => {
-    const presets =
-      state.activeTab === 'checklist'
-        ? [
-            { text: t('todo.presetChecklist1'), type: 'checklist' as TodoType },
-            { text: t('todo.presetChecklist2'), type: 'checklist' as TodoType },
-            { text: t('todo.presetChecklist3'), type: 'checklist' as TodoType },
-            { text: t('todo.presetChecklist4'), type: 'checklist' as TodoType },
-          ]
-        : [
-            { text: t('todo.presetTodo1'), type: 'todo' as TodoType },
-            { text: t('todo.presetTodo2'), type: 'todo' as TodoType },
-            { text: t('todo.presetTodo3'), type: 'todo' as TodoType },
-          ];
-    dispatch({ type: 'batch_add', items: presets });
-  };
+
 
   return (
     <div className={`pointer-events-auto ${className}`}>
@@ -332,13 +316,6 @@ export default function TodoListWidget({
                 <div className="flex flex-col items-center justify-center py-8 text-center text-xs text-gray-400 dark:text-gray-500">
                   <FiList className="size-8 stroke-[1.5] mb-2 opacity-50" />
                   <p>{state.activeTab === 'todo' ? t('todo.emptyTodo', '当前暂无待办事项') : t('todo.emptyChecklist', '当前暂无核对清单')}</p>
-                  <button
-                    type="button"
-                    onClick={handleLoadFocusPresets}
-                    className="mt-3 rounded-full bg-primary-500/10 px-3 py-1 font-semibold text-primary-600 hover:bg-primary-500/20 dark:bg-primary-500/15 dark:text-primary-300 transition-colors cursor-pointer"
-                  >
-                    {t('todo.loadPresetsWidget', '载入专注推荐清单')}
-                  </button>
                 </div>
               ) : (
                 <Reorder.Group

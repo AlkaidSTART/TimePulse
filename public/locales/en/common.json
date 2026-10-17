@@ -440,7 +440,7 @@
     "add": "Add",
     "emptyTodo": "No tasks yet",
     "emptyChecklist": "No checklist items yet",
-    "emptyDesc": "Add tasks above, or import focus checklist presets",
+    "emptyDesc": "Add tasks and checklist items using the input above",
     "loadPresets": "Import Focus Presets",
     "loadPresetsWidget": "Load Focus Presets",
     "dragTip": "Tip: Drag the handle on the left to reorder",

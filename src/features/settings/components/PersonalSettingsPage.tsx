@@ -3,12 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import {
   FiArrowLeft,
   FiUser,
-  FiSmile,
-  FiZap,
-  FiLayout,
-  FiSliders,
   FiSun,
-  FiMoon,
   FiCheck,
   FiTrash2,
   FiRotateCcw,
@@ -16,18 +11,17 @@ import {
   FiSave,
   FiHeart,
   FiGlobe,
-  FiSmartphone,
   FiCoffee,
   FiChevronRight,
   FiInfo,
   FiImage,
 } from 'react-icons/fi';
 import { SiWechat } from 'react-icons/si';
-import { LuSparkles, LuPalette } from 'react-icons/lu';
+import { LuPalette } from 'react-icons/lu';
 import { usePageTransition } from '@/hooks/usePageTransition';
 import { useOrientation } from '@/hooks/useOrientation';
 import { useTheme } from '@/app/providers/ThemeProvider';
-import { usePersonalSettingsStore, type CheerStyle, type DefaultStartPage } from '@/stores/usePersonalSettingsStore';
+import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import { useVersionStore } from '@/stores/useVersionStore';
 import { CHATGPT_THEME_PRESETS } from '@/constants/colors';
 import { useTranslation } from '@/i18n/useTranslation';
@@ -49,11 +43,8 @@ export default function PersonalSettingsPage() {
     nickname,
     avatar,
     customMotto,
-    cheerStyle,
-    defaultStartPage,
     cheerCount,
     cheerNotes,
-    vibrationEnabled,
     updateSettings,
     addCheerNote,
     removeCheerNote,
@@ -148,7 +139,7 @@ export default function PersonalSettingsPage() {
                 </span>
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                定制你的称呼、打气问候偏好、主题外观与启动模式
+                定制你的称呼、专属座右铭与主题外观
               </p>
             </div>
           </div>
@@ -179,7 +170,7 @@ export default function PersonalSettingsPage() {
             className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-xs sm:text-sm font-semibold"
           >
             <FiCheck className="size-4 text-emerald-500" />
-            <span>设置保存成功！打气路由和问候称呼已实时同步更新。</span>
+            <span>设置保存成功！个人资料已实时同步更新。</span>
           </motion.div>
         )}
 
@@ -273,107 +264,7 @@ export default function PersonalSettingsPage() {
           </div>
         </section>
 
-        {/* 2. 打气偏好与问候风格 */}
-        <section className="rounded-2xl border border-black/[0.08] dark:border-white/10 bg-white/70 dark:bg-white/[0.05] p-5 sm:p-6 backdrop-blur-xl shadow-xs space-y-4">
-          <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white">
-            <FiSmile className="size-4 text-amber-500" />
-            <span>打气问候语气与风格</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {[
-              { id: 'energetic' as CheerStyle, label: '元气活力', desc: '斗志满满，激情冲锋' },
-              { id: 'warm' as CheerStyle, label: '温柔治愈', desc: '体贴从容，暖胃暖心' },
-              { id: 'poetic' as CheerStyle, label: '诗意浪漫', desc: '山海星辰，文字唯美' },
-              { id: 'funny' as CheerStyle, label: '轻松幽默', desc: '逗趣解压，快乐干饭' },
-            ].map((style) => (
-              <button
-                key={style.id}
-                type="button"
-                onClick={() => updateSettings({ cheerStyle: style.id })}
-                className={`p-3 rounded-xl border text-left transition-all ${
-                  cheerStyle === style.id
-                    ? 'border-primary-500 bg-primary-500/10 shadow-xs'
-                    : 'border-black/[0.06] dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] hover:bg-black/[0.05] dark:hover:bg-white/[0.06]'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">
-                    {style.label}
-                  </span>
-                  {cheerStyle === style.id && <FiCheck className="size-3.5 text-primary-500" />}
-                </div>
-                <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
-                  {style.desc}
-                </p>
-              </button>
-            ))}
-          </div>
-
-          {/* 启动首屏偏好 */}
-          <div className="pt-2 border-t border-black/[0.05] dark:border-white/10 space-y-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
-                  <FiLayout className="size-3.5 text-sky-500" />
-                  <span>应用打开默认进入页面</span>
-                </label>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  默认已按您的要求设置为打气路由，您也可以随时切换为时钟或待办
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'cheer' as DefaultStartPage, label: '元气打气 (推荐)', badge: '当前默认' },
-                { id: 'main' as DefaultStartPage, label: '当前时钟与计时', badge: '第二站' },
-                { id: 'todo' as DefaultStartPage, label: '待办任务清单', badge: '清单' },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => updateSettings({ defaultStartPage: item.id })}
-                  className={`p-2.5 rounded-xl border text-center transition-all ${
-                    defaultStartPage === item.id
-                      ? 'border-primary-500 bg-primary-500/10 font-bold text-gray-900 dark:text-white'
-                      : 'border-black/[0.06] dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                  }`}
-                >
-                  <span className="text-xs block">{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 触感震动反馈 */}
-          <div className="pt-2 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FiSmartphone className="size-4 text-purple-500" />
-              <div>
-                <span className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200">
-                  触感与打气震动反馈
-                </span>
-                <p className="text-[11px] text-gray-400">点击打气或完成任务时给予轻微触觉反馈</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => updateSettings({ vibrationEnabled: !vibrationEnabled })}
-              className={`w-11 h-6 rounded-full transition-colors relative ${
-                vibrationEnabled ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-700'
-              }`}
-            >
-              <div
-                className={`size-5 rounded-full bg-white transition-transform ${
-                  vibrationEnabled ? 'translate-x-5' : 'translate-x-0.5'
-                }`}
-              />
-            </button>
-          </div>
-        </section>
-
-        {/* 3. 外观主题与色彩 */}
+        {/* 2. 外观主题与色彩 */}
         <section className="rounded-2xl border border-black/[0.08] dark:border-white/10 bg-white/70 dark:bg-white/[0.05] p-5 sm:p-6 backdrop-blur-xl shadow-xs space-y-4">
           <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white">
             <LuPalette className="size-4 text-teal-500" />
@@ -400,8 +291,8 @@ export default function PersonalSettingsPage() {
             <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
               快速点选应用强调色 (Accent Color)
             </label>
-            <div className="flex flex-wrap gap-2.5 pt-1">
-              {CHATGPT_THEME_PRESETS.slice(0, 8).map((preset) => {
+            <div className="flex items-center gap-2.5 pt-1 overflow-x-auto scrollbar-hide py-1">
+              {CHATGPT_THEME_PRESETS.map((preset) => {
                 const isSelected = accentColor.toLowerCase() === preset.color.toLowerCase();
                 return (
                   <button
@@ -412,7 +303,7 @@ export default function PersonalSettingsPage() {
                       setThemePreset(preset.id, preset.color);
                     }}
                     title={preset.name}
-                    className={`size-8 rounded-full border-2 transition-transform flex items-center justify-center ${
+                    className={`size-8 rounded-full border-2 transition-transform flex items-center justify-center shrink-0 ${
                       isSelected ? 'scale-115 border-gray-900 dark:border-white' : 'border-transparent hover:scale-105'
                     }`}
                     style={{ backgroundColor: preset.color }}
@@ -514,7 +405,7 @@ export default function PersonalSettingsPage() {
           </div>
         </section>
 
-        {/* 4. 今日打气心得与心情足迹 */}
+        {/* 3. 今日打气心得与心情足迹 */}
         <section className="rounded-2xl border border-black/[0.08] dark:border-white/10 bg-white/70 dark:bg-white/[0.05] p-5 sm:p-6 backdrop-blur-xl shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white">
@@ -576,7 +467,7 @@ export default function PersonalSettingsPage() {
           )}
         </section>
 
-        {/* 5. 支持与联系作者 (Buy Me a Coffee & Contact Author) */}
+        {/* 4. 支持与联系作者 (Buy Me a Coffee & Contact Author) */}
         <section className="rounded-2xl border border-black/[0.08] dark:border-white/10 bg-white/70 dark:bg-white/[0.05] p-5 sm:p-6 backdrop-blur-xl shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white">

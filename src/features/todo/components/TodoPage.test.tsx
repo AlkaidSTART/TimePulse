@@ -51,11 +51,14 @@ describe('TodoPage component and Widget coexistence', () => {
 
     const input = screen.getByPlaceholderText(/添加新的待办事项/i);
     fireEvent.change(input, { target: { value: '全屏页面测试任务' } });
-
     const addBtn = screen.getByRole('button', { name: /添加/i });
     fireEvent.click(addBtn);
 
+    fireEvent.change(input, { target: { value: '第二项全屏任务' } });
+    fireEvent.click(addBtn);
+
     expect(screen.getByText('全屏页面测试任务')).toBeInTheDocument();
+    expect(screen.getByText('第二项全屏任务')).toBeInTheDocument();
 
     const toggleBtn = screen.getByRole('button', { name: '将全屏页面测试任务标记为已完成' });
     fireEvent.click(toggleBtn);

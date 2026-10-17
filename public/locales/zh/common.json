@@ -440,7 +440,7 @@
     "add": "添加",
     "emptyTodo": "当前暂无待办事项",
     "emptyChecklist": "当前暂无核对清单",
-    "emptyDesc": "立即在上方输入添加，或一键导入专属专注清单",
+    "emptyDesc": "立即在上方输入框添加任务与清单",
     "loadPresets": "载入专注推荐清单预设",
     "loadPresetsWidget": "载入专注推荐清单",
     "dragTip": "提示：按住左侧手柄可上下拖拽自由排序",

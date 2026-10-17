@@ -53,6 +53,7 @@ function readInitialThemePresetId(accentColor: string): string {
   if (typeof window === 'undefined') return 'green';
   try {
     const saved = localStorage.getItem('theme-preset');
+    if (saved === 'black') return 'default';
     if (saved) return saved;
   } catch {
     // Ignore storage errors
@@ -139,7 +140,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
       nextColor = customColor || get().accentColor || '#10A37F';
     } else {
       const preset = CHATGPT_THEME_PRESETS.find((p) => p.id === presetId);
-      nextColor = preset ? preset.color : '#10A37F';
+      nextColor = preset ? preset.color : (presetId === 'black' ? '#18181B' : '#10A37F');
     }
 
     try {

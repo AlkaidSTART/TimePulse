@@ -151,12 +151,5 @@ export const CHATGPT_THEME_PRESETS: readonly ThemePreset[] = [
     color: '#8B5CF6',
     description: '雅致晨曦鸢尾 (Iris Violet)',
   },
-  {
-    id: 'black',
-    name: '黑色',
-    nameEn: 'Black',
-    color: '#09090B',
-    description: '深邃曜石纯黑 (Onyx Black)',
-  },
 ] as const;
 

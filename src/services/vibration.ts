@@ -5,7 +5,7 @@ import {
   selectionFeedback as tauriSelection,
 } from '@tauri-apps/plugin-haptics';
 
-export type HapticType = 'item_complete' | 'all_complete' | 'reorder' | 'test' | 'page_switch' | 'timer_switch';
+export type HapticType = 'item_complete' | 'all_complete' | 'reorder' | 'test' | 'page_switch' | 'timer_switch' | 'selection';
 
 const HAPTIC_ENABLED_KEY = 'timepulse_haptic_feedback_enabled';
 
@@ -63,7 +63,7 @@ export async function triggerHaptic(type: HapticType = 'item_complete'): Promise
       await tauriNotification('success');
       return true;
     }
-    if (type === 'reorder' || type === 'timer_switch') {
+    if (type === 'reorder' || type === 'timer_switch' || type === 'selection') {
       await tauriSelection();
       return true;
     }
