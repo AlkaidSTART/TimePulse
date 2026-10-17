@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
-import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal } from 'react-icons/fi';
+import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare } from 'react-icons/fi';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
@@ -16,6 +16,14 @@ import { PRESET_COLORS } from '@/constants/colors';
 import { AutoResizer, AutoTransition } from '@/components/ui';
 import { LinearDialogTransition } from '@/components/composed';
 import MobileTabBar, { type MobileTab } from './MobileTabBar';
+import AnimatedLogo from './AnimatedLogo';
+import { usePageTransition } from '@/hooks/usePageTransition';
+import {
+  readTodoWidgetVisible,
+  writeTodoWidgetVisible,
+  TODO_STORAGE_EVENT,
+} from '@/features/todo';
+import { FiList } from 'react-icons/fi';
 
 type TimerUpdate = {
   name: string;
@@ -109,6 +117,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const { timers, activeTimerId, setActiveTimerId, reorderTimers, deleteTimer, updateTimer } = useTimers();
   const { theme, toggleTheme, accentColor } = useTheme();
   const { isFullscreen, isHeaderVisible, headerHideDelay, showHeader, hideHeader, toggleFullscreen } = useFullscreen();
+  const { view, transitionTo } = usePageTransition();
   const { t, changeLanguage } = useTranslation();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>('timer');
@@ -121,8 +130,20 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const [isTimerCreationOpen, setIsTimerCreationOpen] = useState(false);
   const [timerOrder, setTimerOrder] = useState(() => timers.map((timer) => timer.id));
   const timerOrderRef = useRef(timerOrder);
+  const [isWidgetEnabled, setIsWidgetEnabled] = useState(() => readTodoWidgetVisible());
   const navRef = useRef<HTMLElement>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
+
+  // 同步悬浮挂件启用状态
+  useEffect(() => {
+    const syncWidget = () => setIsWidgetEnabled(readTodoWidgetVisible());
+    window.addEventListener(TODO_STORAGE_EVENT, syncWidget);
+    window.addEventListener('storage', syncWidget);
+    return () => {
+      window.removeEventListener(TODO_STORAGE_EVENT, syncWidget);
+      window.removeEventListener('storage', syncWidget);
+    };
+  }, []);
 
   // Close tools dropdown on outside click
   useEffect(() => {
@@ -306,10 +327,10 @@ export default function Header({ onHeightChange }: HeaderProps) {
       }}
       transition={{ duration: 0.3 }}
     >
-      {/* Desktop Header: Sleek, lightweight, floating glass capsule */}
+      {/* Desktop Header: Completely transparent */}
       <nav
         ref={navRef}
-        className="hidden md:flex mx-auto mt-3 max-w-5xl px-5 py-2.5 rounded-full bg-white/70 dark:bg-black/50 backdrop-blur-2xl border border-white/30 dark:border-white/10 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)] items-center justify-between relative"
+        className="hidden md:flex w-full items-center justify-between relative px-6 md:px-10 py-3.5 bg-transparent"
       >
         {/* Logo */}
         <motion.div 
@@ -318,19 +339,31 @@ export default function Header({ onHeightChange }: HeaderProps) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h1 
-            className="logo-gradient text-xl font-bold font-display bg-clip-text text-transparent select-none"
-            style={{ '--logo-accent': accentColor } as CSSProperties}
-          >
-            <a href="https://time-pulse-two.vercel.app/">TimePulse</a>
-          </h1>
+          <AnimatedLogo
+            accentColor={accentColor}
+            size="lg"
+            onClick={() => {
+              if (view === 'todo') transitionTo('main');
+            }}
+            onLinkClick={(e) => {
+              if (view === 'todo') {
+                e.preventDefault();
+                transitionTo('main');
+              }
+            }}
+          />
         </motion.div>
 
         {/* Center: Dynamic Island Capsule Switcher */}
         <TimerTabs
           timers={timers}
           activeTimerId={activeTimerId}
-          setActiveTimerId={setActiveTimerId}
+          setActiveTimerId={(id) => {
+            setActiveTimerId(id);
+            if (view === 'todo') {
+              transitionTo('main');
+            }
+          }}
         />
 
         {/* Right Controls: Streamlined, clean, cohesive */}
@@ -353,10 +386,60 @@ export default function Header({ onHeightChange }: HeaderProps) {
 
           <div className="h-4 w-px bg-gray-300/50 dark:bg-white/10 mx-0.5" />
 
+          {/* Background Settings */}
+          <button
+            type="button"
+            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            onClick={() => {
+              if (window.location.hash !== '#background') window.location.hash = 'background';
+            }}
+            title="背景设置"
+            data-insightflare-event="background_open"
+          >
+            <FiImage className="size-4.5" />
+          </button>
+
+          {/* Share */}
+          <button
+            type="button"
+            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            onClick={() => {
+              setIsShareOpen(true);
+              if (window.location.hash !== '#share') window.location.hash = 'share';
+            }}
+            title={t('share.title', '分享与二维码')}
+            data-insightflare-event="share_open"
+            data-insightflare-event-from="desktop"
+          >
+            <FiShare2 className="size-4.5" />
+          </button>
+
+          {/* Todo & Checklist */}
+          <button
+            type="button"
+            className={`size-8.5 rounded-full inline-flex items-center justify-center cursor-pointer transition-all ${
+              view === 'todo'
+                ? 'bg-primary-500/20 text-primary-600 dark:text-primary-300 ring-1 ring-primary-500/40 shadow-xs'
+                : 'hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300'
+            }`}
+            onClick={() => {
+              if (view === 'todo') {
+                transitionTo('main');
+              } else {
+                transitionTo('todo');
+              }
+            }}
+            title={view === 'todo' ? '返回计时器' : '待办与核对清单'}
+            aria-label={view === 'todo' ? '返回计时器' : '待办与核对清单'}
+            data-insightflare-event="todo_widget_toggle"
+          >
+            <FiCheckSquare className="size-4.5" />
+          </button>
+
           {/* Theme Toggle */}
           <button
             type="button"
-            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 text-gray-700 cursor-pointer transition-colors"
+            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
             onClick={toggleTheme}
             title={theme === 'cream' ? '切换浅色模式' : '切换米白色模式'}
             data-insightflare-event="theme_toggle"
@@ -424,7 +507,50 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
                   >
                     <FiShare2 className="size-4 text-blue-500" />
-                    <span>分享当前计时器</span>
+                    <span>{t('share.title', '分享与二维码')}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      transitionTo('todo');
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <FiCheckSquare className="size-4 text-emerald-500" />
+                    <span>待办清单 (新页面)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      const next = !isWidgetEnabled;
+                      setIsWidgetEnabled(next);
+                      writeTodoWidgetVisible(next);
+                      if (next) {
+                        if (view === 'todo') {
+                          transitionTo('main');
+                        }
+                        window.location.hash = 'todo-widget';
+                      }
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiList className="size-4 text-blue-500" />
+                      <span>桌面悬浮挂件</span>
+                    </div>
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        isWidgetEnabled
+                          ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400'
+                          : 'bg-black/5 text-gray-400 dark:bg-white/10 dark:text-gray-500'
+                      }`}
+                    >
+                      {isWidgetEnabled ? '显示中' : '已隐藏'}
+                    </span>
                   </button>
 
                   <button
@@ -460,8 +586,8 @@ export default function Header({ onHeightChange }: HeaderProps) {
         </div>
       </nav>
 
-      {/* Mobile Top Bar: Ultra-clean, non-bloated, spacious */}
-      <div className="md:hidden flex items-center justify-between px-5 pt-3 pb-1 w-full pointer-events-auto">
+      {/* Mobile Top Bar: Completely transparent */}
+      <div className="md:hidden flex items-center justify-between px-5 pt-3 pb-1 w-full pointer-events-auto bg-transparent">
         {/* Minimal Brand Logo */}
         <motion.div
           initial={{ opacity: 0, x: -10 }}
@@ -469,23 +595,32 @@ export default function Header({ onHeightChange }: HeaderProps) {
           transition={{ duration: 0.4 }}
           className="flex items-center"
         >
-          <h1
-            className="logo-gradient text-lg font-bold font-display bg-clip-text text-transparent select-none"
-            style={{ '--logo-accent': accentColor } as CSSProperties}
-          >
-            <a href="https://time-pulse-two.vercel.app/">TimePulse</a>
-          </h1>
+          <AnimatedLogo
+            accentColor={accentColor}
+            size="md"
+            onClick={() => {
+              if (view === 'todo') transitionTo('main');
+            }}
+            onLinkClick={(e) => {
+              if (view === 'todo') {
+                e.preventDefault();
+                transitionTo('main');
+              }
+            }}
+          />
         </motion.div>
 
         {/* Minimal Quick Action */}
         <div className="flex items-center gap-2">
           <button
             type="button"
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/25 dark:border-white/10 text-xs font-medium text-gray-700 dark:text-gray-200 shadow-xs cursor-pointer active:scale-95 transition-transform"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-500/10 text-primary-600 hover:bg-primary-500/20 dark:bg-primary-500/15 dark:text-primary-300 font-medium text-xs cursor-pointer active:scale-95 transition-all"
             onClick={() => {
               setIsTimerCreationOpen(true);
               if (window.location.hash !== '#add') window.location.hash = 'add';
             }}
+            data-insightflare-event="timer_create_open"
+            data-insightflare-event-from="mobile"
           >
             <FiPlus className="size-3.5 stroke-[2.5]" />
             <span>新建</span>

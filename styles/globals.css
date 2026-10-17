@@ -1109,12 +1109,6 @@ body {
   }
 }
 
-/* 米白色模式细节优化 */
-html.cream .app-header nav {
-  background: rgba(255, 252, 245, 0.82);
-  border: 1px solid rgba(220, 212, 198, 0.65);
-  box-shadow: 0 4px 24px -4px rgba(140, 120, 95, 0.12);
-}
 
 html.cream .glass-card {
   box-shadow: 0 8px 30px -4px rgba(140, 120, 95, 0.08);

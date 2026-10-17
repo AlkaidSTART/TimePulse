@@ -34,7 +34,8 @@
     "manage": "Manage Timers",
     "dragToReorder": "Drag to reorder",
     "timers": "Timers",
-    "functions": "Functions"
+    "functions": "Functions",
+    "todo": "Todo & Checklist"
   },
   "timer": {
     "noActiveTimer": "No active timer",
@@ -154,7 +155,15 @@
     "description": "TimePulse works normally in offline mode, your data will be saved locally."
   },
   "share": {
-    "title": "Share Timer",
+    "title": "Share & QR Code",
+    "websiteTab": "Website QR",
+    "timerTab": "Share Timer",
+    "websiteUrl": "Website URL",
+    "scanToVisit": "Scan QR code to visit TimePulse on mobile",
+    "websiteQrAlt": "TimePulse Website Access QR Code",
+    "websiteDesc": "Scan with your phone to open TimePulse on mobile devices.",
+    "subtitle": "Website access QR code & timer sharing",
+    "copied": "Copied to clipboard",
     "url": "Share URL",
     "qrCode": "Scan QR Code", 
     "copyLink": "Copy Link",
@@ -162,8 +171,12 @@
     "selectTimer": "Select countdown to share",
     "systemShare": "System Share",
     "shareAll": "Share All Timers",
+    "shareTitle": "TimePulse Modern Timer",
+    "shareWebsiteText": "Check out TimePulse, a modern beautiful online timer:",
     "shareText": "I shared a countdown timer, click the link to view",
-    "shareError": "Share failed:"
+    "shareError": "Share failed:",
+    "qrError": "Data too long for QR code",
+    "qrErrorHint": "Try sharing a single timer instead"
   },
   "footer": {
     "description": "A clean and efficient online countdown tool that supports multiple timer modes and custom settings.",

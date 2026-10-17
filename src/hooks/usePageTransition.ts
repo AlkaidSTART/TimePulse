@@ -4,234 +4,85 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useRef,
   useState,
   type ReactNode,
 } from 'react';
-import { useFullscreen } from '@/app/providers/FullscreenProvider';
 
-export type PageView = 'main' | 'about';
+export type PageView = 'main' | 'todo';
 
 type PageTransitionContextValue = {
   view: PageView;
   isAbout: boolean;
+  isTodo: boolean;
   direction: 1 | -1;
   transitionTo: (view: PageView) => void;
 };
 
 const PageTransitionContext = createContext<PageTransitionContextValue | null>(null);
 
-const WHEEL_THRESHOLD = 90;
-const TOUCH_THRESHOLD = 72;
-const WHEEL_RESET_DELAY = 650;
-const TRANSITION_COOLDOWN = 550;
-
 function getInitialView(): PageView {
-  if (typeof window !== 'undefined' && window.location.hash === '#footer') {
-    return 'about';
-  }
-
-  return 'main';
-}
-
-function replaceHash(hash: string | null) {
-  if (typeof window === 'undefined') return;
-
-  const nextUrl = `${window.location.pathname}${window.location.search}${hash ? `#${hash}` : ''}`;
-  window.history.replaceState({}, document.title, nextUrl);
-}
-
-function isGestureIgnored(target: EventTarget | null): boolean {
-  if (!(target instanceof Element)) return false;
-
-  return Boolean(
-    target.closest(
-      '[data-modal-layer="true"], [data-page-transition-ignore="true"], input, textarea, select, [contenteditable="true"]',
-    ),
-  );
-}
-
-function isWithinManagedScrollContainer(target: EventTarget | null): boolean {
-  return target instanceof Element && Boolean(target.closest('[data-timepulse-scrollbar="true"]'));
-}
-
-function canScrollVerticallyWithinTarget(target: EventTarget | null, deltaY: number): boolean {
-  if (!(target instanceof Element) || deltaY === 0) return false;
-
-  const scrollableAncestors: HTMLElement[] = [];
-  let element: Element | null = target;
-  while (element) {
-    if (element instanceof HTMLElement) scrollableAncestors.push(element);
-    element = element.parentElement;
-  }
-
-  // OverlayScrollbars moves scrolling to its viewport, which is a sibling of
-  // the scrollbar track and may not be an ancestor of the original event target.
-  const managedHost = target.closest<HTMLElement>('[data-timepulse-scrollbar="true"]');
-  const overlayViewport = managedHost?.querySelector<HTMLElement>('.os-viewport');
-  if (overlayViewport && !scrollableAncestors.includes(overlayViewport)) {
-    scrollableAncestors.unshift(overlayViewport);
-  }
-
-  return scrollableAncestors.some((scrollable) => {
-    const overflowY = window.getComputedStyle(scrollable).overflowY;
-    if (!/^(auto|scroll|overlay)$/.test(overflowY)) return false;
-    if (scrollable.scrollHeight <= scrollable.clientHeight + 1) return false;
-
-    const maxScrollTop = scrollable.scrollHeight - scrollable.clientHeight;
-    return deltaY < 0
-      ? scrollable.scrollTop > 1
-      : scrollable.scrollTop < maxScrollTop - 1;
-  });
+  if (typeof window === 'undefined') return 'main';
+  const hash = window.location.hash;
+  return hash === '#todo' || hash === '#/todo' ? 'todo' : 'main';
 }
 
 export function PageTransitionProvider({ children }: { children: ReactNode }) {
-  const { isFullscreen } = useFullscreen();
   const [view, setView] = useState<PageView>(getInitialView);
   const [direction, setDirection] = useState<1 | -1>(1);
-  const viewRef = useRef<PageView>(view);
-  const wheelTotalRef = useRef(0);
-  const wheelResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const touchStartYRef = useRef<number | null>(null);
-  const touchTargetRef = useRef<EventTarget | null>(null);
-  const cooldownUntilRef = useRef(0);
-  const lastHashRef = useRef(typeof window !== 'undefined' ? window.location.hash : '');
-
-  const transitionTo = useCallback((nextView: PageView) => {
-    if (viewRef.current === nextView) return;
-
-    setDirection(nextView === 'about' ? 1 : -1);
-    viewRef.current = nextView;
-    setView(nextView);
-
-    if (nextView === 'about') {
-      lastHashRef.current = '#footer';
-      replaceHash('footer');
-    } else if (window.location.hash === '#footer') {
-      lastHashRef.current = '';
-      replaceHash(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    viewRef.current = view;
-  }, [view]);
 
   useEffect(() => {
     const handleHashChange = () => {
-      const nextHash = window.location.hash;
-      const previousHash = lastHashRef.current;
-      lastHashRef.current = nextHash;
-
-      if (nextHash === '#footer') {
-        transitionTo('about');
-      } else if (!nextHash && previousHash === '#footer' && viewRef.current === 'about') {
-        transitionTo('main');
-      }
+      const hash = window.location.hash;
+      const nextView: PageView = hash === '#todo' || hash === '#/todo' ? 'todo' : 'main';
+      setView((prev) => {
+        if (prev !== nextView) {
+          setDirection(nextView === 'todo' ? 1 : -1);
+        }
+        return nextView;
+      });
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [transitionTo]);
-
-  useEffect(() => {
-    const resetWheelTotal = () => {
-      wheelTotalRef.current = 0;
-      wheelResetTimerRef.current = null;
-    };
-
-    const handleWheel = (event: WheelEvent) => {
-      if (
-        isFullscreen ||
-        document.fullscreenElement ||
-        event.ctrlKey ||
-        isGestureIgnored(event.target) ||
-        canScrollVerticallyWithinTarget(event.target, event.deltaY)
-      ) {
-        return;
-      }
-
-      event.preventDefault();
-
-      const now = performance.now();
-      if (now < cooldownUntilRef.current) return;
-
-      wheelTotalRef.current += event.deltaY;
-      if (wheelResetTimerRef.current) clearTimeout(wheelResetTimerRef.current);
-      wheelResetTimerRef.current = setTimeout(resetWheelTotal, WHEEL_RESET_DELAY);
-
-      if (Math.abs(wheelTotalRef.current) < WHEEL_THRESHOLD) return;
-
-      const nextView = wheelTotalRef.current > 0 ? 'about' : 'main';
-      wheelTotalRef.current = 0;
-      cooldownUntilRef.current = now + TRANSITION_COOLDOWN;
-      transitionTo(nextView);
-    };
-
-    const handleTouchStart = (event: TouchEvent) => {
-      if (
-        isFullscreen ||
-        document.fullscreenElement ||
-        event.touches.length !== 1 ||
-        isGestureIgnored(event.target) ||
-        isWithinManagedScrollContainer(event.target)
-      ) {
-        touchStartYRef.current = null;
-        touchTargetRef.current = null;
-        return;
-      }
-
-      touchStartYRef.current = event.touches[0].clientY;
-      touchTargetRef.current = event.target;
-    };
-
-    const handleTouchMove = (event: TouchEvent) => {
-      if (
-        touchStartYRef.current !== null &&
-        !isGestureIgnored(touchTargetRef.current) &&
-        !isWithinManagedScrollContainer(touchTargetRef.current)
-      ) {
-        event.preventDefault();
-      }
-    };
-
-    const handleTouchEnd = (event: TouchEvent) => {
-      if (touchStartYRef.current === null || isGestureIgnored(touchTargetRef.current)) {
-        touchStartYRef.current = null;
-        touchTargetRef.current = null;
-        return;
-      }
-
-      const touch = event.changedTouches[0];
-      const deltaY = touch ? touchStartYRef.current - touch.clientY : 0;
-      touchStartYRef.current = null;
-      touchTargetRef.current = null;
-
-      if (Math.abs(deltaY) < TOUCH_THRESHOLD || performance.now() < cooldownUntilRef.current) {
-        return;
-      }
-
-      cooldownUntilRef.current = performance.now() + TRANSITION_COOLDOWN;
-      transitionTo(deltaY > 0 ? 'about' : 'main');
-    };
-
-    window.addEventListener('wheel', handleWheel, { capture: true, passive: false });
-    window.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { capture: true, passive: false });
-    window.addEventListener('touchend', handleTouchEnd, { capture: true, passive: true });
-
+    window.addEventListener('popstate', handleHashChange);
     return () => {
-      window.removeEventListener('wheel', handleWheel, true);
-      window.removeEventListener('touchstart', handleTouchStart, true);
-      window.removeEventListener('touchmove', handleTouchMove, true);
-      window.removeEventListener('touchend', handleTouchEnd, true);
-      if (wheelResetTimerRef.current) clearTimeout(wheelResetTimerRef.current);
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
     };
-  }, [isFullscreen, transitionTo]);
+  }, []);
+
+  const transitionTo = useCallback((nextView: PageView) => {
+    if (nextView === 'todo') {
+      if (window.location.hash !== '#todo' && window.location.hash !== '#/todo') {
+        window.location.hash = 'todo';
+      } else {
+        setView('todo');
+        setDirection(1);
+      }
+    } else {
+      if (window.location.hash === '#todo' || window.location.hash === '#/todo') {
+        if (typeof window !== 'undefined' && window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.hash = '';
+        }
+      } else {
+        setView('main');
+        setDirection(-1);
+      }
+    }
+  }, []);
+
+  const value: PageTransitionContextValue = {
+    view,
+    isAbout: false,
+    isTodo: view === 'todo',
+    direction,
+    transitionTo,
+  };
 
   return createElement(
     PageTransitionContext.Provider,
-    { value: { view, isAbout: view === 'about', direction, transitionTo } },
+    { value },
     children,
   );
 }
@@ -244,3 +95,4 @@ export function usePageTransition(): PageTransitionContextValue {
 
   return context;
 }
+

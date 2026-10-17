@@ -12,19 +12,29 @@ import { useFullscreen } from './providers/FullscreenProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import { parseShareUrl } from '@/services/sharing';
 import { usePageTransition } from '@/hooks/usePageTransition';
+import {
+  TodoPage,
+  TodoListWidget,
+  readTodoWidgetVisible,
+  writeTodoWidgetVisible,
+  TODO_STORAGE_EVENT,
+} from '@/features/todo';
 import type { Timer } from '../domain/timer';
 
 export default function Home() {
   const { timers, activeTimerId, setActiveTimerId, addTimer } = useTimers();
   const { theme, accentColor } = useTheme();
   const { isFullscreen, isHeaderVisible } = useFullscreen();
-  const { isAbout, direction } = usePageTransition();
+  const { view, direction, transitionTo } = usePageTransition();
   const { t } = useTranslation();
-  const showMainPage = !isAbout || isFullscreen;
+  const showMainPage = view === 'main' || isFullscreen;
+  const showTodoPage = view === 'todo' && !isFullscreen;
   const [headerHeight, setHeaderHeight] = useState(0);
   
   const [isBackgroundSettingsOpen, setIsBackgroundSettingsOpen] = useState(false);
   const [isFullscreenSettingsOpen, setIsFullscreenSettingsOpen] = useState(false);
+  const [isWidgetEnabled, setIsWidgetEnabled] = useState(() => readTodoWidgetVisible());
+  const [isTodoWidgetOpen, setIsTodoWidgetOpen] = useState(false);
   const [log, setLog] = useState<string[]>([]);
 
   // Mobile horizontal swipe gestures to switch timers
@@ -96,6 +106,19 @@ export default function Home() {
     addLog(`加载了 ${timers.length} 个计时器`);
   }, [theme, timers.length]);
 
+  // 监听挂件可见性设置的更新
+  useEffect(() => {
+    const handleWidgetSync = () => {
+      setIsWidgetEnabled(readTodoWidgetVisible());
+    };
+    window.addEventListener(TODO_STORAGE_EVENT, handleWidgetSync);
+    window.addEventListener('storage', handleWidgetSync);
+    return () => {
+      window.removeEventListener(TODO_STORAGE_EVENT, handleWidgetSync);
+      window.removeEventListener('storage', handleWidgetSync);
+    };
+  }, []);
+
   // 监听 hash 变化打开弹窗
   useEffect(() => {
     const handleHashChange = () => {
@@ -107,6 +130,11 @@ export default function Home() {
           break;
         case 'fullscreen-settings':
           setIsFullscreenSettingsOpen(true);
+          break;
+        case 'todo-widget':
+          setIsWidgetEnabled(true);
+          writeTodoWidgetVisible(true);
+          setIsTodoWidgetOpen(true);
           break;
       }
     };
@@ -133,7 +161,7 @@ export default function Home() {
                   y: 0,
                   transition: {
                     duration: 0.36,
-                    delay: !isAbout && direction === -1 ? 0.3 : 0,
+                    delay: view === 'main' && direction === -1 ? 0.2 : 0,
                     ease: 'easeOut',
                   },
                 },
@@ -164,10 +192,44 @@ export default function Home() {
                 </AutoResizer>
               </motion.main>
             </motion.div>
+          ) : showTodoPage ? (
+            <motion.div
+              key="todo-page-visible"
+              custom={direction}
+              variants={{
+                initial: (value: unknown) => ({ opacity: 0, y: value === 1 ? 56 : -56 }),
+                animate: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    duration: 0.36,
+                    ease: 'easeOut',
+                  },
+                },
+                exit: (value: unknown) => ({
+                  opacity: 0,
+                  y: value === 1 ? -56 : 56,
+                  transition: { duration: 0.28, ease: 'easeIn' },
+                }),
+              }}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="absolute inset-0 z-10"
+            >
+              <TodoPage
+                onBack={() => transitionTo('main')}
+                onOpenAsWidget={() => {
+                  setIsWidgetEnabled(true);
+                  writeTodoWidgetVisible(true);
+                  transitionTo('main');
+                  setIsTodoWidgetOpen(true);
+                }}
+              />
+            </motion.div>
           ) : null}
         </AnimatePresence>
       </Layout>
-      
       
       {/* 背景设置弹窗 */}
       <AutoTransition portal transitionKey={isBackgroundSettingsOpen ? 'background-open' : 'background-closed'} initial={false}>
@@ -192,6 +254,23 @@ export default function Home() {
           }} />
         ) : null}
       </AutoTransition>
+
+      {/* 小型支持拖拽的 TodoList & Checklist 悬浮挂件（取决于用户偏好选择是否显示） */}
+      {!isFullscreen && view === 'main' && isWidgetEnabled && (
+        <TodoListWidget
+          isOpen={isTodoWidgetOpen}
+          onOpenChange={setIsTodoWidgetOpen}
+          onOpenAsPage={() => {
+            setIsTodoWidgetOpen(false);
+            transitionTo('todo');
+          }}
+          onHideWidget={() => {
+            setIsTodoWidgetOpen(false);
+            writeTodoWidgetVisible(false);
+            setIsWidgetEnabled(false);
+          }}
+        />
+      )}
     </>
   );
 }

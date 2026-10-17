@@ -17,12 +17,18 @@ import {
   FiGlobe,
   FiShare2,
   FiCheck,
+  FiCheckSquare,
 } from 'react-icons/fi';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Language } from '@/i18n/types';
 import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
+import {
+  readTodoWidgetVisible,
+  writeTodoWidgetVisible,
+  TODO_STORAGE_EVENT,
+} from '@/features/todo';
 
 export type MobileTab = 'timer' | 'list' | 'background' | 'settings';
 
@@ -177,6 +183,17 @@ export default function MobileTabBar({
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [timerOrder, setTimerOrder] = useState(() => timers.map((t) => t.id));
   const timerOrderRef = useRef(timerOrder);
+  const [isWidgetEnabled, setIsWidgetEnabled] = useState(() => readTodoWidgetVisible());
+
+  useEffect(() => {
+    const handleWidgetSync = () => setIsWidgetEnabled(readTodoWidgetVisible());
+    window.addEventListener(TODO_STORAGE_EVENT, handleWidgetSync);
+    window.addEventListener('storage', handleWidgetSync);
+    return () => {
+      window.removeEventListener(TODO_STORAGE_EVENT, handleWidgetSync);
+      window.removeEventListener('storage', handleWidgetSync);
+    };
+  }, []);
 
   useEffect(() => {
     const availableIds = new Set(timers.map((timer) => timer.id));
@@ -810,6 +827,59 @@ export default function MobileTabBar({
                       </button>
                     </div>
 
+                    {/* Todo & Checklist Page Trigger */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.location.hash = 'todo';
+                        onTabChange('timer');
+                      }}
+                      className="w-full flex items-center justify-between p-3.5 text-left hover:bg-white/30 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="size-9 rounded-xl bg-emerald-500/10 text-emerald-500 dark:bg-emerald-400/15 dark:text-emerald-400 flex items-center justify-center">
+                          <FiCheckSquare className="size-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">待办清单 (独立新页面)</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">大屏全景待办、支持拖拽与振动反馈</p>
+                        </div>
+                      </div>
+                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">进入新页面</span>
+                    </button>
+
+                    {/* Todo & Checklist Floating Widget Trigger */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !isWidgetEnabled;
+                        setIsWidgetEnabled(next);
+                        writeTodoWidgetVisible(next);
+                        if (next) {
+                          window.location.hash = 'todo-widget';
+                          onTabChange('timer');
+                        }
+                      }}
+                      className="w-full flex items-center justify-between p-3.5 text-left hover:bg-white/30 dark:hover:bg-white/5 transition-colors cursor-pointer border-t border-gray-100/50 dark:border-white/5"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="size-9 rounded-xl bg-blue-500/10 text-blue-500 dark:bg-blue-400/15 dark:text-blue-400 flex items-center justify-center">
+                          <FiList className="size-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">桌面待办悬浮挂件</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">右下角悬浮胶囊与轻量弹窗</p>
+                        </div>
+                      </div>
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                        isWidgetEnabled
+                          ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400'
+                          : 'bg-black/5 text-gray-400 dark:bg-white/10 dark:text-gray-500'
+                      }`}>
+                        {isWidgetEnabled ? '显示中' : '已隐藏'}
+                      </span>
+                    </button>
+
                     {/* Share Modal Trigger */}
                     <button
                       type="button"
@@ -824,11 +894,11 @@ export default function MobileTabBar({
                           <FiShare2 className="size-5" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">分享计时器</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">生成分享链接或二维码</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('share.title', '分享与二维码')}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('share.subtitle', '网站访问二维码与计时器分享')}</p>
                         </div>
                       </div>
-                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">生成</span>
+                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">查看</span>
                     </button>
                   </div>
                 </div>

@@ -34,7 +34,8 @@
     "manage": "管理计时器",
     "dragToReorder": "拖动以调整顺序",
     "timers": "计时器",
-    "functions": "功能"
+    "functions": "功能",
+    "todo": "待办与核对清单"
   },
   "timer": {
     "noActiveTimer": "没有活动的计时器",
@@ -154,7 +155,15 @@
     "description": "TimePulse 可以在离线模式下正常工作，您的数据将保存在本地。"
   },
   "share": {
-    "title": "分享计时器",
+    "title": "分享与二维码",
+    "websiteTab": "网站二维码",
+    "timerTab": "分享计时器",
+    "websiteUrl": "网站访问链接",
+    "scanToVisit": "手机扫码即可直接访问 TimePulse 在线网站",
+    "websiteQrAlt": "TimePulse 网站访问二维码",
+    "websiteDesc": "使用手机或平板扫描二维码，快速在移动端体验 TimePulse。",
+    "subtitle": "网站访问二维码与计时器分享",
+    "copied": "已复制到剪贴板",
     "url": "分享链接",
     "qrCode": "扫描二维码",
     "copyLink": "复制链接",
@@ -162,8 +171,12 @@
     "selectTimer": "选择要分享的倒计时",
     "systemShare": "系统分享",
     "shareAll": "分享所有计时器",
+    "shareTitle": "TimePulse 现代化计时器",
+    "shareWebsiteText": "推荐一个好用的现代化在线计时器 TimePulse：",
     "shareText": "我分享了一个倒计时，点击链接查看",
-    "shareError": "分享失败:"
+    "shareError": "分享失败:",
+    "qrError": "数据过长，无法生成二维码",
+    "qrErrorHint": "请尝试分享单个计时器"
   },
   "footer": {
     "description": "一个简洁高效的在线倒计时工具，支持多种计时模式和自定义设置。",
