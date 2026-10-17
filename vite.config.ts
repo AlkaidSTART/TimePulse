@@ -54,6 +54,9 @@ export default defineConfig({
           if (pkg?.startsWith('@radix-ui') || pkg?.startsWith('@floating-ui')) {
             return 'vendor-radix';
           }
+          if (pkg === '@hello-pangea/dnd') {
+            return 'vendor-dnd';
+          }
           if (pkg?.includes('number-flow') || pkg === 'overlayscrollbars' || pkg === 'clsx' || pkg === 'tailwind-merge' || pkg === 'class-variance-authority') {
             return 'vendor-ui';
           }

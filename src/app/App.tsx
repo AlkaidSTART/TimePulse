@@ -8,6 +8,7 @@ import notificationManager from '@/services/notificationManager';
 import { PageTransitionProvider } from '@/hooks/usePageTransition';
 import GlobalScrollbars from '@/components/layout/GlobalScrollbars';
 import OpeningAnimation from '@/components/layout/OpeningAnimation';
+import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
 
 declare global {
   interface Window {
@@ -44,6 +45,7 @@ function useViteAppLifecycle() {
 
 export default function App() {
   useViteAppLifecycle();
+  usePlatformShortcuts();
 
   return (
     <ThemeProvider>

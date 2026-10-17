@@ -114,6 +114,79 @@ html[data-android-app='true'] {
   padding-left: calc(1rem + var(--tp-safe-left));
 }
 
+/* 页面视图（个人设置中心、待办清单等）避让顶栏与系统安全区 */
+.personal-settings-page {
+  --settings-pt: max(4.5rem, calc(3.75rem + var(--tp-safe-top)));
+  --settings-pb: max(6.5rem, calc(5.5rem + var(--tp-safe-bottom)));
+  padding-top: var(--settings-pt);
+  padding-bottom: var(--settings-pb);
+  padding-left: max(1rem, var(--tp-safe-left));
+  padding-right: max(1rem, var(--tp-safe-right));
+}
+
+@media (min-width: 1024px) {
+  .personal-settings-page {
+    /* 桌面端顶栏高度约 72px，设置 6.5rem（104px）确保有约 32px 舒适留白，完全不被浮动顶栏遮挡 */
+    --settings-pt: max(6.5rem, calc(5.5rem + var(--tp-safe-top)));
+    --settings-pb: max(6rem, calc(4.5rem + var(--tp-safe-bottom)));
+  }
+}
+
+@media (orientation: landscape) and (max-height: 640px) and (max-width: 1023px) {
+  .personal-settings-page {
+    /* 移动端横屏紧凑布局 */
+    --settings-pt: max(2.5rem, calc(1.75rem + var(--tp-safe-top)));
+    --settings-pb: max(4.25rem, calc(3.25rem + var(--tp-safe-bottom)));
+  }
+}
+
+html[data-mobile-landscape="true"]:not([data-desktop="true"]) .personal-settings-page {
+  --settings-pt: max(2.5rem, calc(1.75rem + var(--tp-safe-top)));
+  --settings-pb: max(4.25rem, calc(3.25rem + var(--tp-safe-bottom)));
+}
+
+@media (min-width: 1024px) {
+  html[data-mobile-landscape="true"] .personal-settings-page {
+    --settings-pt: max(6.5rem, calc(5.5rem + var(--tp-safe-top)));
+    --settings-pb: max(6rem, calc(4.5rem + var(--tp-safe-bottom)));
+  }
+}
+
+.todo-page-container {
+  --todo-pt: max(4.5rem, calc(3.75rem + var(--tp-safe-top)));
+  --todo-pb: max(6.5rem, calc(5.5rem + var(--tp-safe-bottom)));
+  padding-top: var(--todo-pt);
+  padding-bottom: var(--todo-pb);
+  padding-left: max(1rem, var(--tp-safe-left));
+  padding-right: max(1rem, var(--tp-safe-right));
+}
+
+@media (min-width: 1024px) {
+  .todo-page-container {
+    --todo-pt: max(6.5rem, calc(5.5rem + var(--tp-safe-top)));
+    --todo-pb: max(5.5rem, calc(4rem + var(--tp-safe-bottom)));
+  }
+}
+
+@media (orientation: landscape) and (max-height: 640px) and (max-width: 1023px) {
+  .todo-page-container {
+    --todo-pt: max(2.75rem, calc(2rem + var(--tp-safe-top)));
+    --todo-pb: max(4.5rem, calc(3.5rem + var(--tp-safe-bottom)));
+  }
+}
+
+html[data-mobile-landscape="true"]:not([data-desktop="true"]) .todo-page-container {
+  --todo-pt: max(2.75rem, calc(2rem + var(--tp-safe-top)));
+  --todo-pb: max(4.5rem, calc(3.5rem + var(--tp-safe-bottom)));
+}
+
+@media (min-width: 1024px) {
+  html[data-mobile-landscape="true"] .todo-page-container {
+    --todo-pt: max(6.5rem, calc(5.5rem + var(--tp-safe-top)));
+    --todo-pb: max(5.5rem, calc(4rem + var(--tp-safe-bottom)));
+  }
+}
+
 /* 替换为所有元素的过渡效果，改为更具体的选择器，减少对性能的影响 */
 .transition-enabled {
   -webkit-transition: color var(--text-color-transition-duration) var(--transition-timing),

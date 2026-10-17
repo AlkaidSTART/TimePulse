@@ -260,8 +260,28 @@ export async function scheduleCountdownNotification(
     }
   }
 
-  // 2. 兜底使用 Web Service Worker 通知 (PWA / Web)
+  // 2. 兜底使用 Web Service Worker 通知 (PWA / Web) 或原生 Web Notification
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      const delay = countdown.targetTime - Date.now();
+      if (delay <= 0) {
+        try {
+          new Notification(title, { body });
+          return { success: true, needsPermission: false };
+        } catch {
+          return { success: false, needsPermission: false };
+        }
+      } else {
+        setTimeout(() => {
+          try {
+            new Notification(title, { body });
+          } catch (e) {
+            console.error('发送通知失败:', e);
+          }
+        }, delay);
+        return { success: true, needsPermission: false };
+      }
+    }
     console.log('此环境不支持Service Worker，无法设置通知');
     return { success: false, needsPermission: false };
   }
@@ -352,8 +372,16 @@ export async function testNotification(): Promise<boolean> {
   }
 
   if (typeof window === 'undefined' || !('Notification' in window)) return false;
-  if (Notification.permission !== 'granted' && await Notification.requestPermission() !== 'granted') return false;
-  if (!navigator.serviceWorker.controller) return false;
+  if (Notification.permission !== 'granted' && (await Notification.requestPermission()) !== 'granted') return false;
+  if (!navigator.serviceWorker?.controller) {
+    try {
+      new Notification(title, { body });
+      return true;
+    } catch (e) {
+      console.error('Web 测试通知发送失败:', e);
+      return false;
+    }
+  }
   navigator.serviceWorker.controller.postMessage({
     action: 'scheduleNotification',
     title,

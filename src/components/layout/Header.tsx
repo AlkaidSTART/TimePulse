@@ -5,7 +5,7 @@ import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdi
 import { SiWechat } from 'react-icons/si';
 import { LuPalette } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
-import type { Timer, TimerType } from '@/domain/timer';
+import type { CountdownTimer, Timer, TimerType } from '@/domain/timer';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
@@ -41,6 +41,11 @@ type TimerEditState = {
   name: string;
   color?: string;
   type?: TimerType;
+  countdownType?: 'long' | 'short';
+  durationSeconds?: number;
+  shortHours?: number;
+  shortMinutes?: number;
+  shortSeconds?: number;
   targetDate?: string;
   targetTime?: string;
   isLimitedEdit?: boolean;
@@ -298,9 +303,20 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const startEditTimer = (timer: Timer) => {
     setManageDirection(1);
     if (timer.type === 'countdown' || !timer.type) {
+      const cd = timer as CountdownTimer;
+      const duration = typeof cd.durationSeconds === 'number' ? cd.durationSeconds : 0;
+      const h = Math.floor(duration / 3600);
+      const m = Math.floor((duration % 3600) / 60);
+      const s = duration % 60;
+
       // 倒计时可以编辑所有属性
       setEditingTimer({
         ...timer,
+        countdownType: cd.countdownType ?? 'long',
+        durationSeconds: duration,
+        shortHours: h,
+        shortMinutes: m,
+        shortSeconds: s,
         targetDate: new Date(timer.targetDate).toISOString().substring(0, 10),
         targetTime: new Date(timer.targetDate).toTimeString().substring(0, 5)
       });
@@ -326,8 +342,19 @@ export default function Header({ onHeightChange }: HeaderProps) {
         name: editingTimer.name,
         color: editingTimer.color
       });
+    } else if (editingTimer.countdownType === 'short') {
+      const totalSecs = (Number(editingTimer.shortHours) || 0) * 3600 +
+                        (Number(editingTimer.shortMinutes) || 0) * 60 +
+                        (Number(editingTimer.shortSeconds) || 0);
+      const targetDateObj = new Date(Date.now() + totalSecs * 1000);
+      updateTimer(editingTimer.id, {
+        name: editingTimer.name,
+        durationSeconds: totalSecs,
+        targetDate: targetDateObj.toISOString(),
+        color: editingTimer.color
+      });
     } else {
-      // 完整编辑模式：更新所有属性（倒计时）
+      // 完整编辑模式：更新所有属性（长期倒计时）
       const targetDateObj = new Date(`${editingTimer.targetDate}T${editingTimer.targetTime}`);
       
       updateTimer(editingTimer.id, {
@@ -938,7 +965,11 @@ export default function Header({ onHeightChange }: HeaderProps) {
               {editingTimer ? (
                 <div className="flex flex-col gap-4">
                   <h3 className="font-medium pb-2">
-                    {editingTimer.isLimitedEdit ? t('modal.edit.editTimer') : t('modal.edit.editCountdown')}
+                    {editingTimer.isLimitedEdit
+                      ? t('modal.edit.editTimer')
+                      : editingTimer.countdownType === 'short'
+                      ? t('modal.countdown.shortTab', '短期倒计时')
+                      : t('modal.edit.editCountdown')}
                   </h3>
                   
                   <div>
@@ -951,27 +982,85 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     />
                   </div>
 
-                  {/* 只有倒计时可以编辑日期和时间 */}
+                  {/* 倒计时属性编辑 */}
                   {!editingTimer.isLimitedEdit && (
-                    <>
+                    editingTimer.countdownType === 'short' ? (
                       <div>
-                        <label className="block text-sm font-medium mb-1">{t('modal.edit.date')}</label>
-                        <DatePicker
-                          value={editingTimer.targetDate}
-                          onChange={(e) => setEditingTimer({ ...editingTimer, targetDate: e.target.value })}
-                        />
+                        <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-200">
+                          {t('modal.countdown.duration', '倒计时时长')}
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <span className="text-xs text-gray-400 block mb-1">{t('time.hours', '小时')}</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={99}
+                              value={editingTimer.shortHours ?? 0}
+                              onChange={(e) =>
+                                setEditingTimer({
+                                  ...editingTimer,
+                                  shortHours: Math.max(0, parseInt(e.target.value) || 0),
+                                })
+                              }
+                              className="w-full px-3 py-2 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 text-center font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-400 block mb-1">{t('time.minutes', '分钟')}</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={59}
+                              value={editingTimer.shortMinutes ?? 0}
+                              onChange={(e) =>
+                                setEditingTimer({
+                                  ...editingTimer,
+                                  shortMinutes: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)),
+                                })
+                              }
+                              className="w-full px-3 py-2 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 text-center font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-400 block mb-1">{t('time.seconds', '秒')}</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={59}
+                              value={editingTimer.shortSeconds ?? 0}
+                              onChange={(e) =>
+                                setEditingTimer({
+                                  ...editingTimer,
+                                  shortSeconds: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)),
+                                })
+                              }
+                              className="w-full px-3 py-2 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 text-center font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                          </div>
+                        </div>
                       </div>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">{t('modal.edit.date')}</label>
+                          <DatePicker
+                            value={editingTimer.targetDate}
+                            onChange={(e) => setEditingTimer({ ...editingTimer, targetDate: e.target.value })}
+                          />
+                        </div>
 
-                      <div>
-                        <label className="block text-sm font-medium mb-1">{t('modal.edit.time')}</label>
-                        <input
-                          type="time"
-                          value={editingTimer.targetTime}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => setEditingTimer({...editingTimer, targetTime: e.target.value})}
-                          className="w-full px-4 py-2.5 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-colors"
-                        />
-                      </div>
-                    </>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">{t('modal.edit.time')}</label>
+                          <input
+                            type="time"
+                            value={editingTimer.targetTime}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setEditingTimer({...editingTimer, targetTime: e.target.value})}
+                            className="w-full px-4 py-2.5 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-colors"
+                          />
+                        </div>
+                      </>
+                    )
                   )}
 
                   <div>
