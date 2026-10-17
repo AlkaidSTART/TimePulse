@@ -60,6 +60,8 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
   height: 100px;
   background-color: var(--hue-1);
   border-radius: 10px;
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.12), 0 0 16px -2px var(--hue-1);
+  will-change: transform;
 }
 
 
@@ -530,7 +532,6 @@ select,
       0 2px 6px -1px rgba(0, 0, 0, 0.02);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    will-change: transform;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -564,7 +565,6 @@ select,
       0 2px 6px -1px rgba(0, 0, 0, 0.2);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    will-change: transform;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -639,7 +639,6 @@ select,
       0 2px 6px -1px rgba(0, 0, 0, 0.03);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    will-change: transform;
   }
 
   .cream .liquid-droplet-pill {

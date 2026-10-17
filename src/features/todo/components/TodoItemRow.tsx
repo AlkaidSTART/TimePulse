@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Reorder, useDragControls, motion } from 'framer-motion';
+import { Reorder, useDragControls, motion, useReducedMotion } from 'framer-motion';
 import { FiCheck, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { TodoItem } from '../types';
@@ -22,6 +22,7 @@ export default function TodoItemRow({
   onEdit,
   onDragEnd,
 }: TodoItemRowProps) {
+  const shouldReduceMotion = useReducedMotion();
   const { t, currentLang } = useTranslation();
   const dragControls = useDragControls();
   const [isEditing, setIsEditing] = useState(false);
@@ -82,11 +83,11 @@ export default function TodoItemRow({
       <motion.button
         type="button"
         onClick={() => onToggle(item.id)}
-        whileTap={{ scale: 0.85 }}
+        whileTap={shouldReduceMotion ? undefined : { scale: 0.85 }}
         className="relative flex size-5 shrink-0 items-center justify-center rounded-md border transition-colors cursor-pointer"
         style={{
-          borderColor: item.completed ? accentColor : undefined,
-          backgroundColor: item.completed ? accentColor : 'transparent',
+          borderColor: item.completed ? '#0ea5e9' : undefined,
+          backgroundColor: item.completed ? '#0ea5e9' : 'transparent',
         }}
         aria-label={
           currentLang === 'en-US'
@@ -96,9 +97,9 @@ export default function TodoItemRow({
       >
         {item.completed && (
           <motion.div
-            initial={{ scale: 0, rotate: -45 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { scale: 0, rotate: -45 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { scale: 1, rotate: 0 }}
+            transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 500, damping: 25 }}
           >
             <FiCheck className="size-3.5 text-white stroke-[3]" />
           </motion.div>

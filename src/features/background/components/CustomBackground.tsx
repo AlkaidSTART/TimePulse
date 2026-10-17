@@ -99,6 +99,7 @@ export default function CustomBackground() {
               backgroundImage: `url(${imageUrl})`,
               ...getBackgroundStyle(),
               filter: blurAmount > 0 ? `blur(${blurAmount}px)` : 'none',
+              transform: blurAmount > 0 ? 'scale(1.04) translateZ(0)' : 'translateZ(0)',
             }}
           />
         </div>

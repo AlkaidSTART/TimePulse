@@ -312,36 +312,40 @@ export default function MobileTabBar({
           opacity: isVisible ? 1 : 0,
         }}
         transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed bottom-3 inset-x-3 z-40 md:hidden max-w-[420px] mx-auto pointer-events-auto"
+        className="fixed bottom-3 inset-x-3 z-40 lg:hidden max-w-[420px] sm:max-w-[460px] md:max-w-[500px] mx-auto pointer-events-auto"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
-        <div className="relative mx-auto flex h-[58px] w-full items-center justify-around rounded-full border border-black/[0.08] bg-white/85 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] backdrop-blur-2xl dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)]">
+        <div className="relative mx-auto flex h-[60px] w-full items-center justify-around rounded-full border border-black/[0.08] bg-white/85 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] backdrop-blur-2xl cream:bg-[#faf7ee]/92 cream:border-amber-900/[0.1] cream:shadow-[0_10px_30px_-6px_rgba(130,110,80,0.14)] dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)]">
           {tabsConfig.map((item) => {
             if (item.isAction) {
-              // Center Action: "+" Button - Apple Liquid Glass Transparent Water Droplet (Zero Blue)
+              // Center Action: "+" Button - Vibrant theme accent solid button
               return (
                 <div key={item.id} className="relative flex flex-1 h-full items-center justify-center px-0.5">
                   <motion.button
                     type="button"
                     onClick={handleAddClick}
                     whileTap={{ scale: 0.9 }}
-                    className="relative flex size-10.5 items-center justify-center rounded-full text-gray-900 dark:text-white cursor-pointer transition-all focus:outline-none border border-white/60 dark:border-white/20 bg-white/30 dark:bg-white/10 backdrop-blur-xl shadow-[inset_0_1.5px_1px_rgba(255,255,255,0.85),inset_0_-1px_1px_rgba(255,255,255,0.25),0_4px_12px_rgba(0,0,0,0.06)] active:bg-white/50 dark:active:bg-white/20 overflow-hidden"
+                    className="relative flex size-11 items-center justify-center rounded-full text-white cursor-pointer transition-transform focus:outline-none shadow-md overflow-hidden"
+                    style={{
+                      backgroundColor: accentColor || '#0ea5e9',
+                      boxShadow: `0 6px 18px -2px color-mix(in srgb, ${accentColor || '#0ea5e9'} 45%, transparent), 0 2px 6px color-mix(in srgb, ${accentColor || '#0ea5e9'} 25%, transparent)`,
+                    }}
                     aria-label="新建计时器"
                   >
-                    {/* Top specular dome reflection on the droplet */}
+                    {/* Subtle Top Specular Dome Arc */}
                     <div
-                      className="pointer-events-none absolute inset-x-0 top-0 h-[48%] overflow-hidden rounded-t-full"
+                      className="pointer-events-none absolute inset-x-0 top-0 h-[46%] overflow-hidden rounded-t-full"
                       aria-hidden="true"
                     >
                       <div
                         className="w-full h-full"
                         style={{
                           background:
-                            'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.1) 60%, transparent 100%)',
+                            'linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 100%)',
                         }}
                       />
                     </div>
-                    <FiPlus className="size-5 stroke-[2.4] relative z-10" />
+                    <FiPlus className="size-5.5 stroke-[2.6] relative z-10" />
                   </motion.button>
                 </div>
               );
@@ -377,24 +381,19 @@ export default function MobileTabBar({
                           className="w-full h-full"
                           style={{
                             background:
-                              'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.1) 60%, transparent 100%)',
+                              'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.08) 60%, transparent 100%)',
                           }}
                         />
                       </div>
-
                       {/* Bottom Meniscus Surface Tension Line */}
                       <div
-                        className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] rounded-full opacity-65"
-                        style={{
-                          background:
-                            'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 50%, transparent 100%)',
-                        }}
+                        className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/45 dark:via-white/20 to-transparent"
                         aria-hidden="true"
                       />
                     </motion.div>
                   )}
 
-                  {/* Content: Icon + Label */}
+                  {/* Content: Icon + Label (Strictly Transparent Achromatic Liquid Glass Contrast, Zero Blue) */}
                   <motion.div
                     className="relative z-10 flex flex-col items-center justify-center gap-0.5"
                     animate={isActive ? { scale: [0.96, 1.05, 1] } : { scale: 1 }}
@@ -402,30 +401,26 @@ export default function MobileTabBar({
                   >
                     <div className="relative">
                       <Icon
-                        className={`size-[18px] transition-colors duration-150 ${
+                        className={`size-[18px] transition-colors duration-200 ${
                           isActive
-                            ? 'text-gray-950 dark:text-white stroke-[2.3]'
-                            : 'text-gray-500 dark:text-gray-400 stroke-[1.8]'
+                            ? 'stroke-[2.4] text-gray-950 dark:text-white drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
+                            : 'stroke-[1.8] text-stone-500 dark:text-gray-400'
                         }`}
                       />
                       {/* Badge if present */}
                       {item.badge !== undefined && item.badge > 0 && (
                         <span
-                          className={`absolute -top-1.5 -right-2 flex size-3.5 items-center justify-center rounded-full text-[9px] font-bold ${
-                            isActive
-                              ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-xs'
-                              : 'bg-black/15 text-gray-700 dark:bg-white/20 dark:text-gray-200 shadow-xs'
-                          }`}
+                          className="absolute -top-1.5 -right-2 flex size-3.5 items-center justify-center rounded-full text-[9px] font-bold text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 shadow-xs"
                         >
                           {item.badge}
                         </span>
                       )}
                     </div>
                     <span
-                      className={`text-[10px] tracking-tight transition-colors duration-150 whitespace-nowrap ${
+                      className={`text-[10px] tracking-tight transition-colors duration-200 whitespace-nowrap ${
                         isActive
-                          ? 'font-bold text-gray-950 dark:text-white'
-                          : 'font-medium text-gray-500 dark:text-gray-400'
+                          ? 'font-bold text-gray-950 dark:text-white drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
+                          : 'font-medium text-stone-500 dark:text-gray-400'
                       }`}
                     >
                       {item.label}
@@ -441,7 +436,7 @@ export default function MobileTabBar({
       {/* iOS-Style Bottom Sheet: 列表 (Timers List & Management) */}
       <AnimatePresence>
         {activeTab === 'list' && (
-          <div data-page-transition-ignore="true" className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
+          <div data-page-transition-ignore="true" className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -458,7 +453,7 @@ export default function MobileTabBar({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 360 }}
-              className="relative z-10 flex max-h-[88vh] flex-col rounded-t-[32px] border-t border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-3xl dark:border-white/[0.08] dark:bg-[#141416]/95"
+              className="relative z-10 flex max-h-[88vh] flex-col rounded-t-[32px] md:rounded-[32px] md:max-w-xl md:w-full md:mx-auto md:mb-6 border-t md:border border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-3xl dark:border-white/[0.08] dark:bg-[#141416]/95"
             >
               {/* Grab Bar */}
               <div className="mx-auto h-1 w-9 rounded-full bg-black/15 dark:bg-white/20 mb-2.5" />
@@ -469,7 +464,7 @@ export default function MobileTabBar({
                   <h3 className="text-base font-bold text-gray-900 dark:text-white font-display tracking-tight">
                     全部计时器
                   </h3>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-500/15 text-primary-600 dark:text-primary-400">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300">
                     {timers.length} 个
                   </span>
                 </div>
@@ -650,7 +645,7 @@ export default function MobileTabBar({
       {/* iOS-Style Bottom Sheet: 设置 (Settings & Functions) */}
       <AnimatePresence>
         {activeTab === 'settings' && (
-          <div data-page-transition-ignore="true" className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
+          <div data-page-transition-ignore="true" className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -667,7 +662,7 @@ export default function MobileTabBar({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 360 }}
-              className="relative z-10 flex max-h-[92vh] flex-col rounded-t-[32px] border-t border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-3xl dark:border-white/[0.08] dark:bg-[#141416]/95"
+              className="relative z-10 flex max-h-[92vh] flex-col rounded-t-[32px] md:rounded-[32px] md:max-w-xl md:w-full md:mx-auto md:mb-6 border-t md:border border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-3xl dark:border-white/[0.08] dark:bg-[#141416]/95"
             >
               {/* Grab Bar */}
               <div className="mx-auto h-1 w-9 rounded-full bg-black/15 dark:bg-white/20 mb-2.5" />
@@ -897,10 +892,10 @@ export default function MobileTabBar({
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs font-semibold text-gray-900 dark:text-white tracking-tight truncate">
-                            {t('theme.title', '主题配色库')}
+                            {t('theme.title', '字体配色')}
                           </p>
                           <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                            {t('theme.subtitle', '灵感源自 ChatGPT 极简美学')}
+                            {t('theme.subtitle', '灵感源自 ChatGPT 极简美学，仅调整倒计时字体颜色')}
                           </p>
                         </div>
                       </div>

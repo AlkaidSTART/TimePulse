@@ -57,13 +57,14 @@
     "todoShort": "待办",
     "manageShort": "列表",
     "settingsShort": "设置",
-    "themeLibrary": "主题配色库",
+    "themeLibrary": "字体配色",
     "navAria": "页面路由导航",
     "pendingTodos": "个待办待完成"
   },
   "theme": {
-    "title": "主题配色库",
-    "subtitle": "灵感源自 ChatGPT 极简美学，自由定制界面配色",
+    "title": "字体配色库",
+    "subtitle": "灵感源自 ChatGPT 极简美学，仅调整倒计时字体颜色",
+    "note": "仅改变数字与字体颜色，不影响米白色或白色主题",
     "presetDefault": "默认",
     "presetBlue": "蓝色",
     "presetGreen": "绿色",
@@ -77,7 +78,7 @@
     "customColorPlaceholder": "#10A37F",
     "apply": "应用配色",
     "currentActive": "当前使用",
-    "selectTheme": "选择主题"
+    "selectTheme": "选择字体配色"
   },
   "timer": {
     "noActiveTimer": "没有活动的计时器",

@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
-import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
+import { AnimatePresence, Reorder, motion, useDragControls, useReducedMotion } from 'framer-motion';
 import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo } from 'react-icons/fi';
 import { LuPalette } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
@@ -189,8 +189,8 @@ export default function Header({ onHeightChange }: HeaderProps) {
     if (!nav || !onHeightChange) return;
 
     const updateHeight = () => {
-      // On mobile screens, do not push the main timer clock down
-      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      // On mobile and Pad screens, do not push the main timer clock down
+      if (typeof window !== 'undefined' && window.innerWidth < 1024) {
         onHeightChange(0);
         return;
       }
@@ -352,6 +352,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
   }, [isFullscreen, headerHideDelay, showHeader, hideHeader]);
 
   // 获取当前活动计时器
+  const shouldReduceMotion = useReducedMotion();
   const activeTimer = timers.find(timer => timer.id === activeTimerId) || null;
   const isTimerView = view === 'main' || isFullscreen;
   const timezoneInfo = isTimerView ? getActiveTimezoneInfo(activeTimer) : null;
@@ -365,12 +366,12 @@ export default function Header({ onHeightChange }: HeaderProps) {
         y: isFullscreen && !isHeaderVisible ? '-100%' : 0,
         opacity: isFullscreen && !isHeaderVisible ? 0 : 1
       }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
     >
       {/* Desktop Header: Completely transparent */}
       <nav
         ref={navRef}
-        className="hidden md:flex w-full items-center justify-between relative px-6 md:px-10 py-3.5 bg-transparent"
+        className="hidden lg:flex w-full items-center justify-between relative px-6 md:px-10 py-3.5 bg-transparent"
       >
         {/* Left: Logo & Route Navigation */}
         <div className="flex items-center gap-3.5 z-10 shrink-0">
@@ -378,7 +379,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
             className="flex items-center justify-start shrink-0"
             initial={{ opacity: 0, x: -15 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.4 }}
           >
             <AnimatedLogo
               color="#f97316"
@@ -490,7 +491,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
             type="button"
             className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
             onClick={() => setIsThemeLibraryOpen(true)}
-            title={t('theme.title', '主题配色库')}
+            title={t('theme.title', '字体配色')}
             data-insightflare-event="theme_palette_open"
           >
             <span
@@ -530,10 +531,10 @@ export default function Header({ onHeightChange }: HeaderProps) {
             <AnimatePresence>
               {isToolsOpen && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.92, y: -4 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.92, y: -4 }}
-                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                  initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: -4 }}
+                  animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+                  exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: -4 }}
+                  transition={{ duration: shouldReduceMotion ? 0 : 0.18, ease: 'easeOut' }}
                   className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-white/20 bg-white/85 p-1.5 shadow-xl backdrop-blur-2xl dark:border-white/10 dark:bg-neutral-900/90 z-50 text-xs"
                 >
                   <button
@@ -546,7 +547,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                   >
                     <div className="flex items-center gap-2.5">
                       <LuPalette className="size-4 text-primary-500" />
-                      <span>{t('theme.title', '主题配色库')}</span>
+                      <span>{t('theme.title', '字体配色')}</span>
                     </div>
                     <span
                       className="size-3 rounded-full border border-black/15 dark:border-white/20 shadow-xs"
@@ -677,24 +678,24 @@ export default function Header({ onHeightChange }: HeaderProps) {
         </div>
       </nav>
 
-      {/* Mobile Top Bar: Refined Minimal Header */}
+      {/* Mobile & Pad Top Bar: Refined Minimal Header */}
       <div
-        className="md:hidden flex items-center justify-between px-4 pt-3.5 pb-1 w-full pointer-events-auto bg-transparent"
+        className="lg:hidden flex items-center justify-between px-4 md:px-8 pt-3.5 pb-1 w-full pointer-events-auto bg-transparent"
         style={{ paddingTop: 'max(0.875rem, env(safe-area-inset-top, 0px))' }}
       >
         {/* Brand Logo with subtle ambient highlight */}
         <div className="flex items-center gap-2.5">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.35, ease: 'easeOut' }}
             className="flex items-center shrink-0 cursor-pointer"
             onClick={() => {
               if (view === 'todo') transitionTo('main');
             }}
           >
             <AnimatedLogo
-              color={accentColor || '#0ea5e9'}
+              color={accentColor || '#f97316'}
               size="md"
               onClick={() => {
                 if (view === 'todo') transitionTo('main');
@@ -716,7 +717,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
               className="inline-flex h-8 items-center gap-1 px-2.5 rounded-full bg-white/60 dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/10 text-[11px] font-medium text-gray-700 dark:text-gray-200 shadow-xs backdrop-blur-xl select-none shrink-0"
               title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
             >
-              <FiGlobe className="size-3 shrink-0 text-primary-500 dark:text-primary-400" />
+              <FiGlobe className="size-3 shrink-0 text-gray-500 dark:text-gray-400" />
               <span className="truncate max-w-[100px] xs:max-w-[140px]">{timezoneInfo.text}</span>
             </div>
           )}
@@ -930,10 +931,10 @@ export default function Header({ onHeightChange }: HeaderProps) {
             onClick={() => setIsLanguageOpen(false)}
           >
             <motion.div
-              initial={{ scale: 0.94, opacity: 0, y: 12 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.94, opacity: 0, y: 12 }}
-              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              initial={shouldReduceMotion ? { opacity: 0 } : { scale: 0.94, opacity: 0, y: 12 }}
+              animate={shouldReduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { scale: 0.94, opacity: 0, y: 12 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.24, ease: [0.16, 1, 0.3, 1] }}
               className="glass-card w-full max-w-md m-4 p-6 sm:p-7 rounded-3xl shadow-2xl border border-white/30 dark:border-white/10 backdrop-blur-2xl"
               onClick={(e: ReactMouseEvent<HTMLDivElement>) => e.stopPropagation()}
             >

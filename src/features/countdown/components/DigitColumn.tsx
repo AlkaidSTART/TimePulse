@@ -84,15 +84,6 @@ function DigitColumn({
           aria-hidden="true"
         />
 
-        {/* Ambient glow matching digit color */}
-        <div
-          className="pointer-events-none absolute -bottom-6 inset-x-2 h-10 rounded-full blur-xl opacity-20 dark:opacity-35 transition-opacity duration-300"
-          style={{
-            background: `radial-gradient(ellipse at center, ${color} 0%, transparent 75%)`,
-          }}
-          aria-hidden="true"
-        />
-
         <NumberFlow
           value={isValueVisible ? value : 0}
           format={{ minimumIntegerDigits: 2, useGrouping: false }}

@@ -57,13 +57,14 @@
     "todoShort": "Tasks",
     "manageShort": "List",
     "settingsShort": "Settings",
-    "themeLibrary": "Theme Colors",
+    "themeLibrary": "Font Colors",
     "navAria": "Page navigation",
     "pendingTodos": "tasks pending"
   },
   "theme": {
-    "title": "Theme Color Library",
-    "subtitle": "Inspired by ChatGPT minimalist aesthetics. Personalize your workspace.",
+    "title": "Font Color Library",
+    "subtitle": "Inspired by ChatGPT aesthetics. Customize timer typography colors.",
+    "note": "Only changes font and digit colors without altering cream or light themes",
     "presetDefault": "Default",
     "presetBlue": "Blue",
     "presetGreen": "Green",
@@ -77,7 +78,7 @@
     "customColorPlaceholder": "#10A37F",
     "apply": "Apply Color",
     "currentActive": "Current",
-    "selectTheme": "Select Theme"
+    "selectTheme": "Select Font Color"
   },
   "timer": {
     "noActiveTimer": "No active timer",

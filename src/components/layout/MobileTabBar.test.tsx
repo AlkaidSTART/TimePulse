@@ -67,6 +67,22 @@ describe('MobileTabBar component', () => {
     expect(dropletIndicator).not.toBeNull();
     // Indicator is styled by liquid-droplet-pill class rather than hardcoded solid blue background
     expect((dropletIndicator as HTMLElement).style.backgroundColor).toBe('');
+
+    // Active tab label has zero blue inline styling
+    const activeLabel = screen.getByText('计时');
+    expect(activeLabel.style.color).toBe('');
+    expect(activeLabel.className).toContain('text-gray-950');
+  });
+
+  it('synchronizes Mobile and Pad layout by using lg:hidden on nav container', () => {
+    const { container } = render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} />
+      </ThemeProvider>,
+    );
+
+    const nav = container.querySelector('nav');
+    expect(nav?.className).toContain('lg:hidden');
   });
 
   it('renders settings and functions bottom sheet in single-screen layout when activeTab is settings', () => {
@@ -113,7 +129,7 @@ describe('MobileTabBar component', () => {
       </ThemeProvider>,
     );
 
-    expect(screen.getByText(/主题配色库/i)).toBeDefined();
+    expect(screen.getByText(/字体配色/i)).toBeDefined();
   });
 });
 

@@ -587,8 +587,8 @@ export default function TimerDisplay() {
   useEffect(() => {
     if (!isInitialValuesReady || isDisplayVisible || !activeTimer) return undefined;
 
-    // Let the timer-specific rows and AutoResizer measurements settle first.
-    const revealTimer = window.setTimeout(() => setIsDisplayVisible(true), 400);
+    // Give the spring animation a complete beat to settle and AutoResizer to stabilize.
+    const revealTimer = window.setTimeout(() => setIsDisplayVisible(true), 500);
     return () => window.clearTimeout(revealTimer);
   }, [
     isInitialValuesReady,
@@ -669,15 +669,15 @@ export default function TimerDisplay() {
         {!isDisplayVisible && (
           <motion.div
             key="timer-loading-box"
-            initial={{ opacity: 0, scale: 0.85 }}
+            initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{
               opacity: 0,
-              scale: 0.85,
-              y: -16,
-              transition: { duration: 0.28, ease: 'easeIn' },
+              scale: 0.72,
+              filter: 'blur(8px)',
+              transition: { duration: 0.32, ease: [0.32, 0, 0.67, 0] },
             }}
-            className="flex items-center justify-center py-10"
+            className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
           >
             <TimerLoadingBox color={activeTimer.color} />
           </motion.div>
@@ -686,14 +686,18 @@ export default function TimerDisplay() {
 
       <motion.div 
         className="flex flex-col items-center justify-center text-center px-4 relative z-10 w-full"
-        initial={{ opacity: 0, scale: 0.96, y: 56 }}
+        initial={false}
         animate={isDisplayVisible
-          ? { opacity: 1, scale: 1, y: 0 }
-          : { opacity: 0, scale: 0.96, y: 56 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          ? { opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }
+          : { opacity: 0, scale: 0.94, y: 44, filter: 'blur(6px)' }}
+        transition={{
+          y: { type: 'spring', damping: 25, stiffness: 200, mass: 0.8 },
+          scale: { type: 'spring', damping: 25, stiffness: 200, mass: 0.8 },
+          opacity: { duration: 0.42, ease: 'easeOut' },
+          filter: { duration: 0.38, ease: 'easeOut' },
+        }}
         aria-hidden={!isDisplayVisible}
         inert={!isDisplayVisible}
-        style={!isDisplayVisible ? { position: 'absolute', pointerEvents: 'none' } : undefined}
       >
         <div className="relative flex flex-col items-center">
       {/* 计时器名称 */}
@@ -740,7 +744,7 @@ export default function TimerDisplay() {
           timeValue={timeValue}
           showYears={showYears}
           showDays={showDays}
-          isValueVisible={isDisplayVisible}
+          isValueVisible={isInitialValuesReady}
           trend={numberTrend}
           color={activeTimer.color || '#0ea5e9'}
           fontSize={timerFontSize}

@@ -73,11 +73,9 @@ export function applyThemeToDom(theme: Theme): void {
 
 export function updateCssVariables(color: string): void {
   if (typeof document === 'undefined') return;
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
-  const rgb = result
-    ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
-    : [16, 163, 127];
-  document.documentElement.style.setProperty('--color-primary', rgb.join(', '));
+  // 仅设置字体/数字高亮色，确保米白色与白色主题的基础控件、按钮和滚动条不受污染
+  document.documentElement.style.setProperty('--color-font-accent', color);
+  document.documentElement.style.setProperty('--color-primary', '14, 165, 233');
 }
 
 const initialTheme = readInitialTheme();

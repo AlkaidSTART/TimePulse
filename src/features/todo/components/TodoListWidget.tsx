@@ -303,8 +303,7 @@ export default function TodoListWidget({
               </div>
               <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-gray-200/70 dark:bg-white/10">
                 <motion.div
-                  className="h-full rounded-full"
-                  style={{ backgroundColor: accentColor || '#0ea5e9' }}
+                  className="h-full rounded-full bg-sky-500"
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercent}%` }}
                   transition={{ duration: 0.3 }}
@@ -444,8 +443,7 @@ export default function TodoListWidget({
             aria-label={t('todo.openWidgetAria', '打开待办与核对清单')}
           >
             <div
-              className="flex size-6 items-center justify-center rounded-full text-white"
-              style={{ backgroundColor: accentColor || '#0ea5e9' }}
+              className="flex size-6 items-center justify-center rounded-full text-white bg-sky-500"
             >
               <FiCheckCircle className="size-3.5 stroke-[2.5]" />
             </div>

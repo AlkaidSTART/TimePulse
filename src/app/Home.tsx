@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { AutoResizer, AutoTransition } from '@/components/ui';
 import Layout from '@/components/layout/Layout';
 import CustomBackground from '@/features/background/components/CustomBackground';
@@ -24,6 +24,7 @@ const TodoPage = lazy(() => import('@/features/todo/components/TodoPage'));
 const TodoListWidget = lazy(() => import('@/features/todo/components/TodoListWidget'));
 
 export default function Home() {
+  const shouldReduceMotion = useReducedMotion();
   const { timers, activeTimerId, setActiveTimerId, addTimer } = useTimers();
   const { theme, accentColor } = useTheme();
   const { isFullscreen, isHeaderVisible } = useFullscreen();
@@ -183,9 +184,9 @@ export default function Home() {
                 onTouchEnd={handleTouchEnd}
                 initial={false}
                 animate={{ y: isFullscreen && !isHeaderVisible ? 0 : headerHeight / 2 }}
-                transition={{ y: { duration: 0.45, ease: 'easeInOut' } }}
+                transition={{ y: { duration: shouldReduceMotion ? 0 : 0.45, ease: 'easeInOut' } }}
                 className={`relative flex h-full min-h-0 flex-col items-center justify-center ${
-                  isFullscreen ? '' : 'py-6 md:py-12 pb-24 md:pb-12'
+                  isFullscreen ? '' : 'py-6 lg:py-12 pb-24 lg:pb-12'
                 }`}
                 data-page-view="main"
               >
@@ -199,19 +200,22 @@ export default function Home() {
               key="todo-page-visible"
               custom={direction}
               variants={{
-                initial: (value: unknown) => ({ opacity: 0, y: value === 1 ? 56 : -56 }),
+                initial: (value: unknown) => ({
+                  opacity: 0,
+                  y: shouldReduceMotion ? 0 : (value === 1 ? 56 : -56),
+                }),
                 animate: {
                   opacity: 1,
                   y: 0,
                   transition: {
-                    duration: 0.36,
+                    duration: shouldReduceMotion ? 0 : 0.36,
                     ease: 'easeOut',
                   },
                 },
                 exit: (value: unknown) => ({
                   opacity: 0,
-                  y: value === 1 ? -56 : 56,
-                  transition: { duration: 0.28, ease: 'easeIn' },
+                  y: shouldReduceMotion ? 0 : (value === 1 ? -56 : 56),
+                  transition: { duration: shouldReduceMotion ? 0 : 0.28, ease: 'easeIn' },
                 }),
               }}
               initial="initial"

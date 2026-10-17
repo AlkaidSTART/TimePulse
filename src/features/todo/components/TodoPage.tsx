@@ -182,7 +182,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
   return (
     <div
       data-page-view="todo"
-      className={`relative flex h-full min-h-0 w-full flex-col overflow-y-auto px-4 pt-16 pb-28 md:pt-20 md:pb-12 ${className}`}
+      className={`relative flex h-full min-h-0 w-full flex-col overflow-y-auto px-4 pt-16 pb-28 lg:pt-20 lg:pb-12 ${className}`}
     >
       <div className="mx-auto w-full max-w-2xl flex flex-col gap-5">
         {/* 顶部操作条：返回主页 + 标题 + 振动控制 */}
@@ -202,7 +202,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
               <button
                 type="button"
                 onClick={onOpenAsWidget}
-                className="hidden md:inline-flex group items-center gap-1.5 rounded-full border border-white/20 bg-white/30 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm backdrop-blur-md transition-all hover:bg-white/60 active:scale-95 dark:border-white/10 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20 cursor-pointer"
+                className="hidden lg:inline-flex group items-center gap-1.5 rounded-full border border-white/20 bg-white/30 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm backdrop-blur-md transition-all hover:bg-white/60 active:scale-95 dark:border-white/10 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20 cursor-pointer"
                 title={t('todo.widgetModeAria', '切回桌面小窗挂件模式')}
                 aria-label={t('todo.widgetModeAria', '切回桌面小窗挂件模式')}
               >
@@ -237,8 +237,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
             <div>
               <div className="flex items-center gap-2">
                 <div
-                  className="flex size-8 items-center justify-center rounded-xl text-white shadow-sm"
-                  style={{ backgroundColor: accentColor || '#0ea5e9' }}
+                  className="flex size-8 items-center justify-center rounded-xl text-white shadow-sm bg-sky-500"
                 >
                   <FiCheck className="size-4.5 stroke-[2.8]" />
                 </div>
@@ -295,15 +294,14 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
               <span className="font-medium">
                 {state.activeTab === 'todo' ? t('todo.todoProgress', '待办事项完成度') : t('todo.checklistProgress', '专注流程核对进度')}
               </span>
-              <span className="font-semibold" style={{ color: accentColor || '#0ea5e9' }}>
+              <span className="font-semibold text-sky-600 dark:text-sky-400">
                 {completedCount} / {totalCount} {t('todo.progressSummary', '项完成')} ({progressPercent}%)
               </span>
             </div>
 
             <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-gray-200/70 dark:bg-white/10">
               <motion.div
-                className="h-full rounded-full"
-                style={{ backgroundColor: accentColor || '#0ea5e9' }}
+                className="h-full rounded-full bg-sky-500"
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
                 transition={{ duration: 0.35, ease: 'easeOut' }}
@@ -345,8 +343,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
             <button
               type="submit"
               disabled={!inputText.trim()}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 font-semibold text-xs md:text-sm text-white shadow-xs disabled:opacity-40 transition-all cursor-pointer shrink-0"
-              style={{ backgroundColor: accentColor || '#0ea5e9' }}
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 font-semibold text-xs md:text-sm text-white shadow-xs disabled:opacity-40 transition-all cursor-pointer shrink-0 bg-sky-500 hover:bg-sky-600 active:bg-sky-700"
               aria-label={t('todo.add', '添加')}
             >
               <FiPlus className="size-4 stroke-[2.5]" />

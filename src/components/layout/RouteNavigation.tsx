@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { FiClock, FiCheckSquare } from 'react-icons/fi';
 import { usePageTransition, type PageView } from '@/hooks/usePageTransition';
-import { useTheme } from '@/app/providers/ThemeProvider';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import { readTodoItems, TODO_STORAGE_EVENT } from '@/features/todo/todoStorage';
@@ -24,7 +23,6 @@ type RouteItem = {
 export default function RouteNavigation({ compact = false, className = '' }: RouteNavigationProps) {
   const shouldReduceMotion = useReducedMotion();
   const { view, transitionTo } = usePageTransition();
-  const { accentColor } = useTheme();
   const { timers, activeTimerId } = useTimers();
   const { t } = useTranslation();
   const [hoveredRoute, setHoveredRoute] = useState<PageView | null>(null);
@@ -222,7 +220,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
             {/* Header with icon, label, and current staying status */}
             <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-200/50 dark:border-white/10">
               <div className="flex items-center gap-1.5">
-                <span className="p-1 rounded-lg bg-primary-500/10 text-primary-600 dark:text-primary-400">
+                <span className="p-1 rounded-lg bg-black/5 dark:bg-white/10 text-gray-800 dark:text-gray-200">
                   {hoveredRoute === 'main' ? <FiClock className="size-3.5" /> : <FiCheckSquare className="size-3.5" />}
                 </span>
                 <span className="font-bold text-xs text-gray-900 dark:text-white">
@@ -233,7 +231,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               <span
                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                   view === hoveredRoute
-                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold'
+                    ? 'bg-black/10 text-gray-900 dark:bg-white/20 dark:text-white border border-black/10 dark:border-white/15 font-bold'
                     : 'bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400'
                 }`}
               >
@@ -261,11 +259,11 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                   <p className="text-gray-500 dark:text-gray-400 truncate">
                     {pendingTodoCount > 0 ? (
                       <>
-                        待办状态: <span className="font-semibold text-primary-600 dark:text-primary-400">{pendingTodoCount} 项未完成</span>
+                        待办状态: <span className="font-semibold text-gray-900 dark:text-white">{pendingTodoCount} 项未完成</span>
                         {firstPendingText ? ` · 下一项: "${firstPendingText}"` : ''}
                       </>
                     ) : (
-                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">所有事项均已完成</span>
+                      <span className="text-gray-600 dark:text-gray-300 font-medium">所有事项均已完成</span>
                     )}
                   </p>
                 </>
