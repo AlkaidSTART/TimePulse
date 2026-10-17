@@ -641,7 +641,7 @@ export default function TimerDisplay() {
   if (!activeTimer) {
     return (
       <div className="flex items-center justify-center min-h-[160px] py-12">
-        <TimerSkeleton />
+        <TimerLoading />
       </div>
     );
   }
@@ -670,14 +670,13 @@ export default function TimerDisplay() {
   };
 
   const timerTitle = getTimerTitle();
-  const skeletonColumns = showYears ? 5 : showDays ? 4 : 3;
   
   return (
     <div className="relative flex flex-col items-center justify-center w-full min-h-[160px]">
       <AnimatePresence>
         {!isDisplayVisible && (
           <motion.div
-            key="timer-skeleton"
+            key="timer-loading"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{
@@ -687,7 +686,7 @@ export default function TimerDisplay() {
             }}
             className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
           >
-            <TimerSkeleton columns={skeletonColumns} showTitle={Boolean(timerTitle)} />
+            <TimerLoading color={activeTimer.color} />
           </motion.div>
         )}
       </AnimatePresence>
