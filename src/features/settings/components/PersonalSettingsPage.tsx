@@ -116,11 +116,8 @@ export default function PersonalSettingsPage() {
               <FiArrowLeft className="size-4" />
             </button>
             <div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 dark:text-white flex items-center gap-2">
-                <span>个人设置中心</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-primary-500/15 text-primary-600 dark:text-primary-400 font-semibold">
-                  Profile & Settings
-                </span>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 dark:text-white">
+                个人设置中心
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                 定制你的称呼、专属座右铭与主题外观

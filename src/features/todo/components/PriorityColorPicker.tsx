@@ -96,7 +96,9 @@ export default function PriorityColorPicker({
         }}
         className={`group relative inline-flex items-center gap-1.5 rounded-lg transition-all cursor-pointer select-none ${
           color
-            ? 'px-1.5 py-0.5 border shadow-2xs font-medium'
+            ? showText
+              ? 'px-2 py-0.5 border shadow-2xs font-medium'
+              : 'p-1 border shadow-2xs'
             : 'p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5'
         } ${size === 'xs' ? 'text-[10px]' : size === 'md' ? 'text-xs' : 'text-[11px]'}`}
         style={
@@ -113,20 +115,14 @@ export default function PriorityColorPicker({
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
-        {color ? (
-          <>
-            <span
-              className="size-2 rounded-full shadow-2xs shrink-0 ring-1 ring-white/60 dark:ring-black/40"
-              style={{ backgroundColor: color }}
-            />
-            {showText && (
-              <span className="font-semibold tracking-wide">
-                {activePreset?.code || 'P'}
-              </span>
-            )}
-          </>
-        ) : (
-          <FiFlag className="size-3.5 shrink-0 transition-transform group-hover:scale-110" />
+        <FiFlag
+          className={`${size === 'xs' ? 'size-3' : 'size-3.5'} shrink-0 transition-transform group-hover:scale-110`}
+          style={color ? { color } : undefined}
+        />
+        {color && showText && (
+          <span className="font-semibold tracking-wide">
+            {activePreset?.code || 'P'}
+          </span>
         )}
       </button>
 
@@ -179,7 +175,7 @@ export default function PriorityColorPicker({
                     <div className="flex items-center gap-2.5 min-w-0">
                       {/* 预设色块 */}
                       <span
-                        className="size-3.5 rounded-full shrink-0 shadow-2xs ring-2 ring-white/80 dark:ring-black/60"
+                        className="size-3.5 rounded-md shrink-0 shadow-2xs ring-1 ring-black/10 dark:ring-white/20"
                         style={{ backgroundColor: preset.color }}
                       />
                       <div className="flex flex-col min-w-0">

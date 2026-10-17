@@ -282,7 +282,7 @@ export default function AddTimerModal({
                         <FiMinus className="size-3.5" />
                       </button>
                       <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">
-                        {t('time.hours', '小时')}
+                        {t('time.hour', '小时')}
                       </span>
                     </div>
 
@@ -319,7 +319,7 @@ export default function AddTimerModal({
                         <FiMinus className="size-3.5" />
                       </button>
                       <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">
-                        {t('time.minutes', '分钟')}
+                        {t('time.minute', '分钟')}
                       </span>
                     </div>
 
