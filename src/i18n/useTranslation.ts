@@ -1,26 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import { normalizeLanguage, type Language } from './types';
 import defaultZhTranslations from '../../public/locales/zh/common.json';
+import defaultEnTranslations from '../../public/locales/en/common.json';
 
 type TranslationTree = Record<string, unknown>;
 type TranslationFunction = (key: string, defaultValue?: string) => string;
 
+const staticTranslations: Record<Language, TranslationTree> = {
+  'zh-CN': defaultZhTranslations as TranslationTree,
+  'en-US': defaultEnTranslations as TranslationTree,
+};
+
 function getLanguage(): Language {
   if (typeof window === 'undefined') return 'zh-CN';
   return normalizeLanguage(new URLSearchParams(window.location.search).get('lang'));
-}
-
-async function loadLanguageFile(language: Language): Promise<TranslationTree | null> {
-  try {
-    const locale = language === 'en-US' ? 'en' : 'zh';
-    const response = await fetch(`/locales/${locale}/common.json`);
-    if (!response.ok) throw new Error(`Failed to load ${locale} translations`);
-    const value: unknown = await response.json();
-    return typeof value === 'object' && value !== null ? value as TranslationTree : null;
-  } catch (error) {
-    console.error('Failed to load language file:', error);
-    return null;
-  }
 }
 
 function getNestedValue(tree: TranslationTree, path: string): unknown {
@@ -37,28 +30,16 @@ export function useTranslation(): {
   isLoading: boolean;
 } {
   const [currentLang, setCurrentLang] = useState<Language>(() => getLanguage());
-  const [translations, setTranslations] = useState<TranslationTree>(
-    () => defaultZhTranslations as TranslationTree,
-  );
-  const [isLoading, setIsLoading] = useState(() => getLanguage() !== 'zh-CN');
+  const [translations, setTranslations] = useState<TranslationTree>(() => {
+    const lang = getLanguage();
+    return staticTranslations[lang] ?? (defaultZhTranslations as TranslationTree);
+  });
+  const isLoading = false;
 
   useEffect(() => {
-    let cancelled = false;
-    const initializeTranslations = async () => {
-      const language = getLanguage();
-      setCurrentLang(language);
-      if (language === 'zh-CN') {
-        setIsLoading(false);
-        return;
-      }
-      setIsLoading(true);
-      const translationData = await loadLanguageFile(language);
-      const fallbackData = translationData ?? (defaultZhTranslations as TranslationTree);
-      if (!cancelled && fallbackData) setTranslations(fallbackData);
-      if (!cancelled) setIsLoading(false);
-    };
-    void initializeTranslations();
-    return () => { cancelled = true; };
+    const lang = getLanguage();
+    setCurrentLang(lang);
+    setTranslations(staticTranslations[lang] ?? (defaultZhTranslations as TranslationTree));
   }, []);
 
   const t = useCallback<TranslationFunction>((key, defaultValue = '') => {
