@@ -23,7 +23,7 @@ describe('CheerPage quote carousel', () => {
   it('renders today inspiration section with TextEffect quote and author', () => {
     render(<CheerPage />);
 
-    expect(screen.getByText('今日灵感')).toBeDefined();
+    expect(screen.queryByText('今日灵感')).toBeNull();
     expect(screen.getByText('复制')).toBeDefined();
     expect(screen.getByText('换一句')).toBeDefined();
 

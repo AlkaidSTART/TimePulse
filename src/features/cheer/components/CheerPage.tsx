@@ -212,8 +212,7 @@ export default function CheerPage() {
               </>
             )}
             <span>·</span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[11px] font-medium text-gray-600 dark:text-gray-300">
-              <span className="size-1.5 rounded-full bg-primary-500" />
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[11px] font-medium text-gray-600 dark:text-gray-300">
               {timeSlot.name}
             </span>
           </div>
@@ -231,11 +230,7 @@ export default function CheerPage() {
           onTouchCancel={handleMouseLeave}
           className="relative w-full rounded-2xl border border-black/[0.05] dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-4 sm:p-5 backdrop-blur-xl h-[148px] sm:h-[140px] flex flex-col justify-between overflow-hidden group select-none"
         >
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/[0.04] dark:border-white/[0.06] shrink-0">
-            <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500 dark:text-gray-400">
-              <span className={cn('size-1.5 rounded-full bg-primary-500 transition-transform duration-300', !isHovered && !isCopied && 'animate-pulse')} />
-              <span>今日灵感</span>
-            </div>
+          <div className="flex items-center justify-end pb-2 mb-2 border-b border-black/[0.04] dark:border-white/[0.06] shrink-0">
             <div className="flex items-center gap-1">
               <button
                 type="button"
