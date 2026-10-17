@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
-import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo } from 'react-icons/fi';
+import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo, FiPalette } from 'react-icons/fi';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTimers } from '@/app/providers/TimerProvider';
@@ -20,6 +20,8 @@ import { usePageTransition } from '@/hooks/usePageTransition';
 import { useTodoStore, useVersionStore } from '@/stores';
 import { FiList } from 'react-icons/fi';
 import { throttle, debounce } from '@/utils/performance';
+import ThemeLibraryModal from '@/components/composed/ThemeLibraryModal';
+
 
 const ShareModal = lazy(() => import('@/features/sharing/components/ShareModal'));
 const TimerCreationFlow = lazy(() => import('@/features/timer-management/components/TimerCreationFlow'));
@@ -156,6 +158,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const [editingTimer, setEditingTimer] = useState<TimerEditState | null>(null);
   const [manageDirection, setManageDirection] = useState<1 | -1>(1);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [isThemeLibraryOpen, setIsThemeLibraryOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [isTimerCreationOpen, setIsTimerCreationOpen] = useState(false);
   const [timerOrder, setTimerOrder] = useState(() => timers.map((timer) => timer.id));
@@ -481,6 +484,20 @@ export default function Header({ onHeightChange }: HeaderProps) {
             {theme === 'cream' ? <FiSun className="size-4.5" /> : <FiCoffee className="size-4.5" />}
           </button>
 
+          {/* Theme Palette Library Button */}
+          <button
+            type="button"
+            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            onClick={() => setIsThemeLibraryOpen(true)}
+            title={t('theme.title', '主题配色库')}
+            data-insightflare-event="theme_palette_open"
+          >
+            <span
+              className="size-4 rounded-full border border-black/15 dark:border-white/20 shadow-xs transition-transform hover:scale-110"
+              style={{ backgroundColor: accentColor || '#10A37F' }}
+            />
+          </button>
+
           {/* Fullscreen Toggle */}
           <button
             type="button"
@@ -522,6 +539,24 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     type="button"
                     onClick={() => {
                       setIsToolsOpen(false);
+                      setIsThemeLibraryOpen(true);
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiPalette className="size-4 text-primary-500" />
+                      <span>{t('theme.title', '主题配色库')}</span>
+                    </div>
+                    <span
+                      className="size-3 rounded-full border border-black/15 dark:border-white/20 shadow-xs"
+                      style={{ backgroundColor: accentColor || '#10A37F' }}
+                    />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
                       if (window.location.hash !== '#background') window.location.hash = 'background';
                     }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
@@ -529,6 +564,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     <FiImage className="size-4 text-purple-500" />
                     <span>{t('header.background', '背景设置')}</span>
                   </button>
+
 
                   <button
                     type="button"
@@ -1070,6 +1106,13 @@ export default function Header({ onHeightChange }: HeaderProps) {
       updateTimer={updateTimer}
       reorderTimers={reorderTimers}
     />
+
+    {/* ChatGPT Theme Color Palette Library Modal */}
+    <ThemeLibraryModal
+      isOpen={isThemeLibraryOpen}
+      onClose={() => setIsThemeLibraryOpen(false)}
+    />
   </>
   );
 }
+

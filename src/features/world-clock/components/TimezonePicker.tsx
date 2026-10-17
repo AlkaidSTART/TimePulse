@@ -31,6 +31,7 @@ const TimezoneOptionRow = memo(function TimezoneOptionRow({ timezone, onSelect }
     <button
       type="button"
       className="flex min-w-0 items-center space-x-3 rounded-lg border border-white/10 bg-white/5 p-3 text-left backdrop-blur-sm transition-colors hover:border-primary-500/30 hover:bg-primary-500/10 active:bg-primary-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-white/10 dark:bg-black/10 dark:hover:bg-primary-500/15"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 58px' }}
       onClick={() => onSelect(timezone)}
       data-insightflare-event="timezone_select"
       data-insightflare-event-timezone={timezone.timezone}

@@ -342,16 +342,57 @@ export default function MobileTabBar({
                   aria-selected={isActive}
                   role="tab"
                 >
-                  {/* Clean active tab capsule indicator without blur glow */}
+                  {/* Liquid Water Droplet Capsule Indicator */}
                   {isActive && (
-                    <motion.div
-                      layoutId="mobile-active-tab-indicator"
-                      className="absolute inset-1 rounded-full pointer-events-none shadow-xs"
-                      style={{
-                        backgroundColor: accentColor || '#10A37F',
-                      }}
-                      transition={tabSpring}
-                    />
+                    <>
+                      {/* Ambient Water Droplet Soft Glow */}
+                      <motion.div
+                        layoutId="mobile-liquid-glow"
+                        className="absolute inset-1 rounded-full bg-white/70 dark:bg-white/10 opacity-50 dark:opacity-20 blur-sm pointer-events-none"
+                        transition={tabSpring}
+                      />
+
+                      {/* Liquid Droplet Capsule Body */}
+                      <motion.div
+                        layoutId="mobile-active-tab-indicator"
+                        className="liquid-droplet-pill absolute inset-1 rounded-full pointer-events-none overflow-hidden"
+                        transition={tabSpring}
+                      >
+                        {/* 顶部弧形液体高光 (Convex Specular Dome Arc) */}
+                        <div
+                          className="pointer-events-none absolute inset-x-0 top-0 h-[52%] overflow-hidden rounded-t-full"
+                          aria-hidden="true"
+                        >
+                          <div
+                            className="w-full h-full"
+                            style={{
+                              background:
+                                'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.28) 55%, transparent 100%)',
+                            }}
+                          />
+                        </div>
+
+                        {/* 对角流体折射光泽 (Diagonal Fluid Sheen) */}
+                        <div
+                          className="pointer-events-none absolute inset-0 rounded-full opacity-45"
+                          style={{
+                            background:
+                              'linear-gradient(125deg, rgba(255, 255, 255, 0.65) 0%, transparent 42%, rgba(255, 255, 255, 0.2) 80%, transparent 100%)',
+                          }}
+                          aria-hidden="true"
+                        />
+
+                        {/* 底部表面张力折射弧线 (Bottom Meniscus Arc) */}
+                        <div
+                          className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1.5px] rounded-full opacity-70"
+                          style={{
+                            background:
+                              'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.95) 50%, transparent 100%)',
+                          }}
+                          aria-hidden="true"
+                        />
+                      </motion.div>
+                    </>
                   )}
 
                   {/* Content: Icon + Label */}
@@ -364,7 +405,7 @@ export default function MobileTabBar({
                       <Icon
                         className={`size-[18px] transition-colors duration-150 ${
                           isActive
-                            ? 'text-white stroke-[2.2]'
+                            ? 'text-gray-950 dark:text-white stroke-[2.4] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
                             : 'text-gray-500 dark:text-gray-400 stroke-[1.8]'
                         }`}
                       />
@@ -373,8 +414,8 @@ export default function MobileTabBar({
                         <span
                           className={`absolute -top-1.5 -right-2 flex size-3.5 items-center justify-center rounded-full text-[9px] font-bold ${
                             isActive
-                              ? 'bg-white text-gray-900 shadow-xs'
-                              : 'bg-primary-500 text-white shadow-xs'
+                              ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900 shadow-xs'
+                              : 'bg-black/15 text-gray-700 dark:bg-white/20 dark:text-gray-200 shadow-xs'
                           }`}
                         >
                           {item.badge}
@@ -384,7 +425,7 @@ export default function MobileTabBar({
                     <span
                       className={`text-[10px] tracking-tight transition-colors duration-150 whitespace-nowrap ${
                         isActive
-                          ? 'font-semibold text-white'
+                          ? 'font-bold text-gray-950 dark:text-white drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
                           : 'font-medium text-gray-500 dark:text-gray-400'
                       }`}
                     >
