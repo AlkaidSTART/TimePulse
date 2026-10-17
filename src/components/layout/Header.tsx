@@ -866,7 +866,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
             aria-label={t('header.settingsShort', '设置')}
             title={t('header.settingsShort', '设置')}
           >
-            <FiSettings className="size-3.5" />
+            <FiUser className="size-3.5" />
             {hasUpdate && (
               <span className="absolute top-0 right-0 size-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-neutral-900 animate-pulse" />
             )}

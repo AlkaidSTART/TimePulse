@@ -11,8 +11,8 @@ describe('usePersonalSettingsStore', () => {
 
   it('initializes with default values', () => {
     const state = usePersonalSettingsStore.getState();
-    expect(state.nickname).toBe('阳光旅人');
-    expect(state.avatar).toBe('专注');
+    expect(state.nickname).toBe('');
+    expect(state.avatar).toBe('');
     expect(state.cheerStyle).toBe('energetic');
     expect(state.defaultStartPage).toBe('main');
   });

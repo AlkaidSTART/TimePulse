@@ -7,7 +7,7 @@ import {
   FiRefreshCw,
   FiCopy,
   FiCheck,
-  FiSettings,
+  FiUser,
   FiHeart,
   FiZap,
 } from 'react-icons/fi';
@@ -345,8 +345,8 @@ export default function CheerPage() {
             onClick={() => transitionTo('settings')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-gray-600 dark:text-gray-300 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] border border-black/[0.05] dark:border-white/10 transition-colors cursor-pointer"
           >
-            <FiSettings className="size-3.5 text-gray-400" />
-            <span>设置</span>
+            <FiUser className="size-3.5 text-gray-400" />
+            <span>个人设置</span>
           </button>
         </motion.div>
 

@@ -12,7 +12,7 @@ import {
   Maximize,
   Minimize,
   Sparkles,
-  Settings,
+  User,
 } from 'lucide-react';
 import { Dock, DockIcon, DockItem, DockLabel } from '@/components/core/dock';
 import { usePageTransition } from '@/hooks/usePageTransition';
@@ -191,7 +191,7 @@ export default function WebDock({
     {
       id: 'settings',
       title: t('header.settingsTab', '个人设置中心'),
-      icon: <Settings className="size-full text-neutral-700 dark:text-neutral-200" />,
+      icon: <User className="size-full text-neutral-700 dark:text-neutral-200" />,
       onClick: () => {
         if (view !== 'settings') transitionTo('settings');
       },

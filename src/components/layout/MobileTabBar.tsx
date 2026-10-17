@@ -4,7 +4,7 @@ import { AnimatePresence, Reorder, motion, useDragControls, useReducedMotion } f
 import {
   FiClock,
   FiPlus,
-  FiSettings,
+  FiUser,
   FiX,
   FiEdit,
   FiSave,
@@ -281,7 +281,7 @@ export default function MobileTabBar({
     { id: 'timer' as MobileTab, label: t('header.timersShort', '计时'), icon: FiClock },
     { id: 'add' as const, label: t('header.newTimer', '新建'), icon: FiPlus, isAction: true },
     { id: 'todo' as MobileTab, label: t('header.todoShort', '待办'), icon: FiCheckSquare },
-    { id: 'settings' as MobileTab, label: t('header.settingsTab', '个人设置'), icon: FiSettings },
+    { id: 'settings' as MobileTab, label: t('header.settingsTab', '个人设置'), icon: FiUser },
   ];
 
   const timersById = new Map(timers.map((t) => [t.id, t]));

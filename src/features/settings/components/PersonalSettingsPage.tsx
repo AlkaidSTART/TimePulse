@@ -71,7 +71,7 @@ export default function PersonalSettingsPage() {
   // 保存个人资料修改
   const handleSaveProfile = () => {
     updateSettings({
-      nickname: inputNickname.trim() || '阳光旅人',
+      nickname: inputNickname.trim(),
       avatar: selectedAvatar,
       customMotto: inputMotto.trim(),
     });
@@ -133,9 +133,9 @@ export default function PersonalSettingsPage() {
             onClick={() => {
               if (window.confirm('确定要恢复默认设置吗？已记录的打气数据将重置。')) {
                 resetSettings();
-                setInputNickname('阳光旅人');
+                setInputNickname('');
                 setInputMotto('心怀热爱，奔赴每一个灿烂的日子');
-                setSelectedAvatar('专注');
+                setSelectedAvatar('');
               }
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"
@@ -178,7 +178,7 @@ export default function PersonalSettingsPage() {
                 <button
                   key={tag}
                   type="button"
-                  onClick={() => setSelectedAvatar(tag)}
+                  onClick={() => setSelectedAvatar(selectedAvatar === tag ? '' : tag)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
                     selectedAvatar === tag
                       ? 'bg-primary-500 text-white shadow-xs'
@@ -194,7 +194,7 @@ export default function PersonalSettingsPage() {
                 maxLength={4}
                 value={selectedAvatar}
                 onChange={(e) => setSelectedAvatar(e.target.value)}
-                placeholder="自选"
+                placeholder=""
                 aria-label="自定义标签"
                 className="w-20 px-2.5 py-1.5 rounded-xl text-center text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/10 dark:border-white/15 focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
@@ -212,7 +212,7 @@ export default function PersonalSettingsPage() {
                 type="text"
                 value={inputNickname}
                 onChange={(e) => setInputNickname(e.target.value)}
-                placeholder="例如：阳光旅人、小明、晨曦..."
+                placeholder=""
                 className="w-full px-3.5 py-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.06] border border-black/10 dark:border-white/15 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>

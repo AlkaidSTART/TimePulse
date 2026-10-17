@@ -45,8 +45,8 @@ interface PersistedData {
 }
 
 const DEFAULT_SETTINGS = {
-  nickname: '阳光旅人',
-  avatar: '专注',
+  nickname: '',
+  avatar: '',
   customMotto: '心怀热爱，奔赴每一个灿烂的日子',
   cheerStyle: 'energetic' as CheerStyle,
   defaultStartPage: 'main' as DefaultStartPage,
@@ -67,6 +67,9 @@ function loadInitialSettings(): PersistedData {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_SETTINGS;
     const parsed = JSON.parse(raw) as PersistedData;
+    if (parsed.nickname === '阳光旅人') {
+      parsed.nickname = '';
+    }
     return {
       ...DEFAULT_SETTINGS,
       ...parsed,

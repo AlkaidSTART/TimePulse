@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { FiClock, FiCheckSquare, FiSettings } from 'react-icons/fi';
+import { FiClock, FiCheckSquare, FiUser } from 'react-icons/fi';
 import { LuSparkles } from 'react-icons/lu';
 import { usePageTransition, type PageView } from '@/hooks/usePageTransition';
 import { useTimers } from '@/app/providers/TimerProvider';
@@ -84,7 +84,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
       id: 'settings',
       label: t('header.settingsTab', '个人设置'),
       shortLabel: '设置',
-      icon: FiSettings,
+      icon: FiUser,
       title: '个人设置中心',
       description: '个性昵称、问候语气与界面偏好',
     },
@@ -274,7 +274,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                   ) : hoveredRoute === 'todo' ? (
                     <FiCheckSquare className="size-3.5" />
                   ) : (
-                    <FiSettings className="size-3.5 text-primary-500" />
+                    <FiUser className="size-3.5 text-primary-500" />
                   )}
                 </span>
                 <span className="font-bold text-xs text-gray-900 dark:text-white">
@@ -341,7 +341,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                     个人称呼、问候语气与显示偏好
                   </p>
                   <p className="text-gray-500 dark:text-gray-400 truncate">
-                    当前称呼: <span className="font-semibold text-gray-900 dark:text-white">{nickname || '阳光旅人'}</span>
+                    当前称呼: <span className="font-semibold text-gray-900 dark:text-white">{nickname || '未设置'}</span>
                   </p>
                 </>
               )}
