@@ -17,6 +17,7 @@ import type { Timer, TimerType } from '@/domain/timer';
 import { useTranslation } from '@/i18n/useTranslation';
 import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
+import DatePicker from '@/components/composed/DatePicker';
 
 export type MobileTab = 'cheer' | 'timer' | 'todo' | 'list' | 'background' | 'settings';
 
@@ -528,13 +529,12 @@ export default function MobileTabBar({
                           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             目标日期
                           </label>
-                          <input
-                            type="date"
+                          <DatePicker
                             value={editingTimer.targetDate}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            onChange={(e) =>
                               setEditingTimer({ ...editingTimer, targetDate: e.target.value })
                             }
-                            className="w-full px-3 py-2 rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                            triggerClassName="rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm h-auto py-2 px-3"
                           />
                         </div>
                         <div>

@@ -6,6 +6,7 @@ import { useTimers } from '@/app/providers/TimerProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import CustomSelect from '@/components/composed/CustomSelect';
+import DatePicker from '@/components/composed/DatePicker';
 import TimezoneSelectionModal from '@/features/world-clock/components/TimezoneSelectionModal';
 import { Button } from '@/components/ui/button';
 import { AutoResizer, AutoTransition } from '@/components/ui';
@@ -180,36 +181,31 @@ export default function AddTimerModal({ onClose, onBack, embedded = false }: Add
                   value={formData.name}
                   onChange={handleChange}
                   placeholder={t('modal.countdown.namePlaceholder', '例如: 春节倒计时')}
-                  className="w-full px-4 py-2 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-inset focus:ring-primary-500 focus:outline-none"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-inset focus:ring-primary-500 focus:outline-none transition-colors"
                   required
                 />
               </div>
               
               <div>
                 <label className="block text-sm font-medium mb-1">{t('modal.countdown.date', '目标日期')}</label>
-                <div className="relative flex items-center">
-                  <span className="absolute pl-3 text-gray-500 z-10"><FiCalendar /></span>
-                  <input
-                    type="date"
-                    name="targetDate"
-                    value={formData.targetDate}
-                    onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-inset focus:ring-primary-500 focus:outline-none"
-                    required
-                  />
-                </div>
+                <DatePicker
+                  name="targetDate"
+                  value={formData.targetDate}
+                  onChange={handleChange}
+                  required
+                />
               </div>
               
               <div>
                 <label className="block text-sm font-medium mb-1">{t('modal.countdown.time', '目标时间')}</label>
                 <div className="relative flex items-center">
-                  <span className="absolute pl-3 text-gray-500 z-10"><FiClock /></span>
+                  <span className="absolute pl-3.5 text-gray-400 z-10 pointer-events-none"><FiClock className="size-4" /></span>
                   <input
                     type="time"
                     name="targetTime"
                     value={formData.targetTime}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-inset focus:ring-primary-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-inset focus:ring-primary-500 focus:outline-none transition-colors"
                     required
                   />
                 </div>
@@ -219,7 +215,7 @@ export default function AddTimerModal({ onClose, onBack, embedded = false }: Add
                 <label className="block text-sm font-medium mb-1">{t('modal.timezone.title', '时区')}</label>
                 <button
                   type="button"
-                  className="w-full flex items-center justify-between px-4 py-2 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 hover:bg-white/20 dark:hover:bg-black/20 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-2 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 hover:bg-white/20 dark:hover:bg-black/20 transition-colors"
                   onClick={() => setShowTimezoneModal(true)}
                 >
                   <div className="flex items-center">

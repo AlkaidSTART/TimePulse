@@ -14,7 +14,7 @@ import type { Language } from '@/i18n/types';
 import TimerTabs from '@/features/timer-management/components/TimerTabs';
 import { PRESET_COLORS } from '@/constants/colors';
 import { AutoResizer, AutoTransition } from '@/components/ui';
-import { LinearDialogTransition } from '@/components/composed';
+import { LinearDialogTransition, DatePicker } from '@/components/composed';
 import MobileTabBar, { type MobileTab } from './MobileTabBar';
 import WebDock from './WebDock';
 import AnimatedLogo from './AnimatedLogo';
@@ -956,11 +956,9 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     <>
                       <div>
                         <label className="block text-sm font-medium mb-1">{t('modal.edit.date')}</label>
-                        <input
-                          type="date"
+                        <DatePicker
                           value={editingTimer.targetDate}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => setEditingTimer({...editingTimer, targetDate: e.target.value})}
-                          className="w-full px-4 py-2 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                          onChange={(e) => setEditingTimer({ ...editingTimer, targetDate: e.target.value })}
                         />
                       </div>
 
@@ -970,7 +968,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                           type="time"
                           value={editingTimer.targetTime}
                           onChange={(e: ChangeEvent<HTMLInputElement>) => setEditingTimer({...editingTimer, targetTime: e.target.value})}
-                          className="w-full px-4 py-2 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                          className="w-full px-4 py-2.5 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-colors"
                         />
                       </div>
                     </>

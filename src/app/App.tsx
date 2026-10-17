@@ -3,7 +3,7 @@ import { BackgroundProvider, FullscreenProvider, ThemeProvider, TimerProvider } 
 import OfflineNotification from '@/features/notification/components/OfflineNotification';
 import GlobalNotificationManager from '@/features/notification/components/GlobalNotificationManager';
 import Home from './Home';
-import { testNotification } from '@/services/notifications';
+import { testNotification, setupTauriNotificationChannel } from '@/services/notifications';
 import notificationManager from '@/services/notificationManager';
 import { PageTransitionProvider } from '@/hooks/usePageTransition';
 import GlobalScrollbars from '@/components/layout/GlobalScrollbars';
@@ -19,6 +19,7 @@ declare global {
 function useViteAppLifecycle() {
   useEffect(() => {
     console.log(`TimePulse 初始化完成 - ${new Date().toLocaleString()}`);
+    void setupTauriNotificationChannel();
 
     const onControllerChange = () => {
       console.log('Service Worker已接管页面，可以发送通知');

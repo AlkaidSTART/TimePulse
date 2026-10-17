@@ -6,5 +6,6 @@ export * from './linear-dialog-shell';
 export * from './form-field';
 export * from './glass-surface';
 export * from './status-panel';
-export { default as ThemeLibraryModal } from './ThemeLibraryModal';
+export { default as DatePicker } from './DatePicker';
+export * from './DatePicker';
 
