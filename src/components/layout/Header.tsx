@@ -826,7 +826,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
           >
             <FiList className="size-3.5" />
             {timers.length > 0 && (
-              <span className="absolute -top-1 -right-1 flex min-w-3.5 h-3.5 px-0.5 items-center justify-center rounded-full text-[9px] font-bold text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 shadow-xs">
+              <span className="pointer-events-none absolute -top-1.5 -right-1.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full text-[9px] font-bold leading-none text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 shadow-xs ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee]">
                 {timers.length}
               </span>
             )}
@@ -888,7 +888,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
           >
             <FiUser className="size-3.5" />
             {hasUpdate && (
-              <span className="absolute top-0 right-0 size-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-neutral-900 animate-pulse" />
+              <span className="pointer-events-none absolute -top-0.5 -right-0.5 size-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee] animate-pulse" />
             )}
           </button>
         </div>

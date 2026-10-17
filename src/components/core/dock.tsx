@@ -50,6 +50,7 @@ export type DockItemProps = {
   tabIndex?: number;
   role?: string;
   'aria-label'?: string;
+  badge?: React.ReactNode;
 };
 
 export type DockLabelProps = {
@@ -60,6 +61,13 @@ export type DockLabelProps = {
 export type DockIconProps = {
   className?: string;
   children: React.ReactNode;
+};
+
+export type DockBadgeProps = {
+  className?: string;
+  children?: React.ReactNode;
+  style?: React.CSSProperties;
+  [key: string]: unknown;
 };
 
 export type DocContextType = {
@@ -154,6 +162,7 @@ export function DockItem({
   tabIndex = 0,
   role = 'button',
   'aria-label': ariaLabel,
+  badge,
 }: DockItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const { distance, magnification, mouseX, spring } = useDock();
@@ -202,6 +211,9 @@ export function DockItem({
             ? cloneElement(child as React.ReactElement<Record<string, unknown>>, { width, isHovered })
             : child
         )}
+
+        {/* macOS Style Notification Badge - positioned on top-right of dock tile, outside the icon */}
+        {badge}
 
         {/* macOS Style Running Indicator Dot */}
         {isActive && (
@@ -270,12 +282,45 @@ export function DockIcon({ children, className, ...rest }: DockIconProps) {
   );
 }
 
+export function DockBadge({ children, className, style, ...rest }: DockBadgeProps) {
+  void rest;
+  const context = useContext(DockItemContext);
+  let magnification = DEFAULT_MAGNIFICATION;
+  try {
+    const dockContext = useDock();
+    magnification = dockContext.magnification;
+  } catch {
+    // DockBadge used outside DockProvider
+  }
+
+  const fallbackWidth = useMotionValue(40);
+  const width = context?.width || fallbackWidth;
+  const scale = useTransform(width, [40, magnification], [1, 1.2]);
+
+  if (children === undefined || children === null || children === '') {
+    return null;
+  }
+
+  return (
+    <motion.span
+      style={{ scale, originX: 1, originY: 0, ...style }}
+      className={cn(
+        'pointer-events-none absolute -top-1.5 -right-1.5 z-10 flex min-w-4 h-4 px-1 items-center justify-center rounded-full text-[9px] font-bold leading-none text-white shadow-xs ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee]',
+        className
+      )}
+    >
+      {children}
+    </motion.span>
+  );
+}
+
 export interface AppleStyleDockItem {
   title: string;
   icon: React.ReactNode;
   href?: string;
   onClick?: () => void;
   isActive?: boolean;
+  badge?: React.ReactNode;
 }
 
 export const defaultAppleDockData: AppleStyleDockItem[] = [
@@ -350,6 +395,7 @@ export function AppleStyleDock({
             aria-label={item.title}
             className="aspect-square rounded-full bg-gray-200/90 dark:bg-neutral-800/90 hover:bg-gray-300 dark:hover:bg-neutral-700 transition-colors"
             isActive={item.isActive}
+            badge={item.badge}
             onClick={() => {
               if (item.onClick) {
                 item.onClick();

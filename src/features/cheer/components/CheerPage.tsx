@@ -11,6 +11,8 @@ import {
 } from 'react-icons/fi';
 import { usePageTransition } from '@/hooks/usePageTransition';
 import { readTodoItems } from '@/features/todo/todoStorage';
+import { cn } from '@/lib/utils';
+import { TextEffect } from '@/components/core/text-effect';
 import solarlunar from 'solarlunar';
 import {
   getCurrentTimeSlot,
@@ -86,9 +88,13 @@ export default function CheerPage() {
 
   const currentQuote = INSPIRATIONAL_QUOTES[quoteIndex] || INSPIRATIONAL_QUOTES[0];
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   // 切换金句
   const handleNextQuote = useCallback(() => {
+    setIsRefreshing(true);
     setQuoteIndex((prev) => (prev + 1) % INSPIRATIONAL_QUOTES.length);
+    setTimeout(() => setIsRefreshing(false), 500);
   }, []);
 
   // 复制金句
@@ -148,14 +154,14 @@ export default function CheerPage() {
           </div>
         </motion.div>
 
-        {/* 今日灵感一言（极简便签风格，向上靠拢承接时间） */}
+        {/* 今日灵感一言（固定高度避免布局跳动，集成 TextEffect 字符动效） */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.08 }}
-          className="relative w-full rounded-2xl border border-black/[0.05] dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-4 sm:p-5 backdrop-blur-xl"
+          className="relative w-full rounded-2xl border border-black/[0.05] dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-4 sm:p-5 backdrop-blur-xl h-[148px] sm:h-[140px] flex flex-col justify-between overflow-hidden"
         >
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/[0.04] dark:border-white/[0.06]">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/[0.04] dark:border-white/[0.06] shrink-0">
             <div className="flex items-center gap-1.5 text-[11px] font-medium text-gray-500 dark:text-gray-400">
               <span className="size-1.5 rounded-full bg-primary-500" />
               <span>今日灵感</span>
@@ -165,7 +171,7 @@ export default function CheerPage() {
                 type="button"
                 onClick={handleCopyQuote}
                 title="复制此句"
-                className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
               >
                 {isCopied ? (
                   <>
@@ -183,21 +189,36 @@ export default function CheerPage() {
                 type="button"
                 onClick={handleNextQuote}
                 title="换一句"
-                className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
               >
-                <FiRefreshCw className="size-3" />
+                <FiRefreshCw className={cn('size-3 transition-transform duration-500', isRefreshing && 'rotate-180')} />
                 <span>换一句</span>
               </button>
             </div>
           </div>
 
-          <div className="pt-0.5">
-            <p className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic">
-              “{currentQuote.text}”
-            </p>
-            <div className="mt-1.5 text-right text-[11px] text-gray-400 dark:text-gray-500">
-              —— {currentQuote.author}
+          <div className="flex-1 flex flex-col justify-between min-h-0 pt-0.5">
+            <div className="flex-1 flex items-center min-h-0 overflow-hidden">
+              <TextEffect
+                key={currentQuote.text}
+                per="char"
+                preset="fade-in-blur"
+                speedReveal={1.6}
+                speedSegment={1.2}
+                className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic select-text"
+              >
+                {`“${currentQuote.text}”`}
+              </TextEffect>
             </div>
+            <motion.div
+              key={`author-${currentQuote.author}-${quoteIndex}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.35, delay: 0.15 }}
+              className="mt-1 text-right text-[11px] text-gray-400 dark:text-gray-500 shrink-0"
+            >
+              —— {currentQuote.author}
+            </motion.div>
           </div>
         </motion.div>
 

@@ -14,7 +14,7 @@ import {
   Sparkles,
   User,
 } from 'lucide-react';
-import { Dock, DockIcon, DockItem, DockLabel } from '@/components/core/dock';
+import { Dock, DockIcon, DockItem, DockLabel, DockBadge } from '@/components/core/dock';
 import { usePageTransition } from '@/hooks/usePageTransition';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
@@ -129,19 +129,12 @@ export default function WebDock({
     {
       id: 'todo',
       title: t('header.todoTab', '待办清单'),
-      icon: (
-        <div className="relative size-full">
-          <Component className="size-full text-neutral-700 dark:text-neutral-200" />
-          {pendingTodoCount > 0 && (
-            <span
-              className="absolute -top-1 -right-1 flex min-w-3.5 h-3.5 px-1 items-center justify-center rounded-full text-[9px] font-bold text-white shadow-xs"
-              style={{ backgroundColor: accentColor || '#0ea5e9' }}
-            >
-              {pendingTodoCount > 99 ? '99+' : pendingTodoCount}
-            </span>
-          )}
-        </div>
-      ),
+      icon: <Component className="size-full text-neutral-700 dark:text-neutral-200" />,
+      badge: pendingTodoCount > 0 ? (
+        <DockBadge style={{ backgroundColor: accentColor || '#0ea5e9' }}>
+          {pendingTodoCount > 99 ? '99+' : pendingTodoCount}
+        </DockBadge>
+      ) : null,
       onClick: () => {
         if (view !== 'todo') transitionTo('todo');
       },
@@ -168,14 +161,10 @@ export default function WebDock({
     {
       id: 'changelog',
       title: `${t('version.title', '更新日志与版本')} (v${currentVersion})`,
-      icon: (
-        <div className="relative size-full">
-          <ScrollText className="size-full text-neutral-700 dark:text-neutral-200" />
-          {hasUpdate && (
-            <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-amber-500 animate-pulse ring-2 ring-white dark:ring-neutral-900" />
-          )}
-        </div>
-      ),
+      icon: <ScrollText className="size-full text-neutral-700 dark:text-neutral-200" />,
+      badge: hasUpdate ? (
+        <span className="pointer-events-none absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-amber-500 animate-pulse ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee]" />
+      ) : null,
       onClick: handleOpenChangelog,
     },
     {
@@ -238,6 +227,7 @@ export default function WebDock({
             key={item.id}
             onClick={item.onClick}
             isActive={item.isActive}
+            badge={item.badge}
             className="aspect-square rounded-2xl bg-black/[0.03] hover:bg-black/[0.07] dark:bg-white/[0.06] dark:hover:bg-white/[0.12] transition-colors shadow-xs border border-black/[0.04] dark:border-white/[0.06]"
             aria-label={item.title}
           >
