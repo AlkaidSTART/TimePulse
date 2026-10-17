@@ -2,6 +2,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { FiMapPin, FiSearch } from 'react-icons/fi';
 import { useTranslation } from '@/i18n/useTranslation';
 import { allTimezones, getTimezoneAccentColor, type TimezoneOption } from './timezone-data';
+import { useDebouncedValue } from '@/utils/performance';
 
 type TimezonePickerBaseProps = {
   onSelectTimezone: (timezone: TimezoneOption) => void;
@@ -30,6 +31,7 @@ const TimezoneOptionRow = memo(function TimezoneOptionRow({ timezone, onSelect }
     <button
       type="button"
       className="flex min-w-0 items-center space-x-3 rounded-lg border border-white/10 bg-white/5 p-3 text-left backdrop-blur-sm transition-colors hover:border-primary-500/30 hover:bg-primary-500/10 active:bg-primary-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-white/10 dark:bg-black/10 dark:hover:bg-primary-500/15"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 58px' }}
       onClick={() => onSelect(timezone)}
       data-insightflare-event="timezone_select"
       data-insightflare-event-timezone={timezone.timezone}
@@ -59,6 +61,7 @@ export function TimezonePicker({
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const searchTerm = controlledSearchTerm ?? localSearchTerm;
   const setSearchTerm = setControlledSearchTerm ?? setLocalSearchTerm;
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 150);
 
   const localizedTimezones = useMemo<LocalizedTimezoneOption[]>(() => allTimezones.map((timezone) => {
     const translationKey = `timezone.${timezone.timezone.replace(/\//g, '_').replace(/\-/g, '_')}`;
@@ -81,10 +84,10 @@ export function TimezonePicker({
   }), [t]);
 
   const filteredTimezones = useMemo(() => {
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = debouncedSearchTerm.trim().toLowerCase();
     if (!searchLower) return localizedTimezones;
     return localizedTimezones.filter((timezone) => timezone.searchIndex.includes(searchLower));
-  }, [localizedTimezones, searchTerm]);
+  }, [localizedTimezones, debouncedSearchTerm]);
 
   const handleSelectTimezone = useCallback((timezone: TimezoneOption): void => {
     onSelectTimezone(timezone);

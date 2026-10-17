@@ -16,8 +16,12 @@ export function shouldUseNativeScrollbars(): boolean {
     /Safari/i.test(userAgent) &&
     /Apple/i.test(vendor) &&
     !/Android|Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Opera/i.test(userAgent);
+  const isAndroid = /Android/i.test(userAgent);
+  const isTouchDevice =
+    typeof window !== 'undefined' &&
+    ('ontouchstart' in window || ((navigator.maxTouchPoints || 0) > 0));
 
-  return isApplePlatform || isSafari;
+  return isApplePlatform || isSafari || isAndroid || isTouchDevice;
 }
 
 export function getScrollViewport(host: HTMLElement | null): HTMLElement | null {

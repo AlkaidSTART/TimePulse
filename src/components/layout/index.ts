@@ -3,3 +3,4 @@ export { default as Layout } from './Layout';
 export { default as MobileTabBar } from './MobileTabBar';
 export { default as RouteNavigation } from './RouteNavigation';
 export { default as AnimatedLogo } from './AnimatedLogo';
+export { default as WebDock } from './WebDock';

@@ -27,6 +27,10 @@ let databasePromise: Promise<IDBDatabase> | null = null;
  * 所有经过 IndexedDB 的模块都必须使用这个 opener，避免版本号不一致导致 VersionError。
  */
 export function openTimePulseDatabase(): Promise<IDBDatabase> {
+  if (typeof indexedDB === 'undefined') {
+    return Promise.reject(new Error('IndexedDB is not supported in this environment'));
+  }
+
   if (!databasePromise) {
     databasePromise = new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
@@ -88,6 +92,25 @@ function readLegacyTimers(storage: Storage = localStorage): Timer[] {
   } catch (error) {
     console.error('读取旧版 localStorage 计时器失败:', error);
     return [];
+  }
+}
+
+/**
+ * 同步从 localStorage 缓存中读取计时器，供 store 首屏预水合使用
+ */
+export function readCachedTimers(storage: Storage = localStorage): Timer[] {
+  return readLegacyTimers(storage);
+}
+
+/**
+ * 同步从 localStorage 缓存中读取活动计时器 ID
+ */
+export function readCachedActiveTimerId(storage: Storage = localStorage): string | null {
+  try {
+    return storage.getItem(STORAGE_KEYS.activeTimerId);
+  } catch (error) {
+    console.warn('读取 localStorage 缓存活动计时器失败:', error);
+    return null;
   }
 }
 

@@ -1,13 +1,13 @@
-import { Fragment, useState, useEffect, useRef, type ReactNode } from 'react';
+import { Fragment, useState, useEffect, useRef, useMemo, memo, lazy, Suspense, type ReactNode } from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import DigitColumn from './DigitColumn';
+import TimerLoading from './TimerLoading';
 import { addNotification } from '@/services/notificationManager';
 import { track, bucketDurationMs } from '@/services/analytics';
-import { FiPlay, FiPause, FiSquare, FiFlag, FiList } from 'react-icons/fi';
-import LapTimesModal from '@/features/stopwatch/components/LapTimesModal';
+import { FiPlay, FiPause, FiSquare, FiFlag, FiList, FiRotateCcw } from 'react-icons/fi';
 import {
   getTimerType,
   type CountdownTimer,
@@ -18,10 +18,12 @@ import {
   type TimeValue,
   type WorldClockTimer,
 } from '@/domain/timer';
-import { splitCalendarDuration } from '@/domain/time';
+import { splitCalendarDuration, getZonedDateTimeParts } from '@/domain/time';
 import { getNextTimerUpdateDelay } from '../timerSchedule';
 import { AutoResizer, AutoTransition, type TransitionType } from '@/components/ui';
-import StopwatchStopConfirmModal from '@/features/stopwatch/components/StopwatchStopConfirmModal';
+
+const LapTimesModal = lazy(() => import('@/features/stopwatch/components/LapTimesModal'));
+const StopwatchStopConfirmModal = lazy(() => import('@/features/stopwatch/components/StopwatchStopConfirmModal'));
 
 type DisplayTime = {
   years: number;
@@ -86,7 +88,7 @@ type CalendarTimeRowsProps = {
   labels: { years: string; months: string; days: string; hours: string; minutes: string; seconds: string };
 };
 
-function CalendarTimeRows({
+const CalendarTimeRows = memo(function CalendarTimeRows({
   timeValue,
   showYears,
   showDays,
@@ -125,10 +127,9 @@ function CalendarTimeRows({
       aria-hidden="true"
       layout="position"
       transition={{ layout: { type: 'tween', duration: 0.24, ease: 'easeOut' } }}
-      className={`relative ${separatorClassName} font-thin text-gray-400 select-none`}
+      className={`relative ${separatorClassName} font-light text-gray-400/80 dark:text-gray-500/80 select-none`}
       style={{
         top: -separatorVerticalOffset,
-        textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)',
       }}
     >
       :
@@ -168,7 +169,7 @@ function CalendarTimeRows({
 
   return (
     <motion.div
-      className={`flex items-center justify-center ${hasOnlyDays ? 'flex-row sm:flex-col lg:flex-row' : 'flex-col lg:flex-row'}`}
+      className="flex flex-col landscape:flex-row lg:flex-row items-center justify-center"
       layout="position"
       animate={{ rowGap: hasCalendarUnits ? 4 : 0 }}
       transition={{
@@ -206,8 +207,10 @@ function CalendarTimeRows({
                   ease: 'easeOut',
                   layout: { type: 'tween', duration: 0.28, ease: 'easeInOut' },
                 }}
-                className={`${separatorClassName} font-thin text-gray-400 select-none`}
-                style={{ textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)' }}
+                className={`relative ${separatorClassName} font-light text-gray-400/80 dark:text-gray-500/80 select-none`}
+                style={{
+                  top: -separatorVerticalOffset,
+                }}
               >
                 :
               </motion.span>
@@ -246,10 +249,9 @@ function CalendarTimeRows({
               transition: { duration: 0.2, delay: calendarExitDelay, ease: 'easeOut' },
             }}
             transition={{ duration: 0.2, ease: 'easeOut', layout: { type: 'tween', duration: 0.28, ease: 'easeInOut' } }}
-            className={`relative ${hasOnlyDays ? 'mx-2 inline-block sm:hidden lg:inline-block' : 'hidden lg:mx-2 lg:inline-block'} ${separatorClassName} font-thin text-gray-400 select-none`}
+            className={`relative hidden landscape:mx-2 landscape:inline-block lg:mx-2 lg:inline-block ${separatorClassName} font-light text-gray-400/80 dark:text-gray-500/80 select-none`}
             style={{
               top: -separatorVerticalOffset,
-              textShadow: '0 1px 2px rgba(255, 255, 255, 0.8)',
             }}
           >
             :
@@ -263,29 +265,109 @@ function CalendarTimeRows({
       ])}
     </motion.div>
   );
+});
+
+function getInitialDisplaySnapshot(timer: Timer | null): {
+  timeValue: DisplayTime;
+  showYears: boolean;
+  showDays: boolean;
+} {
+  if (!timer) {
+    return {
+      timeValue: { years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 },
+      showYears: false,
+      showDays: false,
+    };
+  }
+
+  const now = Date.now();
+  const timerType = getTimerType(timer);
+
+  if (timerType === 'worldclock') {
+    const parts = getZonedDateTimeParts(now, (timer as WorldClockTimer).timezone);
+    return {
+      timeValue: {
+        years: 0,
+        months: 0,
+        days: 0,
+        hours: parts.hour,
+        minutes: parts.minute,
+        seconds: parts.second,
+      },
+      showYears: false,
+      showDays: false,
+    };
+  }
+
+  if (timerType === 'stopwatch') {
+    const sw = timer as StopwatchTimer;
+    const startTimestamp = sw.startTime === null ? Number.NaN : toDate(sw.startTime).getTime();
+    const wallClockEnd = sw.isRunning
+      ? now
+      : sw.pausedAt
+        ? toDate(sw.pausedAt).getTime()
+        : startTimestamp;
+    const effectiveEnd = wallClockEnd - (sw.totalPausedTime || 0);
+    const split = splitCalendarDuration(startTimestamp, effectiveEnd);
+    return {
+      timeValue: split,
+      showYears: split.years > 0,
+      showDays: split.days > 0 || split.months > 0 || split.years > 0,
+    };
+  }
+
+  const cd = timer as CountdownTimer;
+  const targetDate = toDate(cd.targetDate);
+  if (targetDate.getTime() - now <= 0) {
+    return {
+      timeValue: { years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 },
+      showYears: false,
+      showDays: false,
+    };
+  }
+  const split = splitCalendarDuration(now, targetDate.getTime(), cd.timezone);
+  return {
+    timeValue: split,
+    showYears: split.years > 0,
+    showDays: split.days > 0 || split.months > 0 || split.years > 0,
+  };
 }
 
 export default function TimerDisplay() {
-  const { getActiveTimer, updateTimer } = useTimers();
+  const { getActiveTimer, updateTimer, activeTimerId, timers } = useTimers();
+  const activeTimerAtMount = getActiveTimer() as Timer | null;
+  const activeTimerTypeAtMount = activeTimerAtMount ? getTimerType(activeTimerAtMount) : null;
+  const initialSnapshot = useMemo(() => getInitialDisplaySnapshot(activeTimerAtMount), [activeTimerAtMount?.id]);
+
   const { isFullscreen, timerFontSize: rawTimerFontSize, labelFontSize: rawLabelFontSize } = useFullscreen();
   const { t, currentLang } = useTranslation();
+  const timeLabels = useMemo(() => ({
+    years: t('time.years'),
+    months: t('time.months'),
+    days: t('time.days'),
+    hours: t('time.hours'),
+    minutes: t('time.minutes'),
+    seconds: t('time.seconds'),
+  }), [t]);
   const timerFontSize = (rawTimerFontSize || 'medium') as FontSize;
   const labelFontSize = (rawLabelFontSize || 'medium') as FontSize;
-  const [timeValue, setTimeValue] = useState<DisplayTime>({ years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [isInitialValuesReady, setIsInitialValuesReady] = useState(false);
+  const [timeValue, setTimeValue] = useState<DisplayTime>(() => initialSnapshot.timeValue);
+  const [isInitialValuesReady, setIsInitialValuesReady] = useState(() => Boolean(activeTimerAtMount));
   const [isDisplayVisible, setIsDisplayVisible] = useState(false);
-  const [showDays, setShowDays] = useState(false);
-  const [showYears, setShowYears] = useState(false);
+  const [showDays, setShowDays] = useState(() => initialSnapshot.showDays);
+  const [showYears, setShowYears] = useState(() => initialSnapshot.showYears);
   const [isFinished, setIsFinished] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
+  const [isRunning, setIsRunning] = useState(() => activeTimerTypeAtMount === 'stopwatch' && (activeTimerAtMount as StopwatchTimer)?.isRunning === true);
   const [isLapModalOpen, setIsLapModalOpen] = useState(false);
   const [isStopwatchStopDialogOpen, setIsStopwatchStopDialogOpen] = useState(false);
-  const [timeValueTimerType, setTimeValueTimerType] = useState<TimerType | null>(null);
+  const [timeValueTimerType, setTimeValueTimerType] = useState<TimerType | null>(activeTimerTypeAtMount);
   
   // 使用 ref 跟踪最后计算的时间，避免不必要的重渲染
-  const lastTimeRef = useRef<DisplayTime | null>(null);
-  const activeTimerIdentityRef = useRef<{ id: string; type: TimerType } | null>(null);
-  const initialValuesReadyRef = useRef(false);
+  const lastTimeRef = useRef<DisplayTime | null>(initialSnapshot.timeValue);
+  const activeTimerIdentityRef = useRef<{ id: string; type: TimerType } | null>(
+    activeTimerAtMount ? { id: activeTimerAtMount.id, type: activeTimerTypeAtMount! } : null
+  );
+  const initialValuesReadyRef = useRef(Boolean(activeTimerAtMount));
   const timerIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // 判断两个时间对象是否相等
@@ -420,19 +502,15 @@ export default function TimerDisplay() {
   
   // 计算世界时钟时间
   const calculateWorldClockTime = (timer: WorldClockTimer, now: number) => {
-    const timeInTimezone = new Date(new Date(now).toLocaleString("en-US", {timeZone: timer.timezone}));
-    
-    const hours = timeInTimezone.getHours();
-    const minutes = timeInTimezone.getMinutes();
-    const seconds = timeInTimezone.getSeconds();
+    const parts = getZonedDateTimeParts(now, timer.timezone);
     
     const newTimeValue = { 
       years: 0,
       months: 0,
       days: 0, 
-      hours: hours, 
-      minutes: minutes, 
-      seconds: seconds 
+      hours: parts.hour, 
+      minutes: parts.minute, 
+      seconds: parts.second, 
     };
     
     if (!areTimesEqual(newTimeValue, lastTimeRef.current)) {
@@ -501,7 +579,7 @@ export default function TimerDisplay() {
       clearScheduledUpdate();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [getActiveTimer, isFinished, isRunning]);
+  }, [getActiveTimer, isFinished, isRunning, activeTimerId, timers]);
   
   // 正计时控制函数
   const handleStopwatchControl = (action: StopwatchAction) => {
@@ -587,8 +665,8 @@ export default function TimerDisplay() {
   useEffect(() => {
     if (!isInitialValuesReady || isDisplayVisible || !activeTimer) return undefined;
 
-    // Let the timer-specific rows and AutoResizer measurements settle first.
-    const revealTimer = window.setTimeout(() => setIsDisplayVisible(true), 400);
+    // Zero-lag layout stabilization
+    const revealTimer = window.setTimeout(() => setIsDisplayVisible(true), 0);
     return () => window.clearTimeout(revealTimer);
   }, [
     isInitialValuesReady,
@@ -606,16 +684,16 @@ export default function TimerDisplay() {
     if (isFullscreen) {
       // 全屏模式：使用固定大尺寸
       return {
-        small: 'text-5xl sm:text-6xl md:text-7xl',
-        medium: 'text-6xl sm:text-7xl md:text-8xl',
-        large: 'text-7xl sm:text-8xl md:text-9xl'
+        small: 'text-5xl sm:text-6xl md:text-7xl landscape:max-md:text-4xl landscape:max-md:sm:text-5xl',
+        medium: 'text-6xl sm:text-7xl md:text-8xl landscape:max-md:text-5xl landscape:max-md:sm:text-6xl',
+        large: 'text-7xl sm:text-8xl md:text-9xl landscape:max-md:text-6xl landscape:max-md:sm:text-7xl',
       };
     } else {
       // 普通模式：使用响应式尺寸
       return {
-        small: 'text-4xl sm:text-5xl md:text-6xl',
-        medium: 'text-5xl sm:text-6xl md:text-7xl',
-        large: 'text-6xl sm:text-7xl md:text-8xl'
+        small: 'text-4xl sm:text-5xl md:text-6xl landscape:max-md:text-3xl landscape:max-md:sm:text-4xl',
+        medium: 'text-5xl sm:text-6xl md:text-7xl landscape:max-md:text-4xl landscape:max-md:sm:text-5xl',
+        large: 'text-6xl sm:text-7xl md:text-8xl landscape:max-md:text-5xl landscape:max-md:sm:text-6xl',
       };
     }
   };
@@ -634,8 +712,8 @@ export default function TimerDisplay() {
 
   if (!activeTimer) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-xl text-gray-400">{t('timer.noActiveTimer')}</p>
+      <div className="flex items-center justify-center min-h-[160px] py-12">
+        <TimerLoading />
       </div>
     );
   }
@@ -658,31 +736,67 @@ export default function TimerDisplay() {
         return isRunning ? t('timer.running') : t('timer.paused');
       case 'worldclock':
         return ''; // 世界时钟不再在时间下方显示 `${country} - ${timezone}`
-      default:
-        return `${t('timer.target')}: ${toDate((activeTimer as CountdownTimer).targetDate).toLocaleString()}`;
+      default: {
+        const cd = activeTimer as CountdownTimer;
+        if (cd.countdownType === 'short') {
+          const targetTimeStr = toDate(cd.targetDate).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          });
+          return `${t('timer.target')}: ${targetTimeStr}`;
+        }
+        return `${t('timer.target')}: ${toDate(cd.targetDate).toLocaleString()}`;
+      }
     }
   };
+
+  const timerTitle = getTimerTitle();
   
   return (
-    <motion.div 
-      className="flex flex-col items-center justify-center text-center px-4 relative z-10"
-      initial={{ opacity: 0, scale: 0.96, y: 24 }}
-      animate={isDisplayVisible
-        ? { opacity: 1, scale: 1, y: 0 }
-        : { opacity: 0, scale: 0.96, y: 24 }}
-      transition={{ duration: 0.42, ease: 'easeOut' }}
-      aria-hidden={!isDisplayVisible}
-      inert={!isDisplayVisible}
-    >
-      <div className="relative flex flex-col items-center">
+    <div className="relative flex flex-col items-center justify-center w-full min-h-[160px]">
+      <AnimatePresence>
+        {!isDisplayVisible && (
+          <motion.div
+            key="timer-loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{
+              opacity: 0,
+              filter: 'blur(4px)',
+              transition: { duration: 0.1, ease: 'easeOut' },
+            }}
+            className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
+          >
+            <TimerLoading color={activeTimer.color} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div 
+        className="flex flex-col items-center justify-center text-center px-4 relative z-10 w-full"
+        initial={false}
+        animate={isDisplayVisible
+          ? { opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }
+          : { opacity: 0, scale: 0.98, y: 14, filter: 'blur(2px)' }}
+        transition={{
+          y: { type: 'spring', damping: 24, stiffness: 300, mass: 0.5 },
+          scale: { type: 'spring', damping: 24, stiffness: 300, mass: 0.5 },
+          opacity: { duration: 0.18, ease: 'easeOut' },
+          filter: { duration: 0.16, ease: 'easeOut' },
+        }}
+        aria-hidden={!isDisplayVisible}
+        inert={!isDisplayVisible}
+      >
+        <div className="relative flex flex-col items-center">
       {/* 计时器名称 */}
-      {getTimerTitle() ? (
+      {timerTitle ? (
         <AnimatedRegion
           transitionKey="timer-title"
-          className="pb-4"
+          className="pb-4 landscape:max-md:pb-1.5"
         >
           <motion.h2
-            className={`${isFullscreen ? 'text-3xl md:text-4xl' : 'text-xl sm:text-2xl md:text-3xl'} font-medium`}
+            className={`${isFullscreen ? 'text-3xl md:text-4xl landscape:max-md:text-xl' : 'text-xl sm:text-2xl md:text-3xl landscape:max-md:text-lg'} font-medium`}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -719,20 +833,13 @@ export default function TimerDisplay() {
           timeValue={timeValue}
           showYears={showYears}
           showDays={showDays}
-          isValueVisible={isDisplayVisible}
+          isValueVisible={isInitialValuesReady}
           trend={numberTrend}
           color={activeTimer.color || '#0ea5e9'}
           fontSize={timerFontSize}
           labelFontSize={labelFontSize}
           separatorClassName={separatorClassName}
-          labels={{
-            years: t('time.years'),
-            months: t('time.months'),
-            days: t('time.days'),
-            hours: t('time.hours'),
-            minutes: t('time.minutes'),
-            seconds: t('time.seconds'),
-          }}
+          labels={timeLabels}
         />
       </AutoResizer>
       </LayoutGroup>
@@ -742,7 +849,7 @@ export default function TimerDisplay() {
         <AnimatedRegion
           transitionKey={`controls:${activeTimer.id}:${activeTimer.type === 'stopwatch' ? 'stopwatch' : 'none'}`}
           type="slideUp"
-          className="pt-8"
+          className="pt-8 landscape:max-md:pt-3"
         >
           {activeTimer.type === 'stopwatch' ? (
             <motion.div
@@ -789,16 +896,33 @@ export default function TimerDisplay() {
         <AnimatedRegion
           transitionKey={`finished:${activeTimer.id}:${isFinished && activeTimer.type === 'countdown' ? 'yes' : 'no'}`}
           type="scale"
-          className="pt-8"
+          className="pt-8 landscape:max-md:pt-3"
         >
           {isFinished && activeTimer.type === 'countdown' ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="liquid-glass-control px-6 py-4 rounded-xl"
+              className="liquid-glass-control px-6 py-4 rounded-xl flex flex-col items-center gap-3"
             >
               <p className="text-lg font-medium text-gray-800 dark:text-gray-200">{t('timer.finished')}</p>
+              {(activeTimer as CountdownTimer).countdownType === 'short' && (activeTimer as CountdownTimer).durationSeconds ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const cd = activeTimer as CountdownTimer;
+                    const durationSecs = cd.durationSeconds || 60;
+                    const newTargetDate = new Date(Date.now() + durationSecs * 1000).toISOString();
+                    updateTimer(activeTimer.id, { targetDate: newTargetDate });
+                    setIsFinished(false);
+                  }}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors cursor-pointer select-none"
+                  style={{ color: activeTimer.color }}
+                >
+                  <FiRotateCcw className="text-sm" />
+                  <span>{t('timer.restart', '重新开始')}</span>
+                </button>
+              ) : null}
             </motion.div>
           ) : null}
         </AnimatedRegion>
@@ -806,7 +930,7 @@ export default function TimerDisplay() {
         {getTimerDescription() ? (
           <AnimatedRegion
             transitionKey={`description:${activeTimer.id}:${activeTimer.type}:${getTimerDescription()}`}
-            className="pt-6"
+            className="pt-6 landscape:max-md:pt-2"
           >
             <motion.p
               className="text-sm text-gray-500 dark:text-gray-400"
@@ -822,7 +946,7 @@ export default function TimerDisplay() {
         <AnimatedRegion
           transitionKey={`laps:${activeTimer.id}:${activeStopwatchTimer?.laps?.length ?? 0}`}
           type="slideUp"
-          className="pt-6"
+          className="pt-6 landscape:max-md:pt-2"
         >
           {activeStopwatchTimer && activeStopwatchTimer.laps && activeStopwatchTimer.laps.length > 0 ? (
             <motion.button
@@ -847,12 +971,14 @@ export default function TimerDisplay() {
       {/* 分段计时弹窗 */}
       <AutoTransition portal transitionKey={isLapModalOpen && activeStopwatchTimer ? 'lap-modal-open' : 'lap-modal-closed'} initial={false} type="fade">
         {isLapModalOpen && activeStopwatchTimer ? (
-          <LapTimesModal 
-            onClose={() => setIsLapModalOpen(false)}
-            timerId={activeStopwatchTimer.id}
-            laps={activeStopwatchTimer.laps || []}
-            timerColor={activeTimer.color}
-          />
+          <Suspense fallback={null}>
+            <LapTimesModal 
+              onClose={() => setIsLapModalOpen(false)}
+              timerId={activeStopwatchTimer.id}
+              laps={activeStopwatchTimer.laps || []}
+              timerColor={activeTimer.color}
+            />
+          </Suspense>
         ) : null}
       </AutoTransition>
 
@@ -863,20 +989,23 @@ export default function TimerDisplay() {
         type="fade"
       >
         {isStopwatchStopDialogOpen && activeTimer.type === 'stopwatch' ? (
-          <StopwatchStopConfirmModal
-            title={t('controls.stopConfirmTitle')}
-            description={t('controls.stopConfirmDescription')}
-            cancelLabel={t('common.cancel')}
-            confirmLabel={t('controls.stopConfirmAction')}
-            timerColor={activeTimer.color}
-            onCancel={() => setIsStopwatchStopDialogOpen(false)}
-            onConfirm={() => {
-              handleStopwatchControl('stop');
-              setIsStopwatchStopDialogOpen(false);
-            }}
-          />
+          <Suspense fallback={null}>
+            <StopwatchStopConfirmModal
+              title={t('controls.stopConfirmTitle')}
+              description={t('controls.stopConfirmDescription')}
+              cancelLabel={t('common.cancel')}
+              confirmLabel={t('controls.stopConfirmAction')}
+              timerColor={activeTimer.color}
+              onCancel={() => setIsStopwatchStopDialogOpen(false)}
+              onConfirm={() => {
+                handleStopwatchControl('stop');
+                setIsStopwatchStopDialogOpen(false);
+              }}
+            />
+          </Suspense>
         ) : null}
       </AutoTransition>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }

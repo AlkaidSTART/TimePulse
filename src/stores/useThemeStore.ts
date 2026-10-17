@@ -1,13 +1,16 @@
 import { create } from 'zustand';
+import { CHATGPT_THEME_PRESETS, type ThemeColorId } from '@/constants/colors';
 
 export type Theme = 'light' | 'cream';
 
 export interface ThemeState {
   theme: Theme;
   accentColor: string;
+  themePresetId: string;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
   updateAccentColor: (color: string) => void;
+  setThemePreset: (presetId: string, customColor?: string) => void;
 }
 
 function readInitialTheme(): Theme {
@@ -30,12 +33,32 @@ function readInitialTheme(): Theme {
 }
 
 function readInitialAccentColor(): string {
-  if (typeof window === 'undefined') return '#0ea5e9';
+  if (typeof window === 'undefined') return '#10A37F';
   try {
-    return localStorage.getItem('accent-color') || '#0ea5e9';
+    return localStorage.getItem('accent-color') || '#10A37F';
   } catch {
-    return '#0ea5e9';
+    return '#10A37F';
   }
+}
+
+function findMatchingPresetId(color: string): string {
+  const normalized = color.toLowerCase().trim();
+  const match = CHATGPT_THEME_PRESETS.find(
+    (preset) => preset.color.toLowerCase() === normalized
+  );
+  return match ? match.id : 'custom';
+}
+
+function readInitialThemePresetId(accentColor: string): string {
+  if (typeof window === 'undefined') return 'green';
+  try {
+    const saved = localStorage.getItem('theme-preset');
+    if (saved === 'black') return 'default';
+    if (saved) return saved;
+  } catch {
+    // Ignore storage errors
+  }
+  return findMatchingPresetId(accentColor);
 }
 
 export function applyThemeToDom(theme: Theme): void {
@@ -51,23 +74,23 @@ export function applyThemeToDom(theme: Theme): void {
 
 export function updateCssVariables(color: string): void {
   if (typeof document === 'undefined') return;
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
-  const rgb = result
-    ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
-    : [14, 165, 233];
-  document.documentElement.style.setProperty('--color-primary', rgb.join(', '));
+  // 仅设置字体/数字高亮色，确保米白色与白色主题的基础控件、按钮和滚动条不受污染
+  document.documentElement.style.setProperty('--color-font-accent', color);
+  document.documentElement.style.setProperty('--color-primary', '14, 165, 233');
 }
 
 const initialTheme = readInitialTheme();
 const initialAccentColor = readInitialAccentColor();
+const initialThemePresetId = readInitialThemePresetId(initialAccentColor);
 
 // 初始化时应用到 DOM
 applyThemeToDom(initialTheme);
 updateCssVariables(initialAccentColor);
 
-export const useThemeStore = create<ThemeState>((set) => ({
+export const useThemeStore = create<ThemeState>((set, get) => ({
   theme: initialTheme,
   accentColor: initialAccentColor,
+  themePresetId: initialThemePresetId,
 
   setTheme: (nextTheme: Theme) => {
     try {
@@ -101,8 +124,34 @@ export const useThemeStore = create<ThemeState>((set) => ({
     } catch {
       // Ignore storage errors
     }
+    const matchedPreset = findMatchingPresetId(color);
+    try {
+      localStorage.setItem('theme-preset', matchedPreset);
+    } catch {
+      // Ignore storage errors
+    }
     updateCssVariables(color);
-    set({ accentColor: color });
+    set({ accentColor: color, themePresetId: matchedPreset });
+  },
+
+  setThemePreset: (presetId: string, customColor?: string) => {
+    let nextColor: string;
+    if (presetId === 'custom') {
+      nextColor = customColor || get().accentColor || '#10A37F';
+    } else {
+      const preset = CHATGPT_THEME_PRESETS.find((p) => p.id === presetId);
+      nextColor = preset ? preset.color : (presetId === 'black' ? '#18181B' : '#10A37F');
+    }
+
+    try {
+      localStorage.setItem('theme-preset', presetId);
+      localStorage.setItem('accent-color', nextColor);
+    } catch {
+      // Ignore storage errors
+    }
+
+    updateCssVariables(nextColor);
+    set({ themePresetId: presetId, accentColor: nextColor });
   },
 }));
 
@@ -112,13 +161,20 @@ export const useThemeStore = create<ThemeState>((set) => ({
 export function useTheme() {
   const theme = useThemeStore((s) => s.theme);
   const accentColor = useThemeStore((s) => s.accentColor);
+  const themePresetId = useThemeStore((s) => s.themePresetId);
   const toggleTheme = useThemeStore((s) => s.toggleTheme);
+  const setTheme = useThemeStore((s) => s.setTheme);
   const updateAccentColor = useThemeStore((s) => s.updateAccentColor);
+  const setThemePreset = useThemeStore((s) => s.setThemePreset);
 
   return {
     theme,
     accentColor,
+    themePresetId,
     toggleTheme,
+    setTheme,
     updateAccentColor,
+    setThemePreset,
   };
 }
+

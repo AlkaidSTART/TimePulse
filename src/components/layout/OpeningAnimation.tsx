@@ -1,13 +1,27 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTheme, type Theme } from '@/app/providers/ThemeProvider';
+import { preloadCriticalResources } from '@/services/resourcePreloader';
 
 const TILE_IDS = [0, 1, 2, 3] as const;
 const TILE_HUE_OFFSETS = [-36, -12, 12, 36];
-const SHUFFLE_DELAYS_MS = [220, 780];
-const EXIT_DELAY_MS = 1380;
-const EXIT_DURATION_S = 0.42;
-const TILE_TRANSITION = { duration: 0.6, ease: [0.4, 0, 0.2, 1] as const };
+const SHUFFLE_DELAYS_MS = [120, 360];
+const EXIT_DELAY_MS = 680;
+const EXIT_DURATION_S = 0.28;
+const TILE_TRANSITION = { duration: 0.35, ease: [0.4, 0, 0.2, 1] as const };
+const OPENING_SHOWN_KEY = 'timepulse_opening_shown';
+
+function shouldShowOpening(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (sessionStorage.getItem(OPENING_SHOWN_KEY)) {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+  return true;
+}
 
 type TileId = (typeof TILE_IDS)[number];
 
@@ -61,10 +75,19 @@ export default function OpeningAnimation() {
   const shouldReduceMotion = useReducedMotion();
   const [order, setOrder] = useState<TileId[]>([...TILE_IDS]);
   const [isExiting, setIsExiting] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(shouldShowOpening);
   const palette = useMemo(() => buildPalette(accentColor, theme), [accentColor, theme]);
 
   const finish = useCallback(() => setIsExiting(true), []);
+
+  useEffect(() => {
+    preloadCriticalResources();
+    try {
+      sessionStorage.setItem(OPENING_SHOWN_KEY, 'true');
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     if (shouldReduceMotion) {
@@ -108,8 +131,8 @@ export default function OpeningAnimation() {
         initial={{ opacity: 0, scale: 0.94 }}
         animate={
           isExiting
-            ? { opacity: 0, scale: 1.04, filter: 'blur(6px)' }
-            : { opacity: 1, scale: 1, filter: 'blur(0px)' }
+            ? { opacity: 0, scale: 1.04 }
+            : { opacity: 1, scale: 1 }
         }
         transition={{ duration: isExiting ? 0.34 : 0.32, ease: [0.4, 0, 0.2, 1] }}
       >
@@ -123,6 +146,7 @@ export default function OpeningAnimation() {
               style={{
                 backgroundColor: palette[tile],
                 boxShadow: '0 4px 14px -2px rgba(0, 0, 0, 0.08)',
+                transform: 'translateZ(0)',
               }}
             />
           ))}

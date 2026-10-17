@@ -5,6 +5,7 @@ import { useTranslation } from '@/i18n/useTranslation';
 import { track } from '@/services/analytics';
 import { AutoResizer, AutoTransition } from '@/components/ui';
 import { LinearDialogTransition } from '@/components/composed';
+import { requestNotificationPermission, isTauriEnvironment } from '@/services/notifications';
 
 type NotificationPermissionModalProps = {
   isOpen: boolean;
@@ -24,14 +25,14 @@ export default function NotificationPermissionModal({ isOpen, onClose, onAllow, 
     setIsRequesting(true);
     
     try {
-      const permission = await Notification.requestPermission();
-      track('notification_permission_result', { result: permission });
+      const granted = await requestNotificationPermission();
+      track('notification_permission_result', { result: granted ? 'granted' : 'denied' });
 
-      if (permission === 'granted') {
+      if (granted) {
         setStepDirection(1);
         setStep('success');
         setTimeout(() => {
-          onAllow();
+          void onAllow();
           handleClose();
         }, 2000);
       } else {
@@ -129,11 +130,13 @@ export default function NotificationPermissionModal({ isOpen, onClose, onAllow, 
               <p className="text-gray-600 dark:text-gray-300">
                 {t('notification.description')}
               </p>
-              <div className="p-4 rounded-lg bg-yellow-50/80 dark:bg-yellow-900/20 border-l-4 border-yellow-500/60 backdrop-blur-sm">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {t('notification.iosHint')}
-                </p>
-              </div>
+              {!isTauriEnvironment() && (
+                <div className="p-4 rounded-lg bg-yellow-50/80 dark:bg-yellow-900/20 border-l-4 border-yellow-500/60 backdrop-blur-sm">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {t('notification.iosHint')}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex space-x-3">

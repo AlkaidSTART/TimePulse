@@ -66,15 +66,15 @@ const CustomSelect = forwardRef<HTMLDivElement, CustomSelectProps>(function Cust
 
   // 处理点击外部关闭下拉菜单
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
+    const handleClickOutside = (event: MouseEvent | PointerEvent | TouchEvent): void => {
       if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('pointerdown', handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('pointerdown', handleClickOutside);
     };
   }, []);
 

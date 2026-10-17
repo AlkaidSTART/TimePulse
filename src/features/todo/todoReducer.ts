@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import type { TodoAction, TodoItem, TodoState, TodoType } from './types';
+import { getPriorityWeight } from './constants/priorityColors';
 export type { TodoState };
 
 export const INITIAL_TODO_STATE: TodoState = {
@@ -43,6 +44,8 @@ export function todoReducer(state: TodoState, action: TodoAction): TodoState {
         completed: false,
         type: action.itemType ?? state.activeTab,
         createdAt: Date.now(),
+        color: action.color,
+        priority: action.priority,
       };
 
       return {
@@ -96,6 +99,41 @@ export function todoReducer(state: TodoState, action: TodoAction): TodoState {
       };
     }
 
+    case 'set_priority': {
+      return {
+        ...state,
+        items: state.items.map((item) =>
+          item.id === action.id
+            ? { ...item, color: action.color, priority: action.priority }
+            : item,
+        ),
+      };
+    }
+
+    case 'sort_by_priority': {
+      const currentTab = state.activeTab;
+      const currentTabItems = state.items.filter((item) => item.type === currentTab);
+      const otherItems = state.items.filter((item) => item.type !== currentTab);
+
+      const sorted = [...currentTabItems].sort((a, b) => {
+        // 未完成项排在已完成项前面
+        if (a.completed !== b.completed) {
+          return a.completed ? 1 : -1;
+        }
+        const weightA = getPriorityWeight(a.color, a.priority);
+        const weightB = getPriorityWeight(b.color, b.priority);
+        if (weightA !== weightB) {
+          return weightA - weightB;
+        }
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      });
+
+      return {
+        ...state,
+        items: [...sorted, ...otherItems],
+      };
+    }
+
     case 'clear_completed': {
       const targetType = action.itemType ?? state.activeTab;
       return {
@@ -127,6 +165,8 @@ export function todoReducer(state: TodoState, action: TodoAction): TodoState {
         completed: false,
         type: item.type,
         createdAt: now + index,
+        color: item.color,
+        priority: item.priority,
       }));
       return {
         ...state,

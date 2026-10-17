@@ -1,34 +1,25 @@
 import { useState, useRef, useEffect } from 'react';
-import type { ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
-import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
+import type { ChangeEvent } from 'react';
+import { AnimatePresence, Reorder, motion, useDragControls, useReducedMotion } from 'framer-motion';
 import {
   FiClock,
-  FiList,
   FiPlus,
-  FiImage,
-  FiSettings,
+  FiUser,
   FiX,
   FiEdit,
   FiSave,
-  FiSun,
-  FiCoffee,
-  FiMaximize,
-  FiMinimize,
-  FiGlobe,
-  FiShare2,
   FiCheck,
   FiCheckSquare,
-  FiInfo,
 } from 'react-icons/fi';
+import { LuSparkles } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
-import type { Timer, TimerType } from '@/domain/timer';
+import type { CountdownTimer, Timer, TimerType } from '@/domain/timer';
 import { useTranslation } from '@/i18n/useTranslation';
-import type { Language } from '@/i18n/types';
 import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
-import { useTodoStore, useVersionStore } from '@/stores';
+import DatePicker from '@/components/composed/DatePicker';
 
-export type MobileTab = 'timer' | 'todo' | 'list' | 'background' | 'settings';
+export type MobileTab = 'cheer' | 'timer' | 'todo' | 'list' | 'background' | 'settings';
 
 interface MobileTabBarProps {
   activeTab: MobileTab;
@@ -56,6 +47,11 @@ type TimerEditState = {
   name: string;
   color?: string;
   type?: TimerType;
+  countdownType?: 'long' | 'short';
+  durationSeconds?: number;
+  shortHours?: number;
+  shortMinutes?: number;
+  shortSeconds?: number;
   targetDate?: string;
   targetTime?: string;
   isLimitedEdit?: boolean;
@@ -88,21 +84,26 @@ function MobileTimerRow({
       dragListener={false}
       dragControls={dragControls}
       onDragEnd={onDragEnd}
-      className={`group relative flex items-center justify-between gap-3 rounded-2xl border p-3.5 transition-all duration-200 ${
+      className={`group relative flex items-center justify-between gap-3 rounded-2xl border p-3 transition-all duration-200 ${
         isActive
-          ? 'border-primary-500/50 bg-primary-500/10 dark:bg-primary-500/15 shadow-sm'
-          : 'border-white/20 bg-white/40 hover:bg-white/60 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
-      } backdrop-blur-md`}
-      style={{ borderLeftWidth: '4px', borderLeftColor: timer.color || '#0ea5e9' }}
+          ? 'border-black/15 bg-white/95 cream:bg-white/90 cream:border-stone-400/50 dark:border-white/20 dark:bg-white/[0.12] shadow-xs'
+          : 'border-black/[0.06] bg-white/60 hover:bg-white/80 cream:bg-white/70 cream:border-stone-300/40 dark:border-white/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.08]'
+      } backdrop-blur-xl`}
     >
+      {/* Visual Accent Pill on Left */}
+      <span
+        className="shrink-0 w-1.5 h-9 rounded-full shadow-xs"
+        style={{ backgroundColor: timer.color || '#0ea5e9' }}
+      />
+
       {/* Drag handle */}
       <button
         type="button"
-        className="inline-flex size-7 shrink-0 touch-none cursor-grab items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 active:cursor-grabbing dark:text-gray-500 dark:hover:text-gray-300"
+        className="inline-flex size-7 shrink-0 touch-none cursor-grab items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 active:cursor-grabbing dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
         onPointerDown={(e) => dragControls.start(e)}
         aria-label="拖动排序"
       >
-        <RxDragHandleDots2 className="size-5 text-current" />
+        <RxDragHandleDots2 className="size-4.5 text-current" />
       </button>
 
       {/* Timer Info - Tap to select */}
@@ -112,12 +113,15 @@ function MobileTimerRow({
         className="flex-1 min-w-0 text-left cursor-pointer focus:outline-none"
       >
         <div className="flex items-center gap-2">
-          <h4 className="truncate font-medium text-sm text-gray-900 dark:text-gray-100">
+          <h4 className="truncate font-semibold text-sm text-gray-900 dark:text-gray-100 tracking-tight">
             {timer.name}
           </h4>
           {isActive && (
-            <span className="flex items-center gap-1 text-[11px] font-semibold text-primary-600 dark:text-primary-400 bg-primary-500/15 px-2 py-0.5 rounded-full">
-              <FiCheck className="size-3" />
+            <span
+              className="flex items-center gap-1 text-[10px] font-semibold text-white px-2 py-0.5 rounded-full shadow-xs"
+              style={{ backgroundColor: timer.color || '#0ea5e9' }}
+            >
+              <FiCheck className="size-2.5 stroke-[2.8]" />
               当前
             </span>
           )}
@@ -127,12 +131,12 @@ function MobileTimerRow({
         </p>
       </button>
 
-      {/* Actions */}
+      {/* Actions: Subtle frosted icon buttons */}
       <div className="flex shrink-0 items-center gap-1.5">
         <button
           type="button"
           onClick={onEdit}
-          className="inline-flex size-8 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 dark:bg-blue-500/15 dark:text-blue-400 cursor-pointer transition-colors"
+          className="inline-flex size-7.5 items-center justify-center rounded-full bg-black/[0.04] text-gray-600 hover:bg-black/[0.08] dark:bg-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.14] cursor-pointer transition-colors"
           title="编辑"
         >
           <FiEdit className="size-3.5" />
@@ -140,7 +144,7 @@ function MobileTimerRow({
         <button
           type="button"
           onClick={onDelete}
-          className="inline-flex size-8 items-center justify-center rounded-full bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:bg-red-500/15 dark:text-red-400 cursor-pointer transition-colors"
+          className="inline-flex size-7.5 items-center justify-center rounded-full bg-black/[0.04] text-gray-600 hover:bg-red-500/10 hover:text-red-500 dark:bg-white/[0.08] dark:text-gray-300 dark:hover:bg-red-500/20 dark:hover:text-red-400 cursor-pointer transition-colors"
           title="删除"
         >
           <FiX className="size-3.5" />
@@ -170,18 +174,19 @@ export default function MobileTabBar({
   updateTimer,
   reorderTimers,
 }: MobileTabBarProps) {
-  const { t, changeLanguage, currentLang } = useTranslation();
+  const { t } = useTranslation();
   const [prevTab, setPrevTab] = useState<MobileTab>(activeTab);
   const [clickedTab, setClickedTab] = useState<string | null>(null);
   const [editingTimer, setEditingTimer] = useState<TimerEditState | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [timerOrder, setTimerOrder] = useState(() => timers.map((t) => t.id));
   const timerOrderRef = useRef(timerOrder);
-  const isWidgetEnabled = useTodoStore((s) => s.isWidgetEnabled);
-  const setWidgetEnabled = useTodoStore((s) => s.setWidgetEnabled);
-  const currentVersion = useVersionStore((s) => s.currentVersion);
-  const hasUpdate = useVersionStore((s) => s.hasUpdate);
-  const openAboutModal = useVersionStore((s) => s.openAboutModal);
+
+  useEffect(() => {
+    if (activeTab === 'timer' || activeTab === 'todo' || activeTab === 'cheer' || activeTab === 'settings') {
+      setPrevTab(activeTab);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const availableIds = new Set(timers.map((timer) => timer.id));
@@ -225,12 +230,42 @@ export default function MobileTabBar({
     onOpenAdd();
   };
 
+  const handleCloseSheet = () => {
+    onTabChange(prevTab);
+  };
+
+  useEffect(() => {
+    if (activeTab !== 'list') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCloseSheet();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, prevTab]);
+
   const startEditTimer = (timer: Timer) => {
     if (timer.type === 'countdown' || !timer.type) {
+      const cd = timer as CountdownTimer;
+      const duration = typeof cd.durationSeconds === 'number' ? cd.durationSeconds : 0;
+      const h = Math.floor(duration / 3600);
+      const m = Math.floor((duration % 3600) / 60);
+      const s = duration % 60;
+
       setEditingTimer({
         ...timer,
+        countdownType: cd.countdownType ?? 'long',
+        durationSeconds: duration,
+        shortHours: h,
+        shortMinutes: m,
+        shortSeconds: s,
         targetDate: new Date(timer.targetDate).toISOString().substring(0, 10),
         targetTime: new Date(timer.targetDate).toTimeString().substring(0, 5),
+        isLimitedEdit: false,
       });
     } else {
       setEditingTimer({
@@ -250,6 +285,17 @@ export default function MobileTabBar({
         name: editingTimer.name,
         color: editingTimer.color,
       });
+    } else if (editingTimer.countdownType === 'short') {
+      const totalSecs = (Number(editingTimer.shortHours) || 0) * 3600 +
+                        (Number(editingTimer.shortMinutes) || 0) * 60 +
+                        (Number(editingTimer.shortSeconds) || 0);
+      const targetDateObj = new Date(Date.now() + totalSecs * 1000);
+      updateTimer(editingTimer.id, {
+        name: editingTimer.name,
+        durationSeconds: totalSecs,
+        targetDate: targetDateObj.toISOString(),
+        color: editingTimer.color,
+      });
     } else {
       const targetDateObj = new Date(`${editingTimer.targetDate}T${editingTimer.targetTime}`);
       updateTimer(editingTimer.id, {
@@ -262,27 +308,24 @@ export default function MobileTabBar({
     setShowColorPicker(false);
   };
 
-  // Liquid capsule animation physics
-  const liquidSpring = {
-    type: 'spring' as const,
-    stiffness: 420,
-    damping: 30,
-    mass: 0.8,
-  };
+  const shouldReduceMotion = useReducedMotion();
+
+  // Minimal smooth spring physics
+  const tabSpring = shouldReduceMotion
+    ? { duration: 0 }
+    : {
+        type: 'spring' as const,
+        stiffness: 450,
+        damping: 32,
+      };
 
   const tabsConfig = [
-    { id: 'timer' as MobileTab, label: t('header.timers', '计时'), icon: FiClock },
-    { id: 'todo' as MobileTab, label: t('header.todo', '待办'), icon: FiCheckSquare },
-    { id: 'add' as const, label: '新建', icon: FiPlus, isAction: true },
-    { id: 'list' as MobileTab, label: t('header.manage', '列表'), icon: FiList, badge: timers.length },
-    { id: 'settings' as MobileTab, label: t('header.settings', '设置'), icon: FiSettings },
+    { id: 'cheer' as MobileTab, label: t('header.cheerShort', '打气'), icon: LuSparkles },
+    { id: 'timer' as MobileTab, label: t('header.timersShort', '计时'), icon: FiClock },
+    { id: 'add' as const, label: t('header.newTimer', '新建'), icon: FiPlus, isAction: true },
+    { id: 'todo' as MobileTab, label: t('header.todoShort', '待办'), icon: FiCheckSquare },
+    { id: 'settings' as MobileTab, label: t('header.settingsTab', '个人设置'), icon: FiUser },
   ];
-
-  const getTabIndex = (tabId: string) => tabsConfig.findIndex((t) => t.id === tabId);
-  const currentIndex = getTabIndex(activeTab);
-  const prevIndex = getTabIndex(prevTab);
-  const direction = currentIndex >= prevIndex ? 1 : -1;
-  const distance = Math.abs(currentIndex - prevIndex);
 
   const timersById = new Map(timers.map((t) => [t.id, t]));
   const orderedTimerIds = [
@@ -292,18 +335,7 @@ export default function MobileTabBar({
 
   return (
     <>
-      {/* SVG Liquid Filter for authentic droplet cohesion */}
-      <svg className="fixed pointer-events-none opacity-0 w-0 h-0" aria-hidden="true">
-        <defs>
-          <filter id="ios-liquid-droplet-filter">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
-            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-          </filter>
-        </defs>
-      </svg>
-
-      {/* Floating Bottom TabBar Container */}
+      {/* Floating Bottom TabBar Container - VisionOS / Dynamic Island Style Floating Dock */}
       <motion.nav
         data-page-transition-ignore="true"
         aria-label="移动端底部导航"
@@ -312,42 +344,52 @@ export default function MobileTabBar({
           y: isVisible ? 0 : 96,
           opacity: isVisible ? 1 : 0,
         }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed bottom-3 inset-x-3 z-40 md:hidden max-w-[420px] mx-auto pointer-events-auto"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed bottom-3 landscape:bottom-1.5 inset-x-3 z-40 lg:hidden max-w-[400px] sm:max-w-[440px] landscape:max-w-[360px] mx-auto pointer-events-auto"
+        style={{
+          paddingBottom: 'max(0px, var(--tp-safe-bottom, env(safe-area-inset-bottom, 0px)))',
+          paddingLeft: 'var(--tp-safe-left, env(safe-area-inset-left, 0px))',
+          paddingRight: 'var(--tp-safe-right, env(safe-area-inset-right, 0px))',
+        }}
       >
-        <div className="relative mx-auto flex h-[62px] w-full items-center justify-around rounded-full border border-white/30 bg-white/75 p-1.5 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.06)] backdrop-blur-2xl dark:border-white/12 dark:bg-black/65 dark:shadow-[0_16px_40px_-6px_rgba(0,0,0,0.7),0_2px_10px_rgba(0,0,0,0.5)]">
+        <div className="relative mx-auto flex h-[64px] landscape:h-[46px] w-full items-center justify-around rounded-full border border-black/[0.06] bg-white/80 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.08),0_4px_12px_-2px_rgba(0,0,0,0.04)] backdrop-blur-2xl cream:bg-[#faf7ee]/90 cream:border-stone-300/50 cream:shadow-[0_12px_36px_-6px_rgba(120,95,65,0.12),0_4px_12px_-2px_rgba(120,95,65,0.05)] dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)] overflow-hidden">
+          {/* Top 1px Specular Light Shelf */}
+          <div
+            className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 cream:via-white/95 dark:via-white/20 to-transparent"
+            aria-hidden="true"
+          />
+
           {tabsConfig.map((item) => {
             if (item.isAction) {
-              // Center Action: "+" Button with vibrant liquid bubble styling
-              const isAddClicked = clickedTab === 'add';
+              // Center Action: "+" Button - Apple Liquid Glass Transparent Water Droplet (Strictly Zero Blue)
               return (
-                <div key={item.id} className="relative flex flex-1 items-center justify-center px-1">
+                <div key={item.id} className="relative flex flex-1 h-full items-center justify-center px-0.5">
                   <motion.button
                     type="button"
                     onClick={handleAddClick}
-                    whileTap={{ scale: 0.88 }}
-                    className="relative flex size-11 items-center justify-center rounded-full text-white shadow-md shadow-primary-500/25 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-                    style={{
-                      backgroundColor: accentColor || '#0ea5e9',
-                      background: `linear-gradient(135deg, ${accentColor || '#0ea5e9'}, color-mix(in srgb, ${accentColor || '#0ea5e9'} 80%, #000))`,
-                    }}
+                    whileTap={{ scale: 0.92 }}
+                    className="liquid-droplet-button relative flex size-11 landscape:size-9 items-center justify-center rounded-full text-gray-900 dark:text-white cursor-pointer transition-all focus:outline-none overflow-hidden select-none"
                     aria-label="新建计时器"
                   >
-                    {/* Inner highlight */}
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent via-white/10 to-white/35 pointer-events-none" />
-
-                    {/* Droplet burst on click */}
-                    {isAddClicked && (
-                      <motion.span
-                        className="absolute inset-0 rounded-full border border-white/60 pointer-events-none"
-                        initial={{ scale: 0.8, opacity: 0.9 }}
-                        animate={{ scale: 1.6, opacity: 0 }}
-                        transition={{ duration: 0.45, ease: 'easeOut' }}
+                    {/* Top Specular Lens Dome Highlight */}
+                    <div
+                      className="pointer-events-none absolute inset-x-0 top-0 h-[50%] overflow-hidden rounded-t-full"
+                      aria-hidden="true"
+                    >
+                      <div
+                        className="w-full h-full"
+                        style={{
+                          background:
+                            'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.1) 60%, transparent 100%)',
+                        }}
                       />
-                    )}
-
-                    <FiPlus className="size-5 stroke-[2.5]" />
+                    </div>
+                    {/* Bottom Meniscus Surface Tension Line */}
+                    <div
+                      className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/50 dark:via-white/20 to-transparent"
+                      aria-hidden="true"
+                    />
+                    <FiPlus className="size-5 landscape:size-4 stroke-[2.6] text-gray-900 dark:text-white relative z-10 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]" />
                   </motion.button>
                 </div>
               );
@@ -355,100 +397,73 @@ export default function MobileTabBar({
 
             const tab = item.id as MobileTab;
             const isActive = activeTab === tab;
-            const isTabClicked = clickedTab === tab;
             const Icon = item.icon;
 
             return (
               <div key={tab} className="relative flex flex-1 h-full items-center justify-center px-0.5">
-                <button
+                <motion.button
                   type="button"
                   onClick={() => handleTabClick(tab)}
-                  while-tap={{ scale: 0.92 }}
-                  className="relative flex flex-col items-center justify-center w-full h-full rounded-full cursor-pointer focus:outline-none transition-colors duration-200 select-none"
+                  whileTap={{ scale: 0.94 }}
+                  className="relative flex flex-col items-center justify-center w-full h-full rounded-full cursor-pointer focus:outline-none select-none transition-colors duration-200"
                   aria-selected={isActive}
                   role="tab"
                 >
-                  {/* Liquid Water Droplet Capsule Indicator */}
+                  {/* Apple Liquid Glass Transparent Water Droplet Active Indicator (Strictly Zero Blue) */}
                   {isActive && (
-                    <>
-                      {/* Ambient Liquid Glow */}
-                      <motion.div
-                        layoutId="mobile-liquid-glow"
-                        className="absolute inset-1 rounded-full opacity-40 blur-md pointer-events-none"
-                        style={{ backgroundColor: accentColor || '#0ea5e9' }}
-                        transition={liquidSpring}
-                      />
-
-                      {/* Liquid Droplet Capsule Body with Stretch */}
-                      <motion.div
-                        layoutId="mobile-liquid-capsule"
-                        className="absolute inset-1 rounded-full pointer-events-none overflow-hidden"
-                        style={{
-                          backgroundColor: `color-mix(in srgb, ${accentColor || '#0ea5e9'} 22%, ${
-                            theme === 'cream' ? 'rgba(180,120,60,0.12)' : 'rgba(0,0,0,0.06)'
-                          })`,
-                          boxShadow: `0 2px 10px color-mix(in srgb, ${accentColor || '#0ea5e9'} 35%, transparent), inset 0 1px 1px rgba(255,255,255,0.45)`,
-                        }}
-                        initial={false}
-                        animate={{
-                          scaleX: [1, 1 + Math.min(distance * 0.16, 0.35), 0.96, 1],
-                        }}
-                        style-origin={{
-                          transformOrigin: direction === 1 ? '0% 50%' : '100% 50%',
-                        }}
-                        transition={liquidSpring}
+                    <motion.div
+                      layoutId="mobile-active-tab-indicator"
+                      className="liquid-droplet-pill absolute inset-y-0.5 inset-x-0.5 rounded-full pointer-events-none overflow-hidden"
+                      transition={tabSpring}
+                    >
+                      {/* Top Specular Lens Dome Highlight */}
+                      <div
+                        className="pointer-events-none absolute inset-x-0 top-0 h-[48%] overflow-hidden rounded-t-full"
+                        aria-hidden="true"
                       >
-                        {/* Specular Liquid Droplet Highlight */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-white/10 to-transparent rounded-full" />
-                      </motion.div>
-                    </>
+                        <div
+                          className="w-full h-full"
+                          style={{
+                            background:
+                              'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.08) 60%, transparent 100%)',
+                          }}
+                        />
+                      </div>
+
+                      {/* Bottom Meniscus Surface Tension Line */}
+                      <div
+                        className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/45 dark:via-white/20 to-transparent"
+                        aria-hidden="true"
+                      />
+                    </motion.div>
                   )}
 
-                  {/* Water Droplet Burst Ripple on Click */}
-                  {isTabClicked && (
-                    <motion.span
-                      className="absolute inset-1 rounded-full pointer-events-none border"
-                      style={{ borderColor: accentColor || '#0ea5e9' }}
-                      initial={{ scale: 0.6, opacity: 0.8 }}
-                      animate={{ scale: 1.45, opacity: 0 }}
-                      transition={{ duration: 0.4, ease: 'easeOut' }}
-                    />
-                  )}
-
-                  {/* Content: Icon + Label with Spring Pop */}
+                  {/* Content: Icon + Label (Strictly Transparent Achromatic Liquid Glass Contrast, Zero Blue) */}
                   <motion.div
-                    className="relative z-10 flex flex-col items-center justify-center gap-0.5"
-                    animate={isActive ? { scale: [0.94, 1.14, 1], y: [0, -1.5, 0] } : { scale: 1, y: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    className="relative z-10 flex flex-col items-center justify-center gap-1 landscape:gap-0.5"
+                    animate={isActive ? { scale: [0.96, 1.04, 1] } : { scale: 1 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
                   >
                     <div className="relative">
                       <Icon
-                        className={`size-[19px] transition-colors duration-200 ${
+                        className={`size-[18px] landscape:size-[15px] transition-colors duration-200 ${
                           isActive
-                            ? 'text-gray-950 dark:text-white stroke-[2.3]'
-                            : 'text-gray-500 dark:text-gray-400 stroke-[1.8]'
+                            ? 'stroke-[2.4] text-gray-950 dark:text-white drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
+                            : 'stroke-[1.8] text-stone-500 hover:text-stone-700 dark:text-gray-400 dark:hover:text-gray-200'
                         }`}
-                        style={isActive ? { color: accentColor || undefined } : undefined}
                       />
-                      {/* Badge if present */}
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <span className="absolute -top-1.5 -right-2 flex size-3.5 items-center justify-center rounded-full bg-primary-500 text-[9px] font-bold text-white shadow-xs">
-                          {item.badge}
-                        </span>
-                      )}
                     </div>
                     <span
-                      className={`text-[10px] font-medium tracking-tight transition-colors duration-200 ${
+                      className={`text-[10px] landscape:text-[9px] tracking-tight transition-colors duration-200 whitespace-nowrap ${
                         isActive
-                          ? 'font-semibold text-gray-900 dark:text-white'
-                          : 'text-gray-500 dark:text-gray-400'
+                          ? 'font-bold text-gray-950 dark:text-white drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
+                          : 'font-medium text-stone-500 dark:text-gray-400'
                       }`}
-                      style={isActive ? { color: accentColor || undefined } : undefined}
                     >
                       {item.label}
                     </span>
                   </motion.div>
-                </button>
+                </motion.button>
               </div>
             );
           })}
@@ -458,14 +473,14 @@ export default function MobileTabBar({
       {/* iOS-Style Bottom Sheet: 列表 (Timers List & Management) */}
       <AnimatePresence>
         {activeTab === 'list' && (
-          <div data-page-transition-ignore="true" className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
+          <div data-page-transition-ignore="true" className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              onClick={() => onTabChange('timer')}
+              onClick={handleCloseSheet}
               className="absolute inset-0 bg-black/45 backdrop-blur-sm"
             />
 
@@ -475,18 +490,24 @@ export default function MobileTabBar({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 360 }}
-              className="relative z-10 flex max-h-[82vh] flex-col rounded-t-[28px] border-t border-white/20 bg-white/80 p-5 pb-24 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-neutral-900/85"
+              className="relative z-10 flex max-h-[90vh] flex-col rounded-t-[32px] md:rounded-[32px] md:max-w-xl md:w-full md:mx-auto md:mb-6 border-t md:border border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,var(--tp-safe-bottom,env(safe-area-inset-bottom,0px)))] shadow-2xl backdrop-blur-3xl cream:bg-[#faf7ee]/95 cream:border-stone-300/50 dark:border-white/[0.08] dark:bg-[#141416]/95"
             >
               {/* Grab Bar */}
-              <div className="mx-auto h-1.5 w-12 rounded-full bg-gray-400/40 dark:bg-gray-600/60 mb-3" />
+              <div className="mx-auto h-1 w-9 rounded-full bg-black/15 cream:bg-stone-400/30 dark:bg-white/20 mb-2.5" />
 
               {/* Sheet Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-gray-200/50 dark:border-white/10">
+              <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.06] cream:border-stone-200/60 dark:border-white/[0.06]">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-white font-display">
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white font-display tracking-tight">
                     全部计时器
                   </h3>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary-500/15 text-primary-600 dark:text-primary-400 font-semibold">
+                  <span
+                    className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                    style={{
+                      backgroundColor: `color-mix(in srgb, ${accentColor || '#0ea5e9'} 14%, transparent)`,
+                      color: accentColor || '#0ea5e9',
+                    }}
+                  >
                     {timers.length} 个
                   </span>
                 </div>
@@ -496,15 +517,17 @@ export default function MobileTabBar({
                     onClick={() => {
                       onOpenAdd();
                     }}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary-500 text-white text-xs font-semibold shadow-xs hover:bg-primary-600 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-white text-xs font-semibold shadow-xs cursor-pointer active:scale-95 transition-all"
+                    style={{ backgroundColor: accentColor || '#0ea5e9' }}
                   >
-                    <FiPlus className="size-3.5" />
+                    <FiPlus className="size-3.5 stroke-[2.4]" />
                     新建
                   </button>
                   <button
                     type="button"
-                    onClick={() => onTabChange('timer')}
-                    className="size-8 inline-flex items-center justify-center rounded-full bg-gray-200/60 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-300/60 cursor-pointer transition-colors"
+                    onClick={handleCloseSheet}
+                    className="size-7.5 inline-flex items-center justify-center rounded-full bg-black/[0.04] dark:bg-white/[0.08] text-gray-500 dark:text-gray-300 hover:bg-black/[0.08] dark:hover:bg-white/[0.14] cursor-pointer transition-colors"
+                    aria-label="关闭"
                   >
                     <FiX className="size-4" />
                   </button>
@@ -517,7 +540,11 @@ export default function MobileTabBar({
                   <div className="flex flex-col gap-4 p-1">
                     <div className="flex items-center justify-between pb-1">
                       <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
-                        {editingTimer.isLimitedEdit ? '编辑计时器' : '编辑倒计时'}
+                        {editingTimer.isLimitedEdit
+                          ? '编辑计时器'
+                          : editingTimer.countdownType === 'short'
+                          ? '编辑短期倒计时'
+                          : '编辑长期倒计时'}
                       </h4>
                       <button
                         type="button"
@@ -543,34 +570,91 @@ export default function MobileTabBar({
                     </div>
 
                     {!editingTimer.isLimitedEdit && (
-                      <div className="grid grid-cols-2 gap-3">
+                      editingTimer.countdownType === 'short' ? (
                         <div>
                           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            目标日期
+                            倒计时时长
                           </label>
-                          <input
-                            type="date"
-                            value={editingTimer.targetDate}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              setEditingTimer({ ...editingTimer, targetDate: e.target.value })
-                            }
-                            className="w-full px-3 py-2 rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
-                          />
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">小时</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={99}
+                                value={editingTimer.shortHours ?? 0}
+                                onChange={(e) =>
+                                  setEditingTimer({
+                                    ...editingTimer,
+                                    shortHours: Math.max(0, parseInt(e.target.value) || 0),
+                                  })
+                                }
+                                className="w-full px-2 py-1.5 rounded-lg bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-center font-mono text-xs focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">分钟</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={59}
+                                value={editingTimer.shortMinutes ?? 0}
+                                onChange={(e) =>
+                                  setEditingTimer({
+                                    ...editingTimer,
+                                    shortMinutes: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)),
+                                  })
+                                }
+                                className="w-full px-2 py-1.5 rounded-lg bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-center font-mono text-xs focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">秒</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={59}
+                                value={editingTimer.shortSeconds ?? 0}
+                                onChange={(e) =>
+                                  setEditingTimer({
+                                    ...editingTimer,
+                                    shortSeconds: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)),
+                                  })
+                                }
+                                className="w-full px-2 py-1.5 rounded-lg bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-center font-mono text-xs focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            目标时间
-                          </label>
-                          <input
-                            type="time"
-                            value={editingTimer.targetTime}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              setEditingTimer({ ...editingTimer, targetTime: e.target.value })
-                            }
-                            className="w-full px-3 py-2 rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
-                          />
+                      ) : (
+                        <div className="flex flex-col gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              目标日期
+                            </label>
+                            <DatePicker
+                              value={editingTimer.targetDate}
+                              onChange={(e) =>
+                                setEditingTimer({ ...editingTimer, targetDate: e.target.value })
+                              }
+                              triggerClassName="rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm h-auto py-2 px-3"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              目标时间
+                            </label>
+                            <input
+                              type="time"
+                              value={editingTimer.targetTime}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                setEditingTimer({ ...editingTimer, targetTime: e.target.value })
+                              }
+                              className="w-full px-3 py-2 rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                            />
+                          </div>
                         </div>
-                      </div>
+                      )
                     )}
 
                     <div>
@@ -662,318 +746,7 @@ export default function MobileTabBar({
         )}
       </AnimatePresence>
 
-      {/* iOS-Style Bottom Sheet: 设置 (Settings & Functions) */}
-      <AnimatePresence>
-        {activeTab === 'settings' && (
-          <div data-page-transition-ignore="true" className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={() => onTabChange('timer')}
-              className="absolute inset-0 bg-black/45 backdrop-blur-sm"
-            />
-
-            {/* Bottom Sheet */}
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 360 }}
-              className="relative z-10 flex max-h-[82vh] flex-col rounded-t-[28px] border-t border-white/20 bg-white/80 p-5 pb-24 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-neutral-900/85"
-            >
-              {/* Grab Bar */}
-              <div className="mx-auto h-1.5 w-12 rounded-full bg-gray-400/40 dark:bg-gray-600/60 mb-3" />
-
-              {/* Sheet Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-gray-200/50 dark:border-white/10">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white font-display">
-                  设置与功能
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => onTabChange('timer')}
-                  className="size-8 inline-flex items-center justify-center rounded-full bg-gray-200/60 dark:bg-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-300/60 cursor-pointer transition-colors"
-                >
-                  <FiX className="size-4" />
-                </button>
-              </div>
-
-              {/* Grouped Controls */}
-              <div className="mt-4 flex flex-col gap-4 overflow-y-auto">
-                {/* Section: 外观与显示 */}
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-1">
-                    {t('mobile.appearance', '外观与显示')}
-                  </h4>
-                  <div className="rounded-2xl border border-white/20 bg-white/40 dark:border-white/10 dark:bg-white/5 divide-y divide-gray-200/40 dark:divide-white/5 backdrop-blur-md overflow-hidden">
-                    {/* Theme Toggle */}
-                    <div className="flex items-center justify-between p-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
-                          {theme === 'cream' ? <FiCoffee className="size-5" /> : <FiSun className="size-5" />}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {t('mobile.creamMode', '米白色模式')}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {theme === 'cream' ? t('mobile.creamActive', '已开启温润米白模式') : t('mobile.lightActive', '当前为浅白模式')}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={toggleTheme}
-                        aria-label={t('header.themeToggle', '切换主题')}
-                        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer ${
-                          theme === 'cream' ? 'bg-amber-600/80' : 'bg-gray-300 dark:bg-white/20'
-                        }`}
-                      >
-                        <motion.span
-                          layout
-                          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                          className={`inline-block size-5.5 rounded-full bg-white shadow-md ${
-                            theme === 'cream' ? 'translate-x-6' : 'translate-x-1'
-                          }`}
-                        />
-                      </button>
-                    </div>
-
-                    {/* Fullscreen Toggle */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        toggleFullscreen();
-                        onTabChange('timer');
-                      }}
-                      className="w-full flex items-center justify-between p-3.5 text-left hover:bg-white/30 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl bg-indigo-500/10 text-indigo-500 dark:bg-indigo-400/15 dark:text-indigo-400 flex items-center justify-center">
-                          {isFullscreen ? <FiMinimize className="size-5" /> : <FiMaximize className="size-5" />}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {isFullscreen ? t('header.exitFullscreen', '退出全屏') : t('header.fullscreen', '进入全屏')}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('mobile.immersiveDesc', '纯净沉浸式体验')}</p>
-                        </div>
-                      </div>
-                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">
-                        {isFullscreen ? t('mobile.fullscreenActive', '已全屏') : t('mobile.fullscreenInactive', '切换')}
-                      </span>
-                    </button>
-
-                    {/* Background Settings trigger */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onOpenBackground();
-                        onTabChange('timer');
-                      }}
-                      className="w-full flex items-center justify-between p-3.5 text-left hover:bg-white/30 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl bg-purple-500/10 text-purple-500 dark:bg-purple-400/15 dark:text-purple-400 flex items-center justify-center">
-                          <FiImage className="size-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('mobile.wallpaper', '背景壁纸')}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('mobile.wallpaperDesc', '渐变、壁纸与毛玻璃模糊度')}</p>
-                        </div>
-                      </div>
-                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">{t('mobile.customize', '定制')}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Section: 偏好与分享 */}
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-1">
-                    {t('mobile.preferences', '偏好与分享')}
-                  </h4>
-                  <div className="rounded-2xl border border-white/20 bg-white/40 dark:border-white/10 dark:bg-white/5 divide-y divide-gray-200/40 dark:divide-white/5 backdrop-blur-md overflow-hidden">
-                    {/* International Segmented Language Switch */}
-                    <div className="flex items-center justify-between p-3.5">
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl bg-teal-500/10 text-teal-500 dark:bg-teal-400/15 dark:text-teal-400 flex items-center justify-center">
-                          <FiGlobe className="size-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {t('mobile.language', '语言 / Language')}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {currentLang === 'zh-CN' ? '简体中文 · zh-CN' : 'English · en-US'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center p-1 rounded-xl bg-black/5 dark:bg-white/10 border border-black/5 dark:border-white/10 text-xs font-semibold">
-                        <button
-                          type="button"
-                          onClick={() => currentLang !== 'zh-CN' && changeLanguage('zh-CN')}
-                          className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                            currentLang === 'zh-CN'
-                              ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-300 shadow-xs'
-                              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                          }`}
-                        >
-                          中文
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => currentLang !== 'en-US' && changeLanguage('en-US')}
-                          className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-sans ${
-                            currentLang === 'en-US'
-                              ? 'bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-300 shadow-xs'
-                              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                          }`}
-                        >
-                          EN
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Todo & Checklist Page Trigger */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.location.hash = 'todo';
-                        onTabChange('timer');
-                      }}
-                      className="w-full flex items-center justify-between p-3.5 text-left hover:bg-white/30 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl bg-emerald-500/10 text-emerald-500 dark:bg-emerald-400/15 dark:text-emerald-400 flex items-center justify-center">
-                          <FiCheckSquare className="size-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {t('mobile.todoPageTitle', '待办清单 (独立新页面)')}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {t('mobile.todoPageDesc', '大屏全景待办、支持拖拽与振动反馈')}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">
-                        {t('mobile.enterPage', '进入新页面')}
-                      </span>
-                    </button>
-
-                    {/* Todo & Checklist Floating Widget Trigger */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = !isWidgetEnabled;
-                        setWidgetEnabled(next);
-                        if (next) {
-                          window.location.hash = 'todo-widget';
-                          onTabChange('timer');
-                        }
-                      }}
-                      className="w-full flex items-center justify-between p-3.5 text-left hover:bg-white/30 dark:hover:bg-white/5 transition-colors cursor-pointer border-t border-gray-100/50 dark:border-white/5"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl bg-blue-500/10 text-blue-500 dark:bg-blue-400/15 dark:text-blue-400 flex items-center justify-center">
-                          <FiList className="size-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {t('mobile.todoWidgetTitle', '桌面待办悬浮挂件')}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {t('mobile.todoWidgetDesc', '右下角悬浮胶囊与轻量弹窗')}
-                          </p>
-                        </div>
-                      </div>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                        isWidgetEnabled
-                          ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400'
-                          : 'bg-black/5 text-gray-400 dark:bg-white/10 dark:text-gray-500'
-                      }`}>
-                        {isWidgetEnabled ? t('header.active', '显示中') : t('header.inactive', '已隐藏')}
-                      </span>
-                    </button>
-
-                    {/* Share Modal Trigger */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onOpenShare();
-                        onTabChange('timer');
-                      }}
-                      className="w-full flex items-center justify-between p-3.5 text-left hover:bg-white/30 dark:hover:bg-white/5 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl bg-blue-500/10 text-blue-500 dark:bg-blue-400/15 dark:text-blue-400 flex items-center justify-center">
-                          <FiShare2 className="size-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{t('share.title', '分享与二维码')}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{t('share.subtitle', '网站访问二维码与计时器分享')}</p>
-                        </div>
-                      </div>
-                      <span className="text-xs text-primary-600 dark:text-primary-400 font-medium">查看</span>
-                    </button>
-
-                    {/* Version & About Modal Trigger */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onTabChange('timer');
-                        openAboutModal();
-                      }}
-                      className="w-full flex items-center justify-between p-3.5 text-left hover:bg-white/30 dark:hover:bg-white/5 transition-colors cursor-pointer border-t border-gray-100/50 dark:border-white/5"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl bg-orange-500/10 text-orange-500 dark:bg-orange-400/15 dark:text-orange-400 flex items-center justify-center">
-                          <FiInfo className="size-5" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {t('version.title', '版本与更新')}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {hasUpdate
-                              ? t('version.hasNewVersion', '发现新版本可供升级')
-                              : t('version.upToDate', '当前已是最新版本')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        {hasUpdate && (
-                          <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
-                        )}
-                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300">
-                          v{currentVersion}
-                        </span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
-                {/* About TimePulse Note */}
-                <div className="text-center py-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onTabChange('timer');
-                      openAboutModal();
-                    }}
-                    className="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 font-display hover:text-primary-500 dark:hover:text-primary-400 transition-colors cursor-pointer"
-                  >
-                    <span>TimePulse v{currentVersion} · Designed for Focus & Flow</span>
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </>
   );
 }
+

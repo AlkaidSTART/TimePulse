@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import type { MouseEvent, ReactNode } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { useEffect, type MouseEvent, type ReactNode } from 'react';
 import { AutoResizer } from '@/components/ui';
 
 type LinearDialogShellProps = {
@@ -12,22 +12,36 @@ type LinearDialogShellProps = {
  * should transition only the content inside it.
  */
 export function LinearDialogShell({ onClose, children }: LinearDialogShellProps) {
+  const shouldReduceMotion = useReducedMotion();
   const stopPropagation = (event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
       className="fixed inset-0 bg-black/50 p-4 flex items-center justify-center z-50 backdrop-blur-sm overflow-x-hidden overflow-y-auto"
       onClick={onClose}
     >
       <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
+        initial={shouldReduceMotion ? { opacity: 0 } : { scale: 0.94, opacity: 0 }}
+        animate={shouldReduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 }}
+        exit={shouldReduceMotion ? { opacity: 0 } : { scale: 0.94, opacity: 0 }}
+        transition={{ duration: shouldReduceMotion ? 0 : 0.24, ease: 'easeOut' }}
         className="glass-card scrollbar-hide w-full max-w-md p-6 rounded-2xl max-h-[calc(90vh+0.5rem)] overflow-x-hidden overflow-y-auto"
         onClick={stopPropagation}
       >

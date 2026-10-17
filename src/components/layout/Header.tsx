@@ -1,27 +1,34 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
-import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
-import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo } from 'react-icons/fi';
+import { AnimatePresence, Reorder, motion, useDragControls, useReducedMotion } from 'framer-motion';
+import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo, FiUser, FiRotateCw } from 'react-icons/fi';
+import { SiWechat } from 'react-icons/si';
+import { LuPalette } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
-import type { Timer, TimerType } from '@/domain/timer';
+import type { CountdownTimer, Timer, TimerType } from '@/domain/timer';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Language } from '@/i18n/types';
-import { ShareModal } from '@/features/sharing';
-import TimerCreationFlow from '@/features/timer-management/components/TimerCreationFlow';
 import TimerTabs from '@/features/timer-management/components/TimerTabs';
-import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
 import { AutoResizer, AutoTransition } from '@/components/ui';
-import { LinearDialogTransition } from '@/components/composed';
+import { LinearDialogTransition, DatePicker } from '@/components/composed';
 import MobileTabBar, { type MobileTab } from './MobileTabBar';
+import WebDock from './WebDock';
 import AnimatedLogo from './AnimatedLogo';
 import RouteNavigation from './RouteNavigation';
 import { usePageTransition } from '@/hooks/usePageTransition';
+import { useOrientation } from '@/hooks/useOrientation';
 import { useTodoStore, useVersionStore } from '@/stores';
 import { FiList } from 'react-icons/fi';
+import { throttle, debounce } from '@/utils/performance';
+
+const ThemeLibraryModal = lazy(() => import('@/components/composed/ThemeLibraryModal'));
+const ShareModal = lazy(() => import('@/features/sharing/components/ShareModal'));
+const TimerCreationFlow = lazy(() => import('@/features/timer-management/components/TimerCreationFlow'));
+const HexColorPicker = lazy(() => import('react-colorful').then((m) => ({ default: m.HexColorPicker })));
 
 type TimerUpdate = {
   name: string;
@@ -34,6 +41,11 @@ type TimerEditState = {
   name: string;
   color?: string;
   type?: TimerType;
+  countdownType?: 'long' | 'short';
+  durationSeconds?: number;
+  shortHours?: number;
+  shortMinutes?: number;
+  shortSeconds?: number;
   targetDate?: string;
   targetTime?: string;
   isLimitedEdit?: boolean;
@@ -146,14 +158,16 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const { theme, toggleTheme, accentColor } = useTheme();
   const { isFullscreen, isHeaderVisible, headerHideDelay, showHeader, hideHeader, toggleFullscreen } = useFullscreen();
   const { view, transitionTo } = usePageTransition();
+  const { isLandscape, toggleOrientation } = useOrientation();
   const { t, currentLang, changeLanguage } = useTranslation();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
-  const [mobileTab, setMobileTab] = useState<MobileTab>('timer');
+  const [mobileTab, setMobileTab] = useState<MobileTab>(() => (view === 'main' ? 'timer' : (view as MobileTab)));
   const [isManageOpen, setIsManageOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [editingTimer, setEditingTimer] = useState<TimerEditState | null>(null);
   const [manageDirection, setManageDirection] = useState<1 | -1>(1);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [isThemeLibraryOpen, setIsThemeLibraryOpen] = useState(false);
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [isTimerCreationOpen, setIsTimerCreationOpen] = useState(false);
   const [timerOrder, setTimerOrder] = useState(() => timers.map((timer) => timer.id));
@@ -178,13 +192,44 @@ export default function Header({ onHeightChange }: HeaderProps) {
     return () => document.removeEventListener('pointerdown', handleClickOutside);
   }, [isToolsOpen]);
 
+  // Dock visibility state on web desktop
+  const [isDockVisible, setIsDockVisible] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('timepulse_dock_visible') !== 'false';
+  });
+
+  const toggleDock = () => {
+    setIsDockVisible((prev) => {
+      const next = !prev;
+      localStorage.setItem('timepulse_dock_visible', String(next));
+      return next;
+    });
+  };
+
+  // Sync hash with modal states
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'add') {
+        setIsTimerCreationOpen(true);
+      } else if (hash === 'share') {
+        setIsShareOpen(true);
+      } else if (hash === 'manage') {
+        setIsManageOpen(true);
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    handleHash();
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
   useLayoutEffect(() => {
     const nav = navRef.current;
     if (!nav || !onHeightChange) return;
 
     const updateHeight = () => {
-      // On mobile screens, do not push the main timer clock down
-      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      // On mobile and Pad screens, do not push the main timer clock down
+      if (typeof window !== 'undefined' && window.innerWidth < 1024) {
         onHeightChange(0);
         return;
       }
@@ -195,14 +240,22 @@ export default function Header({ onHeightChange }: HeaderProps) {
     };
     updateHeight();
 
+    const debouncedUpdateHeight = debounce(updateHeight, 100);
+
     if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', updateHeight);
-      return () => window.removeEventListener('resize', updateHeight);
+      window.addEventListener('resize', debouncedUpdateHeight);
+      return () => {
+        debouncedUpdateHeight.cancel();
+        window.removeEventListener('resize', debouncedUpdateHeight);
+      };
     }
 
-    const resizeObserver = new ResizeObserver(updateHeight);
+    const resizeObserver = new ResizeObserver(() => debouncedUpdateHeight());
     resizeObserver.observe(nav);
-    return () => resizeObserver.disconnect();
+    return () => {
+      debouncedUpdateHeight.cancel();
+      resizeObserver.disconnect();
+    };
   }, [onHeightChange]);
 
   useEffect(() => {
@@ -250,9 +303,20 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const startEditTimer = (timer: Timer) => {
     setManageDirection(1);
     if (timer.type === 'countdown' || !timer.type) {
+      const cd = timer as CountdownTimer;
+      const duration = typeof cd.durationSeconds === 'number' ? cd.durationSeconds : 0;
+      const h = Math.floor(duration / 3600);
+      const m = Math.floor((duration % 3600) / 60);
+      const s = duration % 60;
+
       // 倒计时可以编辑所有属性
       setEditingTimer({
         ...timer,
+        countdownType: cd.countdownType ?? 'long',
+        durationSeconds: duration,
+        shortHours: h,
+        shortMinutes: m,
+        shortSeconds: s,
         targetDate: new Date(timer.targetDate).toISOString().substring(0, 10),
         targetTime: new Date(timer.targetDate).toTimeString().substring(0, 5)
       });
@@ -278,8 +342,19 @@ export default function Header({ onHeightChange }: HeaderProps) {
         name: editingTimer.name,
         color: editingTimer.color
       });
+    } else if (editingTimer.countdownType === 'short') {
+      const totalSecs = (Number(editingTimer.shortHours) || 0) * 3600 +
+                        (Number(editingTimer.shortMinutes) || 0) * 60 +
+                        (Number(editingTimer.shortSeconds) || 0);
+      const targetDateObj = new Date(Date.now() + totalSecs * 1000);
+      updateTimer(editingTimer.id, {
+        name: editingTimer.name,
+        durationSeconds: totalSecs,
+        targetDate: targetDateObj.toISOString(),
+        color: editingTimer.color
+      });
     } else {
-      // 完整编辑模式：更新所有属性（倒计时）
+      // 完整编辑模式：更新所有属性（长期倒计时）
       const targetDateObj = new Date(`${editingTimer.targetDate}T${editingTimer.targetTime}`);
       
       updateTimer(editingTimer.id, {
@@ -318,16 +393,19 @@ export default function Header({ onHeightChange }: HeaderProps) {
       }, headerHideDelay);
     };
 
-    document.addEventListener('mousemove', handleActivity);
+    const throttledActivity = throttle(handleActivity, 150);
+
+    document.addEventListener('mousemove', throttledActivity, { passive: true });
     // 触屏设备没有 mousemove，用 pointerdown 作为“唤出顶栏”的手势
-    document.addEventListener('pointerdown', handleActivity);
+    document.addEventListener('pointerdown', throttledActivity, { passive: true });
 
     // 进入全屏后先显示顶栏，再按同样的延时自动隐藏
     handleActivity();
 
     return () => {
-      document.removeEventListener('mousemove', handleActivity);
-      document.removeEventListener('pointerdown', handleActivity);
+      document.removeEventListener('mousemove', throttledActivity);
+      document.removeEventListener('pointerdown', throttledActivity);
+      throttledActivity.cancel();
       if (hideTimer) {
         clearTimeout(hideTimer);
       }
@@ -335,8 +413,9 @@ export default function Header({ onHeightChange }: HeaderProps) {
   }, [isFullscreen, headerHideDelay, showHeader, hideHeader]);
 
   // 获取当前活动计时器
+  const shouldReduceMotion = useReducedMotion();
   const activeTimer = timers.find(timer => timer.id === activeTimerId) || null;
-  const isTimerView = view === 'main' || isFullscreen;
+  const isTimerView = view === 'main';
   const timezoneInfo = isTimerView ? getActiveTimezoneInfo(activeTimer) : null;
 
   return (
@@ -348,72 +427,76 @@ export default function Header({ onHeightChange }: HeaderProps) {
         y: isFullscreen && !isHeaderVisible ? '-100%' : 0,
         opacity: isFullscreen && !isHeaderVisible ? 0 : 1
       }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.3 }}
     >
       {/* Desktop Header: Completely transparent */}
       <nav
         ref={navRef}
-        className="hidden md:flex w-full items-center justify-between relative px-6 md:px-10 py-3.5 bg-transparent"
+        className="hidden lg:grid grid-cols-[1fr_auto_1fr] items-center w-full relative px-6 md:px-8 xl:px-10 py-3.5 bg-transparent"
       >
         {/* Left: Logo & Route Navigation */}
-        <div className="flex items-center gap-3.5 z-10 shrink-0">
+        <div className="flex items-center gap-3.5 z-10 justify-self-start min-w-0">
           <motion.div 
             className="flex items-center justify-start shrink-0"
             initial={{ opacity: 0, x: -15 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.4 }}
           >
             <AnimatedLogo
               color="#f97316"
               size="lg"
               onClick={() => {
-                if (view === 'todo') transitionTo('main');
+                transitionTo('cheer');
               }}
               onLinkClick={(e) => {
-                if (view === 'todo') {
-                  e.preventDefault();
-                  transitionTo('main');
-                }
+                e.preventDefault();
+                transitionTo('cheer');
               }}
             />
           </motion.div>
 
           {/* Subtle separator */}
-          <div className="h-4 w-px bg-gray-300/60 dark:bg-white/15 hidden sm:block" />
+          <div className="h-4 w-px bg-gray-300/60 dark:bg-white/15 hidden sm:block shrink-0" />
 
           {/* Route Navigation with Hover Effects and Active Route Display */}
           <RouteNavigation />
         </div>
 
-        {/* Center: Dynamic Island Capsule Switcher (always visible) */}
-        <TimerTabs
-          timers={timers}
-          activeTimerId={activeTimerId}
-          setActiveTimerId={(id) => {
-            setActiveTimerId(id);
-            if (view === 'todo') {
-              transitionTo('main');
-            }
-          }}
-        />
+        {/* Center: Dynamic Island Capsule Switcher (Only on main timer view) */}
+        {view === 'main' ? (
+          <div className="flex items-center justify-center justify-self-center z-20 px-2 min-w-0">
+            <TimerTabs
+              timers={timers}
+              activeTimerId={activeTimerId}
+              setActiveTimerId={(id) => {
+                setActiveTimerId(id);
+                if (view !== 'main') {
+                  transitionTo('main');
+                }
+              }}
+            />
+          </div>
+        ) : (
+          <div className="justify-self-center" />
+        )}
 
         {/* Right Controls: Streamlined, clean, cohesive */}
-        <div className="flex items-center justify-end z-10 gap-1.5 shrink-0">
+        <div className="flex items-center justify-end justify-self-end z-10 gap-1.5 min-w-0">
           {/* Current Timezone Display */}
           {timezoneInfo && (
             <div
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/40 dark:bg-white/10 border border-white/20 dark:border-white/10 text-xs font-medium text-gray-700 dark:text-gray-200 backdrop-blur-md select-none transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-full bg-white/40 dark:bg-white/10 border border-white/20 dark:border-white/10 text-xs font-medium text-gray-700 dark:text-gray-200 backdrop-blur-md select-none transition-colors shadow-xs"
               title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
             >
               <FiGlobe className="size-3.5 shrink-0 text-primary-500 dark:text-primary-400" />
-              <span className="truncate max-w-[120px] xl:max-w-[180px]">{timezoneInfo.text}</span>
+              <span className="hidden xl:inline truncate max-w-[100px] 2xl:max-w-[160px]">{timezoneInfo.text}</span>
             </div>
           )}
 
           {/* Quick Add Timer */}
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-500/10 text-primary-600 hover:bg-primary-500/20 dark:bg-primary-500/15 dark:text-primary-300 font-medium text-xs cursor-pointer transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-500/10 text-primary-600 hover:bg-primary-500/20 dark:bg-primary-500/15 dark:text-primary-300 font-medium text-xs cursor-pointer transition-colors shrink-0"
             onClick={() => {
               setIsTimerCreationOpen(true);
               if (window.location.hash !== '#add') window.location.hash = 'add';
@@ -426,12 +509,12 @@ export default function Header({ onHeightChange }: HeaderProps) {
             <span>新建</span>
           </button>
 
-          <div className="h-4 w-px bg-gray-300/50 dark:bg-white/10 mx-0.5" />
+          <div className="h-4 w-px bg-gray-300/50 dark:bg-white/10 mx-0.5 shrink-0" />
 
           {/* Background Settings */}
           <button
             type="button"
-            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            className="hidden xl:inline-flex size-8.5 rounded-full items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors shrink-0"
             onClick={() => {
               if (window.location.hash !== '#background') window.location.hash = 'background';
             }}
@@ -444,7 +527,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
           {/* Share */}
           <button
             type="button"
-            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            className="hidden xl:inline-flex size-8.5 rounded-full items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors shrink-0"
             onClick={() => {
               setIsShareOpen(true);
               if (window.location.hash !== '#share') window.location.hash = 'share';
@@ -468,6 +551,20 @@ export default function Header({ onHeightChange }: HeaderProps) {
             {theme === 'cream' ? <FiSun className="size-4.5" /> : <FiCoffee className="size-4.5" />}
           </button>
 
+          {/* Theme Palette Library Button */}
+          <button
+            type="button"
+            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            onClick={() => setIsThemeLibraryOpen(true)}
+            title={t('theme.title', '字体配色')}
+            data-insightflare-event="theme_palette_open"
+          >
+            <span
+              className="size-4 rounded-full border border-black/15 dark:border-white/20 shadow-xs transition-transform hover:scale-110"
+              style={{ backgroundColor: accentColor || '#10A37F' }}
+            />
+          </button>
+
           {/* Fullscreen Toggle */}
           <button
             type="button"
@@ -478,6 +575,19 @@ export default function Header({ onHeightChange }: HeaderProps) {
             data-insightflare-event-to={isFullscreen ? 'off' : 'on'}
           >
             {isFullscreen ? <FiMinimize className="size-4.5" /> : <FiMaximize className="size-4.5" />}
+          </button>
+
+          {/* Orientation Toggle (横竖屏切换) */}
+          <button
+            type="button"
+            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            onClick={() => void toggleOrientation()}
+            title={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
+            aria-label={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
+            data-insightflare-event="orientation_toggle"
+            data-insightflare-event-to={isLandscape ? 'portrait' : 'landscape'}
+          >
+            <FiRotateCw className={`size-4.5 transition-transform duration-300 ${isLandscape ? 'rotate-90 text-primary-500' : ''}`} />
           </button>
 
           {/* More Tools Popover Menu */}
@@ -499,12 +609,30 @@ export default function Header({ onHeightChange }: HeaderProps) {
             <AnimatePresence>
               {isToolsOpen && (
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.92, y: -4 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.92, y: -4 }}
-                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                  initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: -4 }}
+                  animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+                  exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92, y: -4 }}
+                  transition={{ duration: shouldReduceMotion ? 0 : 0.18, ease: 'easeOut' }}
                   className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-white/20 bg-white/85 p-1.5 shadow-xl backdrop-blur-2xl dark:border-white/10 dark:bg-neutral-900/90 z-50 text-xs"
                 >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      setIsThemeLibraryOpen(true);
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <LuPalette className="size-4 text-primary-500" />
+                      <span>{t('theme.title', '字体配色')}</span>
+                    </div>
+                    <span
+                      className="size-3 rounded-full border border-black/15 dark:border-white/20 shadow-xs"
+                      style={{ backgroundColor: accentColor || '#10A37F' }}
+                    />
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => {
@@ -516,6 +644,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     <FiImage className="size-4 text-purple-500" />
                     <span>{t('header.background', '背景设置')}</span>
                   </button>
+
 
                   <button
                     type="button"
@@ -576,6 +705,29 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     type="button"
                     onClick={() => {
                       setIsToolsOpen(false);
+                      toggleDock();
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiMaximize className="size-4 text-sky-500" />
+                      <span>{t('header.dockBar', '底部 Dock 栏')}</span>
+                    </div>
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        isDockVisible
+                          ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400'
+                          : 'bg-black/5 text-gray-400 dark:bg-white/10 dark:text-gray-500'
+                      }`}
+                    >
+                      {isDockVisible ? t('header.active', '显示中') : t('header.inactive', '已隐藏')}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
                       setIsLanguageOpen(true);
                     }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
@@ -588,7 +740,24 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     type="button"
                     onClick={() => {
                       setIsToolsOpen(false);
-                      openAboutModal();
+                      void toggleOrientation();
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiRotateCw className={`size-4 text-emerald-500 transition-transform duration-300 ${isLandscape ? 'rotate-90' : ''}`} />
+                      <span>{t('header.toggleOrientation', '横竖屏切换')}</span>
+                    </div>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400">
+                      {isLandscape ? t('mobile.orientationLandscape', '横屏') : t('mobile.orientationPortrait', '竖屏')}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      openAboutModal('version');
                     }}
                     className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
                   >
@@ -606,7 +775,53 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     </div>
                   </button>
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      openAboutModal('coffee');
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiCoffee className="size-4 text-amber-500" />
+                      <span>{t('version.buyMeACoffee', '请作者喝咖啡')}</span>
+                    </div>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                      Coffee
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      openAboutModal('contact');
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <SiWechat className="size-4 text-emerald-500" />
+                      <span>{t('version.contactAuthor', '联系作者')}</span>
+                    </div>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      WeChat
+                    </span>
+                  </button>
+
                   <div className="h-px bg-gray-200/60 dark:bg-white/10 my-1" />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      transitionTo('settings');
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <FiUser className="size-4 text-primary-500" />
+                    <span>{t('header.settingsTab', '个人设置中心')}</span>
+                  </button>
 
                   <button
                     type="button"
@@ -627,24 +842,34 @@ export default function Header({ onHeightChange }: HeaderProps) {
         </div>
       </nav>
 
-      {/* Mobile Top Bar: Completely transparent */}
-      <div className="md:hidden flex items-center justify-between px-4 pt-3 pb-1 w-full pointer-events-auto bg-transparent">
-        {/* Minimal Brand Logo & Route Switcher */}
+      {/* Mobile & Pad Top Bar: Refined Minimal Header */}
+      <div
+        className="lg:hidden flex items-center justify-between px-4 md:px-8 pt-3.5 pb-1 landscape:pt-1.5 landscape:pb-0.5 w-full pointer-events-auto bg-transparent"
+        style={{
+          paddingTop: isLandscape ? 'max(0.375rem, var(--tp-safe-top, env(safe-area-inset-top, 0px)))' : 'max(0.875rem, var(--tp-safe-top, env(safe-area-inset-top, 0px)))',
+          paddingLeft: 'max(1rem, var(--tp-safe-left, env(safe-area-inset-left, 0px)))',
+          paddingRight: 'max(1rem, var(--tp-safe-right, env(safe-area-inset-right, 0px)))',
+        }}
+      >
+        {/* Brand Logo with subtle ambient highlight & Quick Timer List Entry */}
         <div className="flex items-center gap-2">
           <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex items-center shrink-0"
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.35, ease: 'easeOut' }}
+            className="flex items-center shrink-0 cursor-pointer"
+            onClick={() => {
+              if (view !== 'main') transitionTo('main');
+            }}
           >
             <AnimatedLogo
-              color="#f97316"
+              color={accentColor || '#f97316'}
               size="md"
               onClick={() => {
-                if (view === 'todo') transitionTo('main');
+                if (view !== 'main') transitionTo('main');
               }}
               onLinkClick={(e) => {
-                if (view === 'todo') {
+                if (view !== 'main') {
                   e.preventDefault();
                   transitionTo('main');
                 }
@@ -652,33 +877,82 @@ export default function Header({ onHeightChange }: HeaderProps) {
             />
           </motion.div>
 
-          <RouteNavigation compact />
+          {/* 列表 (List of Timers) - Left Side Header Entry */}
+          <button
+            type="button"
+            className="relative inline-flex size-8 items-center justify-center rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
+            onClick={() => setMobileTab('list')}
+            aria-label={t('header.manageShort', '列表')}
+            title={t('header.manageShort', '列表')}
+          >
+            <FiList className="size-3.5" />
+            {timers.length > 0 && (
+              <span className="pointer-events-none absolute -top-1.5 -right-1.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full text-[9px] font-bold leading-none text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 shadow-xs ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee]">
+                {timers.length}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Minimal Quick Action */}
+        {/* Right Side: Quick Action Group (Timezone, Share, Orientation, Settings) */}
         <div className="flex items-center gap-1.5">
           {timezoneInfo && (
             <div
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/40 dark:bg-white/10 border border-white/20 dark:border-white/10 text-[11px] font-medium text-gray-700 dark:text-gray-200 backdrop-blur-md select-none shrink-0"
+              className="inline-flex h-8 items-center gap-1 px-2.5 rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-[11px] font-medium text-gray-700 dark:text-gray-200 shadow-xs backdrop-blur-xl select-none shrink-0"
               title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
             >
-              <FiGlobe className="size-3 shrink-0 text-primary-500 dark:text-primary-400" />
-              <span className="truncate max-w-[90px] xs:max-w-[130px]">{timezoneInfo.text}</span>
+              <FiGlobe className="size-3 shrink-0" style={{ color: accentColor || '#0ea5e9' }} />
+              <span className="truncate max-w-[80px] xs:max-w-[120px]">{timezoneInfo.text}</span>
             </div>
           )}
 
+          {/* 分享 (Share & QR Code) */}
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-500/10 text-primary-600 hover:bg-primary-500/20 dark:bg-primary-500/15 dark:text-primary-300 font-medium text-xs cursor-pointer active:scale-95 transition-all"
-            onClick={() => {
-              setIsTimerCreationOpen(true);
-              if (window.location.hash !== '#add') window.location.hash = 'add';
-            }}
-            data-insightflare-event="timer_create_open"
-            data-insightflare-event-from="mobile"
+            className="inline-flex size-8 items-center justify-center rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
+            onClick={() => setIsShareOpen(true)}
+            aria-label="分享"
+            title={t('share.title', '分享与二维码')}
           >
-            <FiPlus className="size-3.5 stroke-[2.5]" />
-            <span>新建</span>
+            <FiShare2 className="size-3.5" />
+          </button>
+
+          {/* 横竖屏切换 (Toggle Screen Orientation) */}
+          <button
+            type="button"
+            className={`inline-flex size-8 items-center justify-center rounded-full border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all ${
+              isLandscape
+                ? 'bg-black/10 dark:bg-white/20 text-gray-900 dark:text-white'
+                : 'bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14]'
+            }`}
+            onClick={() => void toggleOrientation()}
+            aria-label={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
+            title={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
+            data-insightflare-event="orientation_toggle"
+            data-insightflare-event-to={isLandscape ? 'portrait' : 'landscape'}
+          >
+            <FiRotateCw className={`size-3.5 transition-transform duration-300 ${isLandscape ? 'rotate-90 text-primary-500' : ''}`} />
+          </button>
+
+          {/* 个人设置 (Personal Settings Route) */}
+          <button
+            type="button"
+            className={`relative inline-flex size-8 items-center justify-center rounded-full border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all ${
+              view === 'settings'
+                ? 'bg-black/10 dark:bg-white/20 text-gray-900 dark:text-white'
+                : 'bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14]'
+            }`}
+            onClick={() => {
+              transitionTo('settings');
+              setMobileTab('settings');
+            }}
+            aria-label={t('header.settingsTab', '个人设置')}
+            title={t('header.settingsTab', '个人设置')}
+          >
+            <FiUser className="size-3.5" />
+            {hasUpdate && (
+              <span className="pointer-events-none absolute -top-0.5 -right-0.5 size-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee] animate-pulse" />
+            )}
           </button>
         </div>
       </div>
@@ -727,7 +1001,11 @@ export default function Header({ onHeightChange }: HeaderProps) {
               {editingTimer ? (
                 <div className="flex flex-col gap-4">
                   <h3 className="font-medium pb-2">
-                    {editingTimer.isLimitedEdit ? t('modal.edit.editTimer') : t('modal.edit.editCountdown')}
+                    {editingTimer.isLimitedEdit
+                      ? t('modal.edit.editTimer')
+                      : editingTimer.countdownType === 'short'
+                      ? t('modal.countdown.shortTab', '短期倒计时')
+                      : t('modal.edit.editCountdown')}
                   </h3>
                   
                   <div>
@@ -740,29 +1018,85 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     />
                   </div>
 
-                  {/* 只有倒计时可以编辑日期和时间 */}
+                  {/* 倒计时属性编辑 */}
                   {!editingTimer.isLimitedEdit && (
-                    <>
+                    editingTimer.countdownType === 'short' ? (
                       <div>
-                        <label className="block text-sm font-medium mb-1">{t('modal.edit.date')}</label>
-                        <input
-                          type="date"
-                          value={editingTimer.targetDate}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => setEditingTimer({...editingTimer, targetDate: e.target.value})}
-                          className="w-full px-4 py-2 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-primary-500 focus:outline-none"
-                        />
+                        <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-200">
+                          {t('modal.countdown.duration', '倒计时时长')}
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <span className="text-xs text-gray-400 block mb-1">{t('time.hours', '小时')}</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={99}
+                              value={editingTimer.shortHours ?? 0}
+                              onChange={(e) =>
+                                setEditingTimer({
+                                  ...editingTimer,
+                                  shortHours: Math.max(0, parseInt(e.target.value) || 0),
+                                })
+                              }
+                              className="w-full px-3 py-2 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 text-center font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-400 block mb-1">{t('time.minutes', '分钟')}</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={59}
+                              value={editingTimer.shortMinutes ?? 0}
+                              onChange={(e) =>
+                                setEditingTimer({
+                                  ...editingTimer,
+                                  shortMinutes: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)),
+                                })
+                              }
+                              className="w-full px-3 py-2 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 text-center font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                          </div>
+                          <div>
+                            <span className="text-xs text-gray-400 block mb-1">{t('time.seconds', '秒')}</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={59}
+                              value={editingTimer.shortSeconds ?? 0}
+                              onChange={(e) =>
+                                setEditingTimer({
+                                  ...editingTimer,
+                                  shortSeconds: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)),
+                                })
+                              }
+                              className="w-full px-3 py-2 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 text-center font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                          </div>
+                        </div>
                       </div>
+                    ) : (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">{t('modal.edit.date')}</label>
+                          <DatePicker
+                            value={editingTimer.targetDate}
+                            onChange={(e) => setEditingTimer({ ...editingTimer, targetDate: e.target.value })}
+                          />
+                        </div>
 
-                      <div>
-                        <label className="block text-sm font-medium mb-1">{t('modal.edit.time')}</label>
-                        <input
-                          type="time"
-                          value={editingTimer.targetTime}
-                          onChange={(e: ChangeEvent<HTMLInputElement>) => setEditingTimer({...editingTimer, targetTime: e.target.value})}
-                          className="w-full px-4 py-2 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-primary-500 focus:outline-none"
-                        />
-                      </div>
-                    </>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">{t('modal.edit.time')}</label>
+                          <input
+                            type="time"
+                            value={editingTimer.targetTime}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setEditingTimer({...editingTimer, targetTime: e.target.value})}
+                            className="w-full px-4 py-2.5 rounded-xl bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-primary-500 focus:outline-none transition-colors"
+                          />
+                        </div>
+                      </>
+                    )
                   )}
 
                   <div>
@@ -774,11 +1108,13 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     ></div>
                     {showColorPicker && (
                       <div className="pt-2 space-y-3">
-                        <HexColorPicker 
-                          color={editingTimer.color} 
-                          onChange={(color) => setEditingTimer({...editingTimer, color})} 
-                          className="w-full"
-                        />
+                        <Suspense fallback={<div className="h-44 w-full animate-pulse rounded-lg bg-black/5 dark:bg-white/5" />}>
+                          <HexColorPicker 
+                            color={editingTimer.color} 
+                            onChange={(color) => setEditingTimer({...editingTimer, color})} 
+                            className="w-full"
+                          />
+                        </Suspense>
                         <div className="grid grid-cols-5 gap-2 pt-1">
                           {PRESET_COLORS.map(color => (
                             <button
@@ -878,10 +1214,10 @@ export default function Header({ onHeightChange }: HeaderProps) {
             onClick={() => setIsLanguageOpen(false)}
           >
             <motion.div
-              initial={{ scale: 0.94, opacity: 0, y: 12 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.94, opacity: 0, y: 12 }}
-              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              initial={shouldReduceMotion ? { opacity: 0 } : { scale: 0.94, opacity: 0, y: 12 }}
+              animate={shouldReduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { scale: 0.94, opacity: 0, y: 12 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.24, ease: [0.16, 1, 0.3, 1] }}
               className="glass-card w-full max-w-md m-4 p-6 sm:p-7 rounded-3xl shadow-2xl border border-white/30 dark:border-white/10 backdrop-blur-2xl"
               onClick={(e: ReactMouseEvent<HTMLDivElement>) => e.stopPropagation()}
             >
@@ -990,35 +1326,57 @@ export default function Header({ onHeightChange }: HeaderProps) {
         ) : null}
       </AutoTransition>
 
-      <TimerCreationFlow
-        open={isTimerCreationOpen}
-        onOpenChange={setIsTimerCreationOpen}
-      />
+      {isTimerCreationOpen && (
+        <Suspense fallback={null}>
+          <TimerCreationFlow
+            open={isTimerCreationOpen}
+            onOpenChange={setIsTimerCreationOpen}
+          />
+        </Suspense>
+      )}
 
       {/* 分享模态框 */}
       <AutoTransition portal transitionKey={isShareOpen ? 'share-open' : 'share-closed'} initial={false} type="fade">
         {isShareOpen ? (
-          <ShareModal onClose={() => {
-            setIsShareOpen(false);
-            if (window.location.hash === '#share') {
-              window.location.hash = '';
-            }
-          }} />
+          <Suspense fallback={null}>
+            <ShareModal onClose={() => {
+              setIsShareOpen(false);
+              if (window.location.hash === '#share') {
+                window.location.hash = '';
+              }
+            }} />
+          </Suspense>
         ) : null}
       </AutoTransition>
     </motion.header>
 
     {/* Mobile Bottom TabBar with iOS Liquid Droplet Capsule Animation */}
     <MobileTabBar
-      activeTab={view === 'todo' ? 'todo' : mobileTab}
+      activeTab={
+        mobileTab === 'list'
+          ? 'list'
+          : view === 'cheer'
+          ? 'cheer'
+          : view === 'todo'
+          ? 'todo'
+          : view === 'settings'
+          ? 'settings'
+          : 'timer'
+      }
       onTabChange={(tab) => {
-        if (tab === 'todo') {
+        if (tab === 'cheer') {
+          transitionTo('cheer');
+          setMobileTab('cheer');
+        } else if (tab === 'timer') {
+          transitionTo('main');
+          setMobileTab('timer');
+        } else if (tab === 'todo') {
           transitionTo('todo');
           setMobileTab('todo');
+        } else if (tab === 'settings') {
+          transitionTo('settings');
+          setMobileTab('settings');
         } else {
-          if (view === 'todo') {
-            transitionTo('main');
-          }
           setMobileTab(tab);
         }
       }}
@@ -1049,6 +1407,39 @@ export default function Header({ onHeightChange }: HeaderProps) {
       updateTimer={updateTimer}
       reorderTimers={reorderTimers}
     />
+
+    {/* Desktop Apple-Style Web Dock */}
+    {isDockVisible && (
+      <WebDock
+        onOpenAdd={() => {
+          setIsTimerCreationOpen(true);
+          if (window.location.hash !== '#add') window.location.hash = 'add';
+        }}
+        onOpenManage={() => {
+          setIsManageOpen(true);
+          if (window.location.hash !== '#manage') window.location.hash = 'manage';
+        }}
+        onOpenBackground={() => {
+          if (window.location.hash !== '#background') window.location.hash = 'background';
+        }}
+        onOpenShare={() => {
+          setIsShareOpen(true);
+          if (window.location.hash !== '#share') window.location.hash = 'share';
+        }}
+        onOpenThemeLibrary={() => setIsThemeLibraryOpen(true)}
+      />
+    )}
+
+    {/* Theme Color Palette Library Modal */}
+    {isThemeLibraryOpen && (
+      <Suspense fallback={null}>
+        <ThemeLibraryModal
+          isOpen={isThemeLibraryOpen}
+          onClose={() => setIsThemeLibraryOpen(false)}
+        />
+      </Suspense>
+    )}
   </>
   );
 }
+

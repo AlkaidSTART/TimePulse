@@ -1,20 +1,16 @@
 import { motion } from 'framer-motion';
-import { useTimers } from '@/app/providers/TimerProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useBackground } from '@/app/providers/BackgroundProvider';
 import { AutoTransition } from '@/components/ui';
 
 /**
  * 简洁清新的动态背景 (Clean Minimal Canvas)
- * 移除强烈的模糊光晕与光斑，采用极简天光微渐变
+ * 纯粹温润的背景基底，完全解耦字体颜色，杜绝光晕或色彩渗透干扰
  * 浅色模式通透澄澈，米白模式温润舒适，无光晕干扰
  */
 export default function GradientBackground() {
-  const { getActiveTimer, activeTimerId } = useTimers();
   const { theme } = useTheme();
   const { backgroundType } = useBackground();
-  const activeTimer = getActiveTimer();
-  const color = activeTimer?.color || '#0ea5e9';
 
   return (
     <AutoTransition
@@ -26,16 +22,16 @@ export default function GradientBackground() {
       {backgroundType !== 'custom' ? (
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <motion.div
-            key={`bg-clean-${activeTimerId || 'default'}-${theme}`}
+            key={`bg-clean-${theme}`}
             className="absolute inset-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.2, ease: 'easeOut' }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
             style={{
               background: theme === 'cream'
-                ? `linear-gradient(175deg, #FAF7F0 0%, color-mix(in srgb, ${color} 4%, #F4EFE6) 55%, #EDE7DC 100%)`
-                : `linear-gradient(180deg, #FFFFFF 0%, color-mix(in srgb, ${color} 0.8%, #FFFFFF) 50%, #FCFCFD 100%)`,
+                ? 'linear-gradient(175deg, #FAF7F0 0%, #F5F0E6 55%, #EDE7DC 100%)'
+                : 'linear-gradient(180deg, #FFFFFF 0%, #FAFAFA 50%, #F4F5F7 100%)',
             }}
           />
         </div>

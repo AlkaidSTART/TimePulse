@@ -5,7 +5,7 @@ import {
   selectionFeedback as tauriSelection,
 } from '@tauri-apps/plugin-haptics';
 
-export type HapticType = 'item_complete' | 'all_complete' | 'reorder' | 'test';
+export type HapticType = 'item_complete' | 'all_complete' | 'reorder' | 'test' | 'page_switch' | 'timer_switch' | 'selection';
 
 const HAPTIC_ENABLED_KEY = 'timepulse_haptic_feedback_enabled';
 
@@ -63,8 +63,12 @@ export async function triggerHaptic(type: HapticType = 'item_complete'): Promise
       await tauriNotification('success');
       return true;
     }
-    if (type === 'reorder') {
+    if (type === 'reorder' || type === 'timer_switch' || type === 'selection') {
       await tauriSelection();
+      return true;
+    }
+    if (type === 'page_switch') {
+      await tauriImpact('light');
       return true;
     }
     if (type === 'test') {
@@ -88,6 +92,12 @@ export async function triggerHaptic(type: HapticType = 'item_complete'): Promise
         case 'reorder':
           // 拖拽落位：极轻微震动
           return navigator.vibrate(18);
+        case 'timer_switch':
+          // 切换计时器：轻快微震
+          return navigator.vibrate(14);
+        case 'page_switch':
+          // 切换页面：轻量触感
+          return navigator.vibrate(22);
         case 'test':
           // 测试振动：明显双击
           return navigator.vibrate([60, 80, 80]);
@@ -100,4 +110,11 @@ export async function triggerHaptic(type: HapticType = 'item_complete'): Promise
   }
 
   return false;
+}
+
+/**
+ * 轻触轻微振动反馈快捷方法
+ */
+export function vibrateLight(): void {
+  void triggerHaptic('reorder');
 }

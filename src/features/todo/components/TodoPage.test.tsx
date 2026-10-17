@@ -51,11 +51,14 @@ describe('TodoPage component and Widget coexistence', () => {
 
     const input = screen.getByPlaceholderText(/添加新的待办事项/i);
     fireEvent.change(input, { target: { value: '全屏页面测试任务' } });
-
     const addBtn = screen.getByRole('button', { name: /添加/i });
     fireEvent.click(addBtn);
 
+    fireEvent.change(input, { target: { value: '第二项全屏任务' } });
+    fireEvent.click(addBtn);
+
     expect(screen.getByText('全屏页面测试任务')).toBeInTheDocument();
+    expect(screen.getByText('第二项全屏任务')).toBeInTheDocument();
 
     const toggleBtn = screen.getByRole('button', { name: '将全屏页面测试任务标记为已完成' });
     fireEvent.click(toggleBtn);
@@ -93,6 +96,41 @@ describe('TodoPage component and Widget coexistence', () => {
 
     fireEvent.click(hideBtn);
     expect(onHideWidget).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders drag handle and allows setting priority color on tasks', async () => {
+    renderPage();
+
+    const input = screen.getByPlaceholderText(/添加新的待办事项/i);
+    fireEvent.change(input, { target: { value: '带优先级的核心任务' } });
+    const addBtn = screen.getByRole('button', { name: /添加/i });
+    fireEvent.click(addBtn);
+
+    expect(screen.getByText('带优先级的核心任务')).toBeInTheDocument();
+
+    // 检查拖拽手柄是否存在
+    const dragHandle = screen.getByTitle('提示：按住左侧手柄可上下拖拽自由排序');
+    expect(dragHandle).toBeInTheDocument();
+
+    // 检查按优先级排序按钮
+    const sortBtn = screen.getByRole('button', { name: '按优先级排序' });
+    expect(sortBtn).toBeInTheDocument();
+    fireEvent.click(sortBtn);
+  });
+
+  it('renders both mobile-compact and desktop progress labels and supports tab switching', () => {
+    renderPage();
+
+    // 移动端精简进度标签与桌面完整进度标签
+    expect(screen.getByText('待办进度')).toBeInTheDocument();
+    expect(screen.getByText('待办事项完成度')).toBeInTheDocument();
+
+    // 切换到核对清单
+    const checklistBtn = screen.getByRole('button', { name: '切换到核对清单' });
+    fireEvent.click(checklistBtn);
+
+    expect(screen.getByText('核对进度')).toBeInTheDocument();
+    expect(screen.getByText('专注流程核对进度')).toBeInTheDocument();
   });
 });
 

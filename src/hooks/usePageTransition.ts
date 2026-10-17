@@ -10,7 +10,10 @@ export type { PageView };
 export type PageTransitionContextValue = {
   view: PageView;
   isAbout: boolean;
+  isCheer: boolean;
+  isMain: boolean;
   isTodo: boolean;
+  isSettings: boolean;
   direction: 1 | -1;
   transitionTo: (view: PageView) => void;
 };

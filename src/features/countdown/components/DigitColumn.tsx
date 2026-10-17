@@ -1,6 +1,6 @@
 import NumberFlow, { NumberFlowElement } from '@number-flow/react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { memo } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { memo, useMemo } from 'react';
 
 type FontSize = 'small' | 'medium' | 'large';
 
@@ -21,31 +21,21 @@ const sixtyBasedDigits = {
 };
 
 const fontSizeClasses: Record<FontSize, string> = {
-  small: 'text-4xl sm:text-5xl md:text-6xl',
-  medium: 'text-5xl sm:text-6xl md:text-7xl',
-  large: 'text-6xl sm:text-7xl md:text-8xl',
+  small: 'text-4xl sm:text-5xl md:text-6xl landscape:max-md:text-3xl landscape:max-md:sm:text-4xl',
+  medium: 'text-5xl sm:text-6xl md:text-7xl landscape:max-md:text-4xl landscape:max-md:sm:text-5xl',
+  large: 'text-6xl sm:text-7xl md:text-8xl landscape:max-md:text-5xl landscape:max-md:sm:text-6xl',
 };
 
 const labelFontSizeClasses: Record<FontSize, string> = {
-  small: 'text-sm',
-  medium: 'text-base',
-  large: 'text-lg',
+  small: 'text-sm landscape:max-md:text-xs',
+  medium: 'text-base landscape:max-md:text-xs',
+  large: 'text-lg landscape:max-md:text-sm',
 };
 
 const labelSlotHeightClasses: Record<FontSize, string> = {
-  small: 'h-5',
-  medium: 'h-6',
-  large: 'h-7',
-};
-
-const numberFlowTiming = {
-  duration: 580,
-  easing: NumberFlowElement.defaultProps.transformTiming.easing,
-};
-
-const numberFlowOpacityTiming = {
-  duration: 580,
-  easing: NumberFlowElement.defaultProps.opacityTiming.easing,
+  small: 'h-5 landscape:max-md:h-4',
+  medium: 'h-6 landscape:max-md:h-4',
+  large: 'h-7 landscape:max-md:h-5',
 };
 
 function DigitColumn({
@@ -58,70 +48,39 @@ function DigitColumn({
   trend,
   isValueVisible,
 }: DigitColumnProps) {
+  const shouldReduceMotion = useReducedMotion();
   const digitCount = Math.max(2, Math.abs(value).toString().length);
   const widthClass = digitCount >= 3
-    ? 'w-24 sm:w-32 md:w-40'
-    : 'w-20 sm:w-24 md:w-32';
+    ? 'w-24 sm:w-32 md:w-40 landscape:max-md:w-20 landscape:max-md:sm:w-28'
+    : 'w-20 sm:w-24 md:w-32 landscape:max-md:w-16 landscape:max-md:sm:w-20';
+
+  const numberFlowTiming = useMemo(() => ({
+    duration: shouldReduceMotion ? 0 : 420,
+    easing: NumberFlowElement.defaultProps.transformTiming.easing,
+  }), [shouldReduceMotion]);
+
+  const numberFlowOpacityTiming = useMemo(() => ({
+    duration: shouldReduceMotion ? 0 : 420,
+    easing: NumberFlowElement.defaultProps.opacityTiming.easing,
+  }), [shouldReduceMotion]);
 
   return (
     <motion.div
-      layout="position"
-      transition={{ layout: { type: 'tween', duration: 0.24, ease: 'easeOut' } }}
+      layout={shouldReduceMotion ? false : 'position'}
+      transition={{ layout: { type: 'tween', duration: 0.22, ease: 'easeOut' } }}
       className="flex flex-col items-center"
     >
       <motion.div
-        className={`${widthClass} h-24 sm:h-32 md:h-36 rounded-2xl liquid-glass-digit flex items-center justify-center relative overflow-hidden`}
-        style={{
-          transform: 'translateZ(0)',
-          WebkitTransform: 'translateZ(0)',
-          willChange: 'transform',
-        }}
-        whileHover={{
+        className={`${widthClass} h-24 sm:h-32 md:h-36 landscape:max-md:h-20 landscape:max-md:sm:h-24 rounded-2xl liquid-glass-digit flex items-center justify-center relative overflow-hidden`}
+        whileHover={shouldReduceMotion ? undefined : {
           scale: 1.025,
           y: -2,
         }}
         transition={{ type: 'spring', stiffness: 380, damping: 25 }}
       >
-        {/* 顶部弧形液体高光 (Convex Specular Highlight Arc) */}
+        {/* Top hairline specular highlight */}
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-[50%] overflow-hidden rounded-t-[inherit]"
-          aria-hidden="true"
-        >
-          <div
-            className="w-full h-full"
-            style={{
-              background:
-                'radial-gradient(ellipse 95% 100% at 50% 0%, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.16) 55%, transparent 100%)',
-            }}
-          />
-        </div>
-
-        {/* 对角流体光泽 (Diagonal Fluid Sheen) */}
-        <div
-          className="pointer-events-none absolute inset-0 rounded-[inherit] opacity-35"
-          style={{
-            background:
-              'linear-gradient(120deg, rgba(255, 255, 255, 0.45) 0%, transparent 40%, rgba(255, 255, 255, 0.12) 80%, transparent 100%)',
-          }}
-          aria-hidden="true"
-        />
-
-        {/* 底部表面张力折射弧线 (Bottom Meniscus Refraction Band) */}
-        <div
-          className="pointer-events-none absolute inset-x-3 bottom-0 h-[1.5px] rounded-full opacity-65"
-          style={{
-            background:
-              'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.85) 50%, transparent 100%)',
-          }}
-          aria-hidden="true"
-        />
-
-        {/* 伴随主题色的液体焦散微光 (Fluid Caustic Ambient Glow) */}
-        <div
-          className="pointer-events-none absolute -bottom-5 inset-x-2 h-12 rounded-full blur-xl opacity-25 group-hover:opacity-45 transition-opacity duration-300"
-          style={{
-            background: `radial-gradient(ellipse at center, ${color} 0%, transparent 75%)`,
-          }}
+          className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 dark:via-white/25 to-transparent"
           aria-hidden="true"
         />
 
@@ -143,20 +102,19 @@ function DigitColumn({
             transition: 'color 0.5s var(--transition-timing)',
             fontVariantNumeric: 'tabular-nums',
             lineHeight: 0.85,
-            filter: 'drop-shadow(0 1px 1px rgba(255, 255, 255, 0.4))',
           }}
         />
       </motion.div>
 
-      <div className={`relative mt-2 flex w-full items-center justify-center ${labelSlotHeightClasses[labelFontSize]}`}>
+      <div className={`relative mt-2.5 flex w-full items-center justify-center ${labelSlotHeightClasses[labelFontSize]}`}>
         <AnimatePresence initial={false} mode="wait">
           <motion.span
             key={label}
-            className={`absolute inset-x-0 whitespace-nowrap text-center ${labelFontSizeClasses[labelFontSize]} text-gray-500 dark:text-gray-400`}
-            initial={{ opacity: 0, y: 3 }}
+            className={`absolute inset-x-0 whitespace-nowrap text-center ${labelFontSizeClasses[labelFontSize]} font-medium tracking-wider text-gray-500/90 dark:text-gray-400/90`}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 3 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -3 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
+            exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -3 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.18, ease: 'easeOut' }}
             whileHover={{ color }}
           >
             {label}

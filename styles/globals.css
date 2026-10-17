@@ -1,10 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap");
-
 @import "tailwindcss";
 @import "overlayscrollbars/styles/overlayscrollbars.css";
 @source "../src";
 @custom-variant cream (&:where(.cream, .cream *));
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant mobile-landscape (@media (orientation: landscape) and (max-height: 550px));
 
 /* Keep every Tailwind ring inside its control so overflow/animation wrappers cannot clip it. */
 [class^="ring-"],
@@ -51,6 +50,7 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
   --color-foreground: 15, 23, 42;
   --color-primary: 14, 165, 233;
   --color-accent: 99, 102, 241;
+  --hue-1: rgb(var(--color-primary));
   --transition-duration: 250ms;
   --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
   --text-color-transition-duration: 350ms;
@@ -70,6 +70,15 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
 html[data-android-app='true'] {
   --tp-safe-top: max(env(safe-area-inset-top, 0px), 24px);
   --tp-safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px);
+}
+
+@media (orientation: landscape) {
+  html[data-android-app='true'] {
+    --tp-safe-top: env(safe-area-inset-top, 0px);
+    --tp-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --tp-safe-left: max(env(safe-area-inset-left, 0px), 16px);
+    --tp-safe-right: max(env(safe-area-inset-right, 0px), 16px);
+  }
 }
 
 /* 主内容让出系统栏。桌面浏览器 env() 恒为 0，这里等同于无变化。 */
@@ -103,6 +112,79 @@ html[data-android-app='true'] {
   padding-right: calc(1rem + var(--tp-safe-right));
   padding-bottom: calc(1rem + var(--tp-safe-bottom));
   padding-left: calc(1rem + var(--tp-safe-left));
+}
+
+/* 页面视图（个人设置中心、待办清单等）避让顶栏与系统安全区 */
+.personal-settings-page {
+  --settings-pt: max(4.5rem, calc(3.75rem + var(--tp-safe-top)));
+  --settings-pb: max(6.5rem, calc(5.5rem + var(--tp-safe-bottom)));
+  padding-top: var(--settings-pt);
+  padding-bottom: var(--settings-pb);
+  padding-left: max(1rem, var(--tp-safe-left));
+  padding-right: max(1rem, var(--tp-safe-right));
+}
+
+@media (min-width: 1024px) {
+  .personal-settings-page {
+    /* 桌面端顶栏高度约 72px，设置 6.5rem（104px）确保有约 32px 舒适留白，完全不被浮动顶栏遮挡 */
+    --settings-pt: max(6.5rem, calc(5.5rem + var(--tp-safe-top)));
+    --settings-pb: max(6rem, calc(4.5rem + var(--tp-safe-bottom)));
+  }
+}
+
+@media (orientation: landscape) and (max-height: 640px) and (max-width: 1023px) {
+  .personal-settings-page {
+    /* 移动端横屏紧凑布局 */
+    --settings-pt: max(2.5rem, calc(1.75rem + var(--tp-safe-top)));
+    --settings-pb: max(4.25rem, calc(3.25rem + var(--tp-safe-bottom)));
+  }
+}
+
+html[data-mobile-landscape="true"]:not([data-desktop="true"]) .personal-settings-page {
+  --settings-pt: max(2.5rem, calc(1.75rem + var(--tp-safe-top)));
+  --settings-pb: max(4.25rem, calc(3.25rem + var(--tp-safe-bottom)));
+}
+
+@media (min-width: 1024px) {
+  html[data-mobile-landscape="true"] .personal-settings-page {
+    --settings-pt: max(6.5rem, calc(5.5rem + var(--tp-safe-top)));
+    --settings-pb: max(6rem, calc(4.5rem + var(--tp-safe-bottom)));
+  }
+}
+
+.todo-page-container {
+  --todo-pt: max(4.5rem, calc(3.75rem + var(--tp-safe-top)));
+  --todo-pb: max(6.5rem, calc(5.5rem + var(--tp-safe-bottom)));
+  padding-top: var(--todo-pt);
+  padding-bottom: var(--todo-pb);
+  padding-left: max(1rem, var(--tp-safe-left));
+  padding-right: max(1rem, var(--tp-safe-right));
+}
+
+@media (min-width: 1024px) {
+  .todo-page-container {
+    --todo-pt: max(6.5rem, calc(5.5rem + var(--tp-safe-top)));
+    --todo-pb: max(5.5rem, calc(4rem + var(--tp-safe-bottom)));
+  }
+}
+
+@media (orientation: landscape) and (max-height: 640px) and (max-width: 1023px) {
+  .todo-page-container {
+    --todo-pt: max(2.75rem, calc(2rem + var(--tp-safe-top)));
+    --todo-pb: max(4.5rem, calc(3.5rem + var(--tp-safe-bottom)));
+  }
+}
+
+html[data-mobile-landscape="true"]:not([data-desktop="true"]) .todo-page-container {
+  --todo-pt: max(2.75rem, calc(2rem + var(--tp-safe-top)));
+  --todo-pb: max(4.5rem, calc(3.5rem + var(--tp-safe-bottom)));
+}
+
+@media (min-width: 1024px) {
+  html[data-mobile-landscape="true"] .todo-page-container {
+    --todo-pt: max(6.5rem, calc(5.5rem + var(--tp-safe-top)));
+    --todo-pb: max(5.5rem, calc(4rem + var(--tp-safe-bottom)));
+  }
 }
 
 /* 替换为所有元素的过渡效果，改为更具体的选择器，减少对性能的影响 */
@@ -149,6 +231,7 @@ select,
   .moving-circle,
   .digit-column,
   .liquid-glass-digit,
+  .liquid-droplet-pill,
   .modal-container,
   .modal-content {
     transform: translateZ(0);
@@ -346,7 +429,12 @@ select,
 
   body {
     @apply bg-background-light text-slate-800 transition-colors duration-300;
-    font-family: "Inter", sans-serif;
+    font-family: "Inter", "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei",
+      "Source Han Sans CN", "Noto Sans SC", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     overflow-x: hidden;
   }
 
@@ -361,31 +449,40 @@ select,
     text-size-adjust: 100%;
   }
 
-  /* 触屏基础优化：取消双击缩放的等待，去掉 WebView 的点击高亮与长按选中 */
+  /* 跨平台与触屏交互基础优化：全局移除灰色点击遮罩，按键操作更敏捷 */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   button,
   a,
   [role='button'] {
     touch-action: manipulation;
   }
 
-  html[data-android-app='true'] {
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  html[data-android-app='true'] :where(button, [role='button']) {
+  :where(button, [role='button']) {
     -webkit-user-select: none;
     user-select: none;
   }
 
-  :where(body *, body *::before, body *::after) {
+  /* 针对语义文本与交互控件定向优化过渡性能，避免全元素匹配导致样式计算损耗 */
+  :where(
+    p, span, h1, h2, h3, h4, h5, h6, a, button, input, textarea, select, label, [role='button'],
+    .text-transition, [data-slot]
+  ) {
     transition-property: color;
     transition-duration: var(--text-color-transition-duration);
     transition-timing-function: var(--transition-timing);
   }
 
   @media (prefers-reduced-motion: reduce) {
-    :where(body *, body *::before, body *::after) {
-      transition-duration: 0ms;
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
   }
 
@@ -410,7 +507,6 @@ select,
     /* 添加硬件加速，避免Safari中的抖动问题 */
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    will-change: transform;
     /* Firefox优化：避免透明度闪烁 */
     backface-visibility: hidden;
     perspective: 1000px;
@@ -422,24 +518,20 @@ select,
     isolation: isolate;
     background: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.86) 0%,
-      rgba(255, 255, 255, 0.58) 45%,
-      rgba(255, 255, 255, 0.74) 100%
+      rgba(255, 255, 255, 0.92) 0%,
+      rgba(255, 255, 255, 0.76) 45%,
+      rgba(255, 255, 255, 0.88) 100%
     );
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
-    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.95);
     box-shadow:
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
-      inset 1px 0 1.5px 0 rgba(255, 255, 255, 0.8),
-      inset -1px 0 1.5px 0 rgba(255, 255, 255, 0.45),
-      inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.6),
-      inset 0 0 28px 0 rgba(255, 255, 255, 0.5),
+      inset 0 1px 1px 0 rgba(255, 255, 255, 1),
+      inset 0 0 20px 0 rgba(255, 255, 255, 0.25),
       0 12px 32px -4px rgba(0, 0, 0, 0.04),
-      0 4px 10px -2px rgba(0, 0, 0, 0.02);
+      0 4px 12px -2px rgba(0, 0, 0, 0.02);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    will-change: transform;
     backface-visibility: hidden;
     perspective: 1000px;
     transition: width 0.24s ease-out, border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
@@ -448,29 +540,40 @@ select,
   .cream .liquid-glass-digit {
     background: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.58) 0%,
-      rgba(255, 252, 245, 0.26) 45%,
-      rgba(255, 250, 240, 0.4) 100%
+      rgba(255, 255, 255, 0.86) 0%,
+      rgba(255, 252, 245, 0.68) 45%,
+      rgba(255, 250, 240, 0.80) 100%
     );
-    border: 1px solid rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.95);
     box-shadow:
-      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.98),
-      inset 1px 0 1.5px 0 rgba(255, 255, 255, 0.65),
-      inset -1px 0 1.5px 0 rgba(255, 255, 255, 0.3),
-      inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.55),
-      inset 0 0 28px 0 rgba(255, 250, 240, 0.38),
-      inset 0 -8px 20px 0 rgba(140, 120, 95, 0.025),
-      0 14px 34px -4px rgba(140, 120, 95, 0.09),
-      0 4px 12px -2px rgba(140, 120, 95, 0.04);
+      inset 0 1px 1px 0 rgba(255, 255, 255, 1),
+      inset 0 0 20px 0 rgba(255, 250, 240, 0.25),
+      0 12px 30px -4px rgba(140, 120, 95, 0.08),
+      0 4px 10px -2px rgba(140, 120, 95, 0.03);
+  }
+
+  .dark .liquid-glass-digit {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.03) 45%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+      inset 0 0 24px 0 rgba(255, 255, 255, 0.02),
+      0 14px 36px -4px rgba(0, 0, 0, 0.5),
+      0 4px 12px -2px rgba(0, 0, 0, 0.3);
   }
 
   @media (hover: hover) {
     .liquid-glass-digit:hover {
       box-shadow:
         inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
-        inset 1px 0 2px 0 rgba(255, 255, 255, 0.85),
-        inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.75),
-        inset 0 0 32px 0 rgba(255, 255, 255, 0.55),
+        inset 0 0 24px 0 rgba(255, 255, 255, 0.35),
         0 16px 36px -4px rgba(0, 0, 0, 0.06),
         0 6px 14px -2px rgba(0, 0, 0, 0.03);
     }
@@ -478,11 +581,18 @@ select,
     .cream .liquid-glass-digit:hover {
       box-shadow:
         inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
-        inset 1px 0 2px 0 rgba(255, 255, 255, 0.75),
-        inset 0 -1.5px 2px 0 rgba(255, 255, 255, 0.65),
-        inset 0 0 32px 0 rgba(255, 250, 240, 0.45),
-        0 18px 40px -4px rgba(140, 120, 95, 0.12),
-        0 6px 16px -2px rgba(140, 120, 95, 0.06);
+        inset 0 0 24px 0 rgba(255, 250, 240, 0.35),
+        0 16px 36px -4px rgba(140, 120, 95, 0.10),
+        0 6px 14px -2px rgba(140, 120, 95, 0.04);
+    }
+
+    .dark .liquid-glass-digit:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+      box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+        inset 0 0 28px 0 rgba(255, 255, 255, 0.04),
+        0 18px 40px -4px rgba(0, 0, 0, 0.6),
+        0 6px 16px -2px rgba(0, 0, 0, 0.4);
     }
   }
 
@@ -491,69 +601,214 @@ select,
     position: relative;
     background: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.82) 0%,
-      rgba(255, 255, 255, 0.54) 50%,
-      rgba(255, 255, 255, 0.72) 100%
+      rgba(255, 255, 255, 0.85) 0%,
+      rgba(255, 255, 255, 0.58) 50%,
+      rgba(255, 255, 255, 0.75) 100%
     );
-    -webkit-backdrop-filter: blur(16px) saturate(160%);
-    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
     border: 1px solid rgba(255, 255, 255, 0.9);
     box-shadow:
       inset 0 1px 1px 0 rgba(255, 255, 255, 1),
-      inset 0 0 16px 0 rgba(255, 255, 255, 0.4),
-      0 8px 24px -4px rgba(0, 0, 0, 0.04),
+      0 6px 20px -4px rgba(0, 0, 0, 0.04),
       0 2px 6px -1px rgba(0, 0, 0, 0.02);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
-    will-change: transform;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .cream .liquid-glass-control {
     background: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.58) 0%,
-      rgba(255, 252, 245, 0.26) 50%,
-      rgba(255, 250, 240, 0.4) 100%
+      rgba(255, 255, 255, 0.7) 0%,
+      rgba(255, 252, 245, 0.4) 50%,
+      rgba(255, 250, 240, 0.55) 100%
     );
-    border: 1px solid rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.85);
     box-shadow:
       inset 0 1px 1px 0 rgba(255, 255, 255, 0.9),
-      inset 0 0 16px 0 rgba(255, 250, 240, 0.3),
-      0 8px 24px -4px rgba(140, 120, 95, 0.09),
+      0 6px 20px -4px rgba(140, 120, 95, 0.08),
       0 2px 6px -1px rgba(140, 120, 95, 0.04);
+  }
+
+  .dark .liquid-glass-control {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.04) 50%,
+      rgba(255, 255, 255, 0.08) 100%
+    );
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+      0 6px 20px -4px rgba(0, 0, 0, 0.4),
+      0 2px 6px -1px rgba(0, 0, 0, 0.2);
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   @media (hover: hover) {
     .liquid-glass-control:hover:not(:disabled) {
       background: linear-gradient(
         145deg,
-        rgba(255, 255, 255, 0.92) 0%,
-        rgba(255, 255, 255, 0.65) 50%,
-        rgba(255, 255, 255, 0.82) 100%
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.72) 50%,
+        rgba(255, 255, 255, 0.88) 100%
       );
       box-shadow:
         inset 0 1px 1.5px 0 rgba(255, 255, 255, 1),
-        inset 0 0 20px 0 rgba(255, 255, 255, 0.5),
-        0 12px 28px -4px rgba(0, 0, 0, 0.06),
-        0 4px 10px -2px rgba(0, 0, 0, 0.03);
+        0 10px 24px -4px rgba(0, 0, 0, 0.06),
+        0 4px 8px -2px rgba(0, 0, 0, 0.03);
       transform: translateY(-1px);
     }
 
     .cream .liquid-glass-control:hover:not(:disabled) {
       background: linear-gradient(
         145deg,
-        rgba(255, 255, 255, 0.72) 0%,
-        rgba(255, 252, 245, 0.38) 50%,
-        rgba(255, 250, 240, 0.55) 100%
+        rgba(255, 255, 255, 0.82) 0%,
+        rgba(255, 252, 245, 0.5) 50%,
+        rgba(255, 250, 240, 0.7) 100%
       );
       box-shadow:
         inset 0 1px 1.5px 0 rgba(255, 255, 255, 1),
-        inset 0 0 20px 0 rgba(255, 250, 240, 0.45),
-        0 12px 28px -4px rgba(140, 120, 95, 0.12),
-        0 4px 10px -2px rgba(140, 120, 95, 0.06);
+        0 10px 24px -4px rgba(140, 120, 95, 0.1),
+        0 4px 8px -2px rgba(140, 120, 95, 0.05);
       transform: translateY(-1px);
     }
+
+    .dark .liquid-glass-control:hover:not(:disabled) {
+      background: linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 255, 255, 0.07) 50%,
+        rgba(255, 255, 255, 0.12) 100%
+      );
+      border-color: rgba(255, 255, 255, 0.22);
+      box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.28),
+        0 10px 24px -4px rgba(0, 0, 0, 0.5),
+        0 4px 8px -2px rgba(0, 0, 0, 0.3);
+      transform: translateY(-1px);
+    }
+  }
+
+  /* 移动端底部导航 - 苹果液态玻璃纯透明水滴指示器 (Apple Liquid Glass Water Droplet) */
+  .liquid-droplet-pill {
+    position: absolute;
+    border-radius: 9999px;
+    overflow: hidden;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.3) 100%
+    );
+    -webkit-backdrop-filter: blur(18px) saturate(180%) contrast(105%);
+    backdrop-filter: blur(18px) saturate(180%) contrast(105%);
+    border: 1px solid rgba(0, 0, 0, 0.32);
+    box-shadow:
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.95),
+      inset 1px 0 1px 0 rgba(255, 255, 255, 0.35),
+      inset -1px 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.35),
+      inset 0 0 12px 0 rgba(255, 255, 255, 0.14),
+      0 4px 14px -1px rgba(0, 0, 0, 0.08),
+      0 2px 6px -1px rgba(0, 0, 0, 0.04);
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+
+  .cream .liquid-droplet-pill {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 252, 245, 0.16) 50%,
+      rgba(255, 250, 240, 0.38) 100%
+    );
+    border: 1px solid rgba(0, 0, 0, 0.32);
+    box-shadow:
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.98),
+      inset 1px 0 1px 0 rgba(255, 255, 255, 0.4),
+      inset -1px 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.4),
+      inset 0 0 12px 0 rgba(255, 250, 240, 0.16),
+      0 4px 14px -1px rgba(120, 95, 65, 0.09),
+      0 2px 6px -1px rgba(120, 95, 65, 0.04);
+  }
+
+  .dark .liquid-droplet-pill {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.15) 0%,
+      rgba(255, 255, 255, 0.03) 50%,
+      rgba(255, 255, 255, 0.09) 100%
+    );
+    border: 1px solid rgba(0, 0, 0, 0.65);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.45),
+      inset 1px 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset -1px 0 1px 0 rgba(255, 255, 255, 0.1),
+      inset 0 -1px 1px 0 rgba(255, 255, 255, 0.18),
+      inset 0 0 12px 0 rgba(255, 255, 255, 0.05),
+      0 4px 16px -2px rgba(0, 0, 0, 0.45),
+      0 2px 6px -1px rgba(0, 0, 0, 0.25);
+  }
+
+  /* 移动端独立液态水滴按钮（可交互、不带 absolute/inset） */
+  .liquid-droplet-button {
+    position: relative;
+    border-radius: 9999px;
+    overflow: hidden;
+    pointer-events: auto;
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.85) 0%,
+      rgba(255, 255, 255, 0.5) 100%
+    );
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(0, 0, 0, 0.28);
+    box-shadow:
+      0 4px 16px -2px rgba(0, 0, 0, 0.08),
+      0 2px 6px -1px rgba(0, 0, 0, 0.04),
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
+      inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04);
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+
+  .cream .liquid-droplet-button {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.88) 0%,
+      rgba(250, 244, 232, 0.6) 100%
+    );
+    border: 1px solid rgba(0, 0, 0, 0.28);
+    box-shadow:
+      0 4px 16px -2px rgba(130, 105, 75, 0.14),
+      0 2px 6px -1px rgba(130, 105, 75, 0.07),
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
+      inset 0 -1px 1.5px 0 rgba(190, 170, 140, 0.25);
+  }
+
+  .dark .liquid-droplet-button {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
+    border: 1px solid rgba(0, 0, 0, 0.55);
+    box-shadow:
+      0 4px 16px -2px rgba(0, 0, 0, 0.45),
+      0 2px 6px -1px rgba(0, 0, 0, 0.25),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.45),
+      inset 0 -1px 1px 0 rgba(255, 255, 255, 0.18);
   }
 
   .btn {
@@ -1008,35 +1263,48 @@ body {
 }
 
 html[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 html[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-track {
-  background: rgba(var(--color-primary, 14, 165, 233), 0.1);
-  border-radius: 4px;
+  background: transparent;
 }
 
 html[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-thumb {
-  background: rgba(var(--color-primary, 14, 165, 233), 0.4);
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.16);
+  border-radius: 9999px;
   transition: background-color 0.2s ease;
 }
 
 html[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-thumb:hover {
-  background: rgba(var(--color-primary, 14, 165, 233), 0.6);
+  background: rgba(0, 0, 0, 0.32);
 }
 
 html.cream[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-track {
-  background: rgba(var(--color-primary, 14, 165, 233), 0.08);
+  background: transparent;
 }
 
 html.cream[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-thumb {
-  background: rgba(var(--color-primary, 14, 165, 233), 0.35);
+  background: rgba(120, 95, 65, 0.22);
+  border-radius: 9999px;
 }
 
 html.cream[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-thumb:hover {
-  background: rgba(var(--color-primary, 14, 165, 233), 0.55);
+  background: rgba(120, 95, 65, 0.38);
+}
+
+html.dark[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html.dark[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 9999px;
+}
+
+html.dark[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
 }
 
 html[data-native-scrollbars="true"] .scrollbar-hide,
@@ -1144,16 +1412,18 @@ body {
   opacity: 1 !important;
 }
 
-/* 适配旧版浏览器的备选字体和布局 */
+/* 跨系统字体栈兼容（Windows / Android / macOS / Linux） */
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
-    "Segoe UI Symbol";
+  font-family: "Inter", "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei",
+    "Source Han Sans CN", "Noto Sans SC", Roboto, Helvetica, Arial, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
 .font-display {
-  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Helvetica, Arial, sans-serif;
+  font-family: "Poppins", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei",
+    "Source Han Sans CN", "Noto Sans SC", Roboto, Helvetica, Arial, sans-serif;
 }
 
 .font-mono {

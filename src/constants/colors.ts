@@ -77,3 +77,79 @@ export const WORLD_CLOCK_COLORS: readonly string[] = [
   '#F43F5E', // 珊瑚粉
   '#64748B', // 冰岩灰
 ] as const;
+
+export type ThemeColorId =
+  | 'default'
+  | 'blue'
+  | 'green'
+  | 'yellow'
+  | 'pink'
+  | 'orange'
+  | 'purple'
+  | 'black'
+  | 'custom';
+
+export interface ThemePreset {
+  id: ThemeColorId;
+  name: string;
+  nameEn: string;
+  color: string;
+  description: string;
+}
+
+/**
+ * ChatGPT 现代极简调色板 (ChatGPT-Inspired Theme Palettes)
+ * 遵循 ChatGPT / OpenAI 官方设计语言，提供高雅纯净的主题色彩
+ */
+export const CHATGPT_THEME_PRESETS: readonly ThemePreset[] = [
+  {
+    id: 'default',
+    name: '默认',
+    nameEn: 'Default',
+    color: '#18181B',
+    description: 'ChatGPT 经典碳黑 (Carbon Neutral)',
+  },
+  {
+    id: 'blue',
+    name: '蓝色',
+    nameEn: 'Blue',
+    color: '#3B82F6',
+    description: '澄澈晴空蔚蓝 (Azure Blue)',
+  },
+  {
+    id: 'green',
+    name: '绿色',
+    nameEn: 'Green',
+    color: '#10A37F',
+    description: 'OpenAI 经典翡绿 (Signature Emerald)',
+  },
+  {
+    id: 'yellow',
+    name: '黄色',
+    nameEn: 'Yellow',
+    color: '#F59E0B',
+    description: '温暖明媚暖金 (Warm Amber)',
+  },
+  {
+    id: 'pink',
+    name: '粉色',
+    nameEn: 'Pink',
+    color: '#EC4899',
+    description: '清雅落樱绯粉 (Rose Blossom)',
+  },
+  {
+    id: 'orange',
+    name: '橙色',
+    nameEn: 'Orange',
+    color: '#F97316',
+    description: '活力日落暖橙 (Sunset Coral)',
+  },
+  {
+    id: 'purple',
+    name: '紫色',
+    nameEn: 'Purple',
+    color: '#8B5CF6',
+    description: '雅致晨曦鸢尾 (Iris Violet)',
+  },
+] as const;
+

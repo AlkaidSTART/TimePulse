@@ -1,8 +1,11 @@
-import type { ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import Header from './Header';
 import UpdateToast from '@/features/notification/components/UpdateToast';
-import { OptimisticUpdateBanner, AboutVersionModal } from '@/features/version';
+import OptimisticUpdateBanner from '@/features/version/components/OptimisticUpdateBanner';
 import { ThemeColorSynchronizer } from '@/app/providers/ThemeProvider';
+import { useVersionStore } from '@/stores/useVersionStore';
+
+const AboutVersionModal = lazy(() => import('@/features/version/components/AboutVersionModal'));
 
 type LayoutProps = {
   children: ReactNode;
@@ -10,6 +13,8 @@ type LayoutProps = {
 };
 
 export default function Layout({ children, onHeaderHeightChange }: LayoutProps) {
+  const isAboutModalOpen = useVersionStore((s) => s.isAboutModalOpen);
+
   return (
     <ThemeColorSynchronizer>
       <div className="relative flex h-full min-h-0 flex-col overflow-hidden">
@@ -21,7 +26,11 @@ export default function Layout({ children, onHeaderHeightChange }: LayoutProps) 
 
         <UpdateToast />
         <OptimisticUpdateBanner />
-        <AboutVersionModal />
+        {isAboutModalOpen && (
+          <Suspense fallback={null}>
+            <AboutVersionModal />
+          </Suspense>
+        )}
       </div>
     </ThemeColorSynchronizer>
   );

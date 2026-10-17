@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { AnimatePresence, motion, type TargetAndTransition } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion, type TargetAndTransition } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { cn } from './utils';
 
@@ -122,6 +122,7 @@ export const AutoTransition = React.forwardRef<HTMLDivElement, AutoTransitionPro
     ref,
   ) {
     const [hasRendered, setHasRendered] = React.useState(initial);
+    const shouldReduceMotion = useReducedMotion();
 
     React.useEffect(() => {
       if (!hasRendered) setHasRendered(true);
@@ -131,6 +132,7 @@ export const AutoTransition = React.forwardRef<HTMLDivElement, AutoTransitionPro
     const hasChildren = React.Children.count(children) > 0;
     const variants = customVariants ?? transitionVariants[type];
     const resolvedPresenceMode = type === 'crossFade' ? 'popLayout' : presenceMode;
+    const resolvedDuration = shouldReduceMotion ? 0 : duration;
     const { style: motionStyle, ...restMotionProps } = motionProps;
     const portalClassName = portal && !className?.split(/\s+/).includes('fixed') ? 'relative' : undefined;
     const transition = (
@@ -147,7 +149,7 @@ export const AutoTransition = React.forwardRef<HTMLDivElement, AutoTransitionPro
             initial={hasRendered ? 'initial' : false}
             animate="animate"
             exit="exit"
-            transition={{ duration }}
+            transition={{ duration: resolvedDuration }}
             style={portal ? { ...motionStyle, zIndex: 1000 } : motionStyle}
           >
             {children}

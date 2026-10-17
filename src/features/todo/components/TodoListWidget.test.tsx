@@ -39,20 +39,23 @@ describe('TodoListWidget component', () => {
 
     renderWidget({ isOpen: true });
 
-    // 查找输入框并输入
+    // 查找输入框并输入两个待办
     const input = screen.getByPlaceholderText(/添加新待办/i);
     fireEvent.change(input, { target: { value: '我的重要任务ABC' } });
-
     const addBtn = screen.getByRole('button', { name: /添加/i });
     fireEvent.click(addBtn);
 
-    expect(screen.getByText('我的重要任务ABC')).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: '第二项任务XYZ' } });
+    fireEvent.click(addBtn);
 
-    // 找到该待办的勾选按钮
+    expect(screen.getByText('我的重要任务ABC')).toBeInTheDocument();
+    expect(screen.getByText('第二项任务XYZ')).toBeInTheDocument();
+
+    // 找到第一项待办的勾选按钮并完成它
     const toggleBtn = screen.getByRole('button', { name: '将我的重要任务ABC标记为已完成' });
     fireEvent.click(toggleBtn);
 
-    // 验证调用了系统振动 API！
+    // 验证调用了系统振动 API（单项完成 item_complete）！
     await waitFor(() => {
       expect(triggerHapticSpy).toHaveBeenCalledWith('item_complete');
     });

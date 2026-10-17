@@ -30,6 +30,8 @@ export interface BaseTimer {
 
 export interface CountdownTimer extends BaseTimer {
   type?: 'countdown';
+  countdownType?: 'long' | 'short';
+  durationSeconds?: number;
   targetDate: TimeValue;
   timezone: string;
 }
@@ -67,6 +69,10 @@ export function getTimerType(timer: Partial<BaseTimer>): TimerType {
 
 export function isCountdownTimer(timer: BaseTimer): timer is CountdownTimer {
   return getTimerType(timer) === 'countdown';
+}
+
+export function isShortCountdownTimer(timer: BaseTimer): timer is CountdownTimer {
+  return isCountdownTimer(timer) && (timer as CountdownTimer).countdownType === 'short';
 }
 
 export function isStopwatchTimer(timer: BaseTimer): timer is StopwatchTimer {
@@ -113,6 +119,10 @@ export function parseTimer(value: unknown): Timer | null {
   return {
     ...record,
     type: record.type === 'countdown' ? 'countdown' : undefined,
+    countdownType: record.countdownType === 'short' ? 'short' : (record.countdownType === 'long' ? 'long' : undefined),
+    durationSeconds: typeof record.durationSeconds === 'number' && Number.isFinite(record.durationSeconds)
+      ? record.durationSeconds
+      : undefined,
     targetDate: (record.targetDate as TimeValue | undefined) ?? new Date().toISOString(),
     timezone: typeof record.timezone === 'string'
       ? record.timezone

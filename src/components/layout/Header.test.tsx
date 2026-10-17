@@ -34,6 +34,7 @@ describe('Header component timezone display', () => {
       ],
       activeTimerId: 'test-shanghai',
       isLoaded: true,
+      initTimers: vi.fn() as any,
     });
 
     render(
@@ -81,5 +82,64 @@ describe('Header component timezone display', () => {
     );
 
     expect(screen.queryByText(/Asia\/Shanghai/i)).not.toBeInTheDocument();
+  });
+
+  it('renders list and settings buttons in the mobile top right header and navigates on click', async () => {
+    const { fireEvent } = await import('@testing-library/react');
+    useTimerStore.setState({
+      timers: [
+        {
+          id: 'test-1',
+          name: '专注计时',
+          type: 'countdown',
+          targetDate: new Date(Date.now() + 60000).toISOString(),
+          timezone: 'Asia/Shanghai',
+          color: '#0EA5E9',
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      activeTimerId: 'test-1',
+      isLoaded: true,
+    });
+
+    render(
+      <ThemeProvider>
+        <FullscreenProvider>
+          <TimerProvider>
+            <Header />
+          </TimerProvider>
+        </FullscreenProvider>
+      </ThemeProvider>,
+    );
+
+    const listBtn = screen.getByRole('button', { name: '列表' });
+    const settingsBtn = document.querySelector('button[aria-label="个人设置"]') as HTMLButtonElement;
+    expect(listBtn).toBeDefined();
+    expect(settingsBtn).toBeDefined();
+
+    // Click list button opens all timers sheet
+    fireEvent.click(listBtn);
+    expect(screen.getByText('全部计时器')).toBeDefined();
+
+    // Click settings button navigates to settings route
+    fireEvent.click(settingsBtn);
+    expect(useNavigationStore.getState().view).toBe('settings');
+  });
+
+  it('renders orientation toggle button in header and triggers click', async () => {
+    const { fireEvent } = await import('@testing-library/react');
+    render(
+      <ThemeProvider>
+        <FullscreenProvider>
+          <TimerProvider>
+            <Header />
+          </TimerProvider>
+        </FullscreenProvider>
+      </ThemeProvider>,
+    );
+
+    const orientationBtns = screen.getAllByRole('button', { name: /切换(横|竖)屏/ });
+    expect(orientationBtns.length).toBeGreaterThan(0);
+    expect(() => fireEvent.click(orientationBtns[0])).not.toThrow();
   });
 });

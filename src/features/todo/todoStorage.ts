@@ -3,68 +3,34 @@ import type { TodoItem, TodoType } from './types';
 const TODO_STORAGE_KEY = 'timepulse_todo_items_v1';
 const TODO_ACTIVE_TAB_KEY = 'timepulse_todo_active_tab_v1';
 
-export const DEFAULT_PRESET_ITEMS: TodoItem[] = [
-  {
-    id: 'preset-todo-1',
-    text: '开启今日专注计时',
-    completed: false,
-    type: 'todo',
-    createdAt: 1700000000000,
-  },
-  {
-    id: 'preset-todo-2',
-    text: '整理工作笔记与待办清单',
-    completed: false,
-    type: 'todo',
-    createdAt: 1700000001000,
-  },
-  {
-    id: 'preset-check-1',
-    text: '桌面杂物清理 & 倒一杯水',
-    completed: false,
-    type: 'checklist',
-    createdAt: 1700000002000,
-  },
-  {
-    id: 'preset-check-2',
-    text: '手机调为静音或勿扰模式',
-    completed: false,
-    type: 'checklist',
-    createdAt: 1700000003000,
-  },
-  {
-    id: 'preset-check-3',
-    text: '明确本轮番茄钟核心产出',
-    completed: false,
-    type: 'checklist',
-    createdAt: 1700000004000,
-  },
-];
+export const DEFAULT_PRESET_ITEMS: TodoItem[] = [];
 
 /**
- * 读取本地存储的所有待办/清单项，首次使用时返回默认预设项
+ * 读取本地存储的所有待办/清单项，默认返回空数组
  */
 export function readTodoItems(): TodoItem[] {
-  if (typeof window === 'undefined') return DEFAULT_PRESET_ITEMS;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(TODO_STORAGE_KEY);
-    if (!raw) return DEFAULT_PRESET_ITEMS;
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      return parsed.filter(
-        (item): item is TodoItem =>
-          typeof item === 'object' &&
-          item !== null &&
-          typeof item.id === 'string' &&
-          typeof item.text === 'string' &&
-          typeof item.completed === 'boolean' &&
-          (item.type === 'todo' || item.type === 'checklist'),
-      );
+      return parsed
+        .filter(
+          (item): item is TodoItem =>
+            typeof item === 'object' &&
+            item !== null &&
+            typeof item.id === 'string' &&
+            typeof item.text === 'string' &&
+            typeof item.completed === 'boolean' &&
+            (item.type === 'todo' || item.type === 'checklist'),
+        )
+        .filter((item) => !item.id.startsWith('preset-'));
     }
-    return DEFAULT_PRESET_ITEMS;
+    return [];
   } catch (error) {
     console.error('[TodoStorage] 读取待办项失败:', error);
-    return DEFAULT_PRESET_ITEMS;
+    return [];
   }
 }
 

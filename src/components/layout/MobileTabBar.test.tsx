@@ -1,0 +1,170 @@
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import MobileTabBar from './MobileTabBar';
+import { ThemeProvider } from '@/app/providers/ThemeProvider';
+
+describe('MobileTabBar component', () => {
+  const defaultProps = {
+    activeTab: 'timer' as const,
+    onTabChange: vi.fn(),
+    timers: [
+      {
+        id: 'timer-1',
+        name: '工作倒计时',
+        type: 'countdown' as const,
+        targetDate: new Date(Date.now() + 60000).toISOString(),
+        timezone: 'Asia/Shanghai',
+        color: '#0EA5E9',
+        createdAt: new Date().toISOString(),
+      },
+    ],
+    activeTimerId: 'timer-1',
+    setActiveTimerId: vi.fn(),
+    onOpenAdd: vi.fn(),
+    onOpenBackground: vi.fn(),
+    onOpenFullscreenSettings: vi.fn(),
+    onOpenShare: vi.fn(),
+    theme: 'light' as const,
+    toggleTheme: vi.fn(),
+    isFullscreen: false,
+    toggleFullscreen: vi.fn(),
+    accentColor: '#0EA5E9',
+    isVisible: true,
+    deleteTimer: vi.fn(),
+    updateTimer: vi.fn(),
+    reorderTimers: vi.fn(),
+  };
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('renders tab navigation items including cheer, timer, add, todo, and settings in bottom bar', () => {
+    render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByText(/时钟|计时/i)).toBeDefined();
+    expect(screen.getByText(/待办/i)).toBeDefined();
+    expect(screen.getByText(/打气/i)).toBeDefined();
+    expect(screen.getByText(/个人设置|设置/i)).toBeDefined();
+    expect(screen.getByLabelText('新建计时器')).toBeDefined();
+    expect(screen.queryByText(/^列表$/i)).toBeNull();
+  });
+
+  it('triggers onTabChange with settings when settings tab is clicked', () => {
+    const onTabChange = vi.fn();
+    render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} onTabChange={onTabChange} />
+      </ThemeProvider>,
+    );
+
+    const settingsTab = screen.getByText(/个人设置|设置/i).closest('button');
+    expect(settingsTab).not.toBeNull();
+    fireEvent.click(settingsTab!);
+
+    expect(onTabChange).toHaveBeenCalledWith('settings');
+  });
+
+  it('renders liquid droplet indicator for active settings route when activeTab is settings', () => {
+    const { container } = render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="settings" />
+      </ThemeProvider>,
+    );
+
+    const dropletIndicator = container.querySelector('.liquid-droplet-pill');
+    expect(dropletIndicator).not.toBeNull();
+
+    const activeLabel = screen.getByText(/个人设置|设置/i);
+    expect(activeLabel.className).toContain('text-gray-950');
+  });
+
+  it('renders all timers list sheet when activeTab is list', () => {
+    render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="list" />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByText('全部计时器')).toBeDefined();
+    expect(screen.getByText('工作倒计时')).toBeDefined();
+  });
+
+  it('renders transparent liquid water droplet capsule indicator for active route without blue', () => {
+    const { container } = render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="timer" />
+      </ThemeProvider>,
+    );
+
+    const dropletIndicator = container.querySelector('.liquid-droplet-pill');
+    expect(dropletIndicator).not.toBeNull();
+    // Indicator is styled by liquid-droplet-pill class rather than hardcoded solid blue background
+    expect((dropletIndicator as HTMLElement).style.backgroundColor).toBe('');
+
+    // Active tab label has zero blue inline styling
+    const activeLabel = screen.getByText('计时');
+    expect(activeLabel.style.color).toBe('');
+    expect(activeLabel.className).toContain('text-gray-950');
+  });
+
+  it('renders convex lens dome reflection and meniscus surface tension line in water droplet indicator', () => {
+    const { container } = render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="timer" />
+      </ThemeProvider>,
+    );
+
+    const droplet = container.querySelector('.liquid-droplet-pill');
+    expect(droplet).not.toBeNull();
+    expect(droplet?.children.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('renders an enlarged liquid glass capsule with outer perimeter wrapper and no line under text', () => {
+    const { container } = render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="timer" />
+      </ThemeProvider>,
+    );
+
+    const droplet = container.querySelector('.liquid-droplet-pill');
+    expect(droplet).not.toBeNull();
+    expect(droplet?.className).toContain('inset-y-0.5');
+    expect(droplet?.className).toContain('inset-x-0.5');
+    // Ensure no guideline line is rendered under the label
+    expect(screen.queryByTestId('mobile-active-route-indicator-line')).toBeNull();
+  });
+
+  it('synchronizes Mobile and Pad layout by using lg:hidden on nav container', () => {
+    const { container } = render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} />
+      </ThemeProvider>,
+    );
+
+    const nav = container.querySelector('nav');
+    expect(nav?.className).toContain('lg:hidden');
+  });
+
+  it('renders center action + button as transparent liquid droplet without blue background', () => {
+    render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} />
+      </ThemeProvider>,
+    );
+
+    const addButton = screen.getByLabelText('新建计时器');
+    expect(addButton).not.toBeNull();
+    expect(addButton.className).toContain('liquid-droplet-button');
+    expect(addButton.style.backgroundColor).toBe('');
+  });
+});
+

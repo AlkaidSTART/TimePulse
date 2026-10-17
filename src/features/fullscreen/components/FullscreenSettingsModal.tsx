@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiX, FiRotateCcw } from 'react-icons/fi';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
@@ -38,6 +38,18 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
     { value: 3000, label: '3 秒' },
     { value: 5000, label: '5 秒' }
   ];
+
+  // 监听 Escape 按键关闭弹窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   // 恢复默认设置
   const handleReset = () => {

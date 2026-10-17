@@ -1,4 +1,4 @@
-import { motion, type Easing } from 'framer-motion';
+import { motion, useReducedMotion, type Easing } from 'framer-motion';
 import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { cn } from './utils';
@@ -120,7 +120,8 @@ export function AutoResizer({
     };
   }, [collapsed, overflow, repaintOnExpand]);
 
-  const shouldAnimate = initial || updateCount > 1;
+  const shouldReduceMotion = useReducedMotion();
+  const shouldAnimate = !shouldReduceMotion && (initial || updateCount > 1);
 
   return (
     <motion.div

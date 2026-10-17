@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { TimerType } from '@/domain/timer';
 import { AutoTransition } from '@/components/ui';
 import {
   LinearDialogShell,
@@ -9,7 +8,7 @@ import {
 import AddStopwatchModal from './AddStopwatchModal';
 import AddTimerModal from './AddTimerModal';
 import AddWorldClockModal from './AddWorldClockModal';
-import TimerTypeModal from './TimerTypeModal';
+import TimerTypeModal, { type TimerModalType } from './TimerTypeModal';
 
 type TimerCreationFlowProps = {
   open: boolean;
@@ -17,11 +16,11 @@ type TimerCreationFlowProps = {
 };
 
 /**
- * Coordinates the three timer creation screens inside one persistent dialog
+ * Coordinates timer creation screens inside one persistent dialog
  * frame. Only the frame's content changes as the linear flow advances.
  */
 export default function TimerCreationFlow({ open, onOpenChange }: TimerCreationFlowProps) {
-  const [selectedType, setSelectedType] = useState<TimerType | null>(null);
+  const [selectedType, setSelectedType] = useState<TimerModalType | null>(null);
   const [direction, setDirection] = useState<LinearDialogDirection>(1);
 
   useEffect(() => {
@@ -38,7 +37,7 @@ export default function TimerCreationFlow({ open, onOpenChange }: TimerCreationF
     }
   }, [onOpenChange]);
 
-  const selectType = useCallback((type: TimerType) => {
+  const selectType = useCallback((type: TimerModalType) => {
     setDirection(1);
     setSelectedType(type);
   }, []);
@@ -49,6 +48,7 @@ export default function TimerCreationFlow({ open, onOpenChange }: TimerCreationF
   }, []);
 
   const currentStep = selectedType ?? 'timer-type';
+  const isCountdown = selectedType === 'countdown' || selectedType === 'countdown-short' || selectedType === 'countdown-long';
 
   return (
     <AutoTransition
@@ -62,8 +62,13 @@ export default function TimerCreationFlow({ open, onOpenChange }: TimerCreationF
           <LinearDialogTransition transitionKey={currentStep} direction={direction} initial={false}>
             {selectedType === null ? (
               <TimerTypeModal embedded onClose={close} onSelectType={selectType} />
-            ) : selectedType === 'countdown' ? (
-              <AddTimerModal embedded onClose={close} onBack={goBackToTypeSelection} />
+            ) : isCountdown ? (
+              <AddTimerModal
+                embedded
+                initialMode={selectedType === 'countdown-long' ? 'long' : 'short'}
+                onClose={close}
+                onBack={goBackToTypeSelection}
+              />
             ) : selectedType === 'stopwatch' ? (
               <AddStopwatchModal embedded onClose={close} onBack={goBackToTypeSelection} />
             ) : (

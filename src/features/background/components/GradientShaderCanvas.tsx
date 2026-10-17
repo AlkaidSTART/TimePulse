@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { debounce } from '@/utils/performance';
 
 export type GradientCircle = {
   id: number;
@@ -260,9 +261,10 @@ export default function GradientShaderCanvas({
         }
       };
 
-      const resizeObserver = new ResizeObserver(resize);
+      const debouncedResize = debounce(resize, 100);
+      const resizeObserver = new ResizeObserver(() => debouncedResize());
       resizeObserver.observe(canvas);
-      window.addEventListener('resize', resize);
+      window.addEventListener('resize', debouncedResize);
       resize();
 
       const draw = (now: number) => {
@@ -378,8 +380,9 @@ export default function GradientShaderCanvas({
 
       return () => {
         if (frameId !== null) window.cancelAnimationFrame(frameId);
+        debouncedResize.cancel();
         resizeObserver.disconnect();
-        window.removeEventListener('resize', resize);
+        window.removeEventListener('resize', debouncedResize);
         document.removeEventListener('visibilitychange', handleVisibilityChange);
         canvas.removeEventListener('webglcontextlost', handleContextLost);
         if (buffer) gl.deleteBuffer(buffer);
