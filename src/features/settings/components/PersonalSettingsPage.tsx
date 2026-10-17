@@ -12,6 +12,7 @@ import {
   FiCheck,
   FiTrash2,
   FiRotateCcw,
+  FiRotateCw,
   FiSave,
   FiHeart,
   FiGlobe,
@@ -24,6 +25,7 @@ import {
 import { SiWechat } from 'react-icons/si';
 import { LuSparkles, LuPalette } from 'react-icons/lu';
 import { usePageTransition } from '@/hooks/usePageTransition';
+import { useOrientation } from '@/hooks/useOrientation';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { usePersonalSettingsStore, type CheerStyle, type DefaultStartPage } from '@/stores/usePersonalSettingsStore';
 import { useVersionStore } from '@/stores/useVersionStore';
@@ -36,6 +38,7 @@ const AVATAR_PRESETS = ['专注', '自律', '沉静', '晨曦', '漫步', '远�
 export default function PersonalSettingsPage() {
   const shouldReduceMotion = useReducedMotion();
   const { transitionTo } = usePageTransition();
+  const { isLandscape, toggleOrientation } = useOrientation();
   const { theme, toggleTheme, accentColor, updateAccentColor, setThemePreset } = useTheme();
   const { t, currentLang, changeLanguage } = useTranslation();
   const openAboutModal = useVersionStore((s) => s.openAboutModal);
@@ -479,6 +482,31 @@ export default function PersonalSettingsPage() {
               className="px-3 py-1.5 rounded-xl border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.06] hover:bg-black/[0.06] dark:hover:bg-white/[0.12] text-xs font-semibold text-primary-600 dark:text-primary-400 flex items-center gap-1 cursor-pointer"
             >
               <span>{t('mobile.customize', '定制')}</span>
+              <FiChevronRight className="size-3.5" />
+            </button>
+          </div>
+
+          {/* 移动端横竖屏与显示模式 */}
+          <div className="flex items-center justify-between pt-2 border-t border-black/[0.05] dark:border-white/10">
+            <div className="flex items-center gap-2">
+              <FiRotateCw className={`size-4 text-emerald-500 transition-transform duration-300 ${isLandscape ? 'rotate-90' : ''}`} />
+              <div>
+                <span className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200">
+                  {t('mobile.orientation', '横竖屏与显示')}
+                </span>
+                <p className="text-[11px] text-gray-400">
+                  {isLandscape
+                    ? t('mobile.orientationLandscape', '横屏模式 · StandBy 桌面时钟')
+                    : t('mobile.orientationPortrait', '竖屏模式 · 支持重力感应自适应')}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => void toggleOrientation()}
+              className="px-3 py-1.5 rounded-xl border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.06] hover:bg-black/[0.06] dark:hover:bg-white/[0.12] text-xs font-semibold text-primary-600 dark:text-primary-400 flex items-center gap-1 cursor-pointer"
+            >
+              <span>{isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}</span>
               <FiChevronRight className="size-3.5" />
             </button>
           </div>

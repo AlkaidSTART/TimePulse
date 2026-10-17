@@ -112,7 +112,7 @@ describe('Header component timezone display', () => {
     );
 
     const listBtn = screen.getByRole('button', { name: '列表' });
-    const settingsBtn = screen.getByRole('button', { name: '个人设置' });
+    const settingsBtn = screen.getByLabelText('个人设置', { exact: true });
     expect(listBtn).toBeDefined();
     expect(settingsBtn).toBeDefined();
 
