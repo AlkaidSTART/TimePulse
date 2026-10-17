@@ -28,6 +28,7 @@ import {
   setHapticEnabled,
 } from '@/services/vibration';
 import { useTheme } from '@/app/providers/ThemeProvider';
+import { useTranslation } from '@/i18n/useTranslation';
 import { FiMinimize2 } from 'react-icons/fi';
 
 interface TodoPageProps {
@@ -38,6 +39,7 @@ interface TodoPageProps {
 
 export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: TodoPageProps) {
   const { accentColor } = useTheme();
+  const { t, currentLang } = useTranslation();
 
   const [state, dispatch] = useReducer(todoReducer, {
     items: [],
@@ -161,18 +163,19 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
 
   // 一键载入专注预设清单
   const handleLoadFocusPresets = () => {
+    const isEn = currentLang === 'en-US';
     const presets =
       state.activeTab === 'checklist'
         ? [
-            { text: '倒好温水并放好水杯', type: 'checklist' as TodoType },
-            { text: '手机开启勿扰 / 静音模式', type: 'checklist' as TodoType },
-            { text: '关闭无关浏览器标签页与聊天软件', type: 'checklist' as TodoType },
-            { text: '写下本轮番茄钟核心交付物', type: 'checklist' as TodoType },
+            { text: isEn ? 'Pour a warm glass of water' : '倒好温水并放好水杯', type: 'checklist' as TodoType },
+            { text: isEn ? 'Enable Do Not Disturb / Silent mode' : '手机开启勿扰 / 静音模式', type: 'checklist' as TodoType },
+            { text: isEn ? 'Close unrelated tabs and chat apps' : '关闭无关浏览器标签页与聊天软件', type: 'checklist' as TodoType },
+            { text: isEn ? 'Write down core goal for this session' : '写下本轮番茄钟核心交付物', type: 'checklist' as TodoType },
           ]
         : [
-            { text: '梳理今天最重要的 3 件事', type: 'todo' as TodoType },
-            { text: '保持专注，完成第一阶段核心目标', type: 'todo' as TodoType },
-            { text: '整理工作笔记与复盘今日进展', type: 'todo' as TodoType },
+            { text: isEn ? "Identify today's 3 most critical tasks" : '梳理今天最重要的 3 件事', type: 'todo' as TodoType },
+            { text: isEn ? 'Stay focused and complete milestone 1' : '保持专注，完成第一阶段核心目标', type: 'todo' as TodoType },
+            { text: isEn ? 'Review notes and wrap up daily progress' : '整理工作笔记与复盘今日进展', type: 'todo' as TodoType },
           ];
     dispatch({ type: 'batch_add', items: presets });
   };
@@ -190,10 +193,10 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
               type="button"
               onClick={onBack}
               className="group inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/40 px-3.5 py-1.5 text-xs md:text-sm font-medium text-gray-800 shadow-sm backdrop-blur-md transition-all hover:bg-white/70 active:scale-95 dark:border-white/10 dark:bg-white/10 dark:text-gray-200 dark:hover:bg-white/20 cursor-pointer"
-              aria-label="返回计时器"
+              aria-label={t('todo.returnToTimer', '返回计时器')}
             >
               <FiArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
-              <span>返回计时器</span>
+              <span>{t('todo.returnToTimer', '返回计时器')}</span>
             </button>
 
             {onOpenAsWidget && (
@@ -201,11 +204,11 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                 type="button"
                 onClick={onOpenAsWidget}
                 className="group inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/30 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm backdrop-blur-md transition-all hover:bg-white/60 active:scale-95 dark:border-white/10 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20 cursor-pointer"
-                title="切回桌面小窗挂件模式"
-                aria-label="切回桌面小窗挂件模式"
+                title={t('todo.widgetModeAria', '切回桌面小窗挂件模式')}
+                aria-label={t('todo.widgetModeAria', '切回桌面小窗挂件模式')}
               >
                 <FiMinimize2 className="size-3.5" />
-                <span>小窗模式</span>
+                <span>{t('todo.widgetMode', '小窗模式')}</span>
               </button>
             )}
           </div>
@@ -220,10 +223,10 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                   ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:border-emerald-400/30 dark:bg-emerald-500/15 dark:text-emerald-400'
                   : 'border-white/20 bg-white/30 text-gray-500 hover:bg-white/50 dark:border-white/10 dark:bg-white/5 dark:text-gray-400'
               } backdrop-blur-md`}
-              title={hapticActive ? '手机振动反馈已开启（点击关闭）' : '手机振动反馈已关闭（点击开启）'}
+              title={hapticActive ? t('todo.hapticOnTip', '手机触觉反馈已开启（点击关闭）') : t('todo.hapticOffTip', '手机触觉反馈已关闭（点击开启）')}
             >
               <FiSmartphone className="size-3.5" />
-              <span>{hapticActive ? '振动已开启' : '振动已关闭'}</span>
+              <span>{hapticActive ? t('todo.hapticEnabled', '触觉反馈已开启') : t('todo.hapticDisabled', '触觉反馈已关闭')}</span>
             </button>
           </div>
         </div>
@@ -240,11 +243,11 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                   <FiCheck className="size-4.5 stroke-[2.8]" />
                 </div>
                 <h1 className="text-xl md:text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                  待办与核对清单
+                  {t('todo.title', '待办与核对清单')}
                 </h1>
               </div>
               <p className="mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
-                专注当下，逐项击破 · 让每一次专注高效且清晰
+                {t('todo.subtitle', '专注当下，逐项击破 · 让每一次专注高效且清晰')}
               </p>
             </div>
 
@@ -252,7 +255,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
             <div className="flex items-center gap-1.5 rounded-2xl bg-black/5 p-1.5 dark:bg-white/10">
               <button
                 type="button"
-                aria-label="切换到待办事项"
+                aria-label={t('todo.switchToTodo', '切换到待办事项')}
                 onClick={() => dispatch({ type: 'set_tab', tab: 'todo' })}
                 className={`relative flex items-center gap-2 rounded-xl px-4 py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
                   state.activeTab === 'todo'
@@ -261,7 +264,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                 }`}
               >
                 <FiList className="size-4" />
-                <span>待办事项</span>
+                <span>{t('todo.tabTodo', '待办事项')}</span>
                 <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-bold dark:bg-white/10">
                   {todoCount}
                 </span>
@@ -269,7 +272,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
 
               <button
                 type="button"
-                aria-label="切换到核对清单"
+                aria-label={t('todo.switchToChecklist', '切换到核对清单')}
                 onClick={() => dispatch({ type: 'set_tab', tab: 'checklist' })}
                 className={`relative flex items-center gap-2 rounded-xl px-4 py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
                   state.activeTab === 'checklist'
@@ -278,7 +281,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                 }`}
               >
                 <FiCheckCircle className="size-4" />
-                <span>核对清单</span>
+                <span>{t('todo.tabChecklist', '核对清单')}</span>
                 <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-bold dark:bg-white/10">
                   {checklistCount}
                 </span>
@@ -290,10 +293,10 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
           <div className="mt-5 border-t border-gray-200/50 pt-4 dark:border-white/10">
             <div className="flex items-center justify-between text-xs md:text-sm text-gray-600 dark:text-gray-300 pb-1.5">
               <span className="font-medium">
-                {state.activeTab === 'todo' ? '待办事项完成度' : '专注流程核对进度'}
+                {state.activeTab === 'todo' ? t('todo.todoProgress', '待办事项完成度') : t('todo.checklistProgress', '专注流程核对进度')}
               </span>
               <span className="font-semibold" style={{ color: accentColor || '#0ea5e9' }}>
-                {completedCount} / {totalCount} 项完成 ({progressPercent}%)
+                {completedCount} / {totalCount} {t('todo.progressSummary', '项完成')} ({progressPercent}%)
               </span>
             </div>
 
@@ -317,7 +320,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                   className="mt-3 flex items-center justify-center gap-2 rounded-2xl bg-emerald-500/15 py-2 px-4 text-xs md:text-sm font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                 >
                   <FiCheckCircle className="size-4 text-emerald-500" />
-                  <span>太棒了！全部清单项已顺利完成，已触发触觉反馈</span>
+                  <span>{t('todo.allDone', '太棒了！全部清单项已顺利完成，已触发触觉反馈')}</span>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -332,8 +335,8 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
               type="text"
               placeholder={
                 state.activeTab === 'todo'
-                  ? '添加新的待办事项，按回车添加...'
-                  : '添加专注流程检查项，按回车添加...'
+                  ? t('todo.placeholderTodo', '添加新的待办事项，按回车添加...')
+                  : t('todo.placeholderChecklist', '添加专注流程检查项，按回车添加...')
               }
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -344,10 +347,10 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
               disabled={!inputText.trim()}
               className="inline-flex h-10 items-center gap-1.5 rounded-xl px-4 font-semibold text-xs md:text-sm text-white shadow-sm disabled:opacity-40 transition-all cursor-pointer shrink-0"
               style={{ backgroundColor: accentColor || '#0ea5e9' }}
-              aria-label="添加"
+              aria-label={t('todo.add', '添加')}
             >
               <FiPlus className="size-4 stroke-[2.5]" />
-              <span>添加</span>
+              <span>{t('todo.add', '添加')}</span>
             </button>
           </div>
         </form>
@@ -360,10 +363,10 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                 <FiList className="size-7 stroke-[1.5] opacity-60" />
               </div>
               <p className="text-sm md:text-base font-medium text-gray-700 dark:text-gray-300">
-                当前暂无{state.activeTab === 'todo' ? '待办事项' : '核对清单'}
+                {state.activeTab === 'todo' ? t('todo.emptyTodo', '当前暂无待办事项') : t('todo.emptyChecklist', '当前暂无核对清单')}
               </p>
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                立即在上方输入添加，或一键导入专属专注清单
+                {t('todo.emptyDesc', '立即在上方输入添加，或一键导入专属专注清单')}
               </p>
               <button
                 type="button"
@@ -371,14 +374,14 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                 className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary-500/30 bg-primary-500/10 px-4 py-2 text-xs md:text-sm font-semibold text-primary-600 hover:bg-primary-500/20 dark:border-primary-400/30 dark:bg-primary-500/15 dark:text-primary-300 transition-all cursor-pointer"
               >
                 <FiStar className="size-4" />
-                <span>载入专注推荐清单预设</span>
+                <span>{t('todo.loadPresets', '载入专注推荐清单预设')}</span>
               </button>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between px-1 pb-1 text-xs text-gray-500 dark:text-gray-400">
-                <span>提示：按住左侧手柄可上下拖拽自由排序</span>
-                <span>双击文本可快速修改</span>
+                <span>{t('todo.dragTip', '提示：按住左侧手柄可上下拖拽自由排序')}</span>
+                <span>{t('todo.editTip', '双击文本可快速修改')}</span>
               </div>
               <Reorder.Group
                 as="div"
@@ -410,20 +413,20 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                   type="button"
                   onClick={() => dispatch({ type: 'reset_all', itemType: 'checklist' })}
                   className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 hover:bg-black/5 hover:text-primary-600 dark:hover:bg-white/10 dark:hover:text-primary-400 transition-colors cursor-pointer"
-                  title="重置所有勾选，开启新一轮核对"
+                  title={t('todo.resetAllTip', '重置所有勾选，开启新一轮核对')}
                 >
                   <FiRotateCcw className="size-3.5" />
-                  <span>重置所有勾选</span>
+                  <span>{t('todo.resetAll', '重置所有勾选')}</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={() => dispatch({ type: 'clear_completed', itemType: 'todo' })}
                   className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 hover:bg-red-500/10 hover:text-red-500 transition-colors cursor-pointer"
-                  title="清理所有已完成的项目"
+                  title={t('todo.clearCompletedTip', '清理所有已完成的项目')}
                 >
                   <FiTrash2 className="size-3.5" />
-                  <span>清除已完成项目</span>
+                  <span>{t('todo.clearCompleted', '清除已完成项目')}</span>
                 </button>
               )}
 
@@ -433,7 +436,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                 className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 hover:bg-black/5 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white transition-colors cursor-pointer"
               >
                 <FiStar className="size-3.5" />
-                <span>导入预设</span>
+                <span>{t('todo.importPresets', '导入预设')}</span>
               </button>
             </div>
 
@@ -442,10 +445,10 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                 type="button"
                 onClick={handleTestVibrate}
                 className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 hover:bg-black/5 hover:text-primary-600 dark:hover:bg-white/10 dark:hover:text-primary-400 transition-colors cursor-pointer"
-                title="调用系统振动 API 测试"
+                title={t('todo.testVibrateTip', '调用系统振动 API 测试')}
               >
                 <FiSmartphone className="size-3.5" />
-                <span>测试振动</span>
+                <span>{t('todo.testVibrate', '测试振动')}</span>
               </button>
             </div>
           </div>
