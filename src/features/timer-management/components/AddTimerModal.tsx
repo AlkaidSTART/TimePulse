@@ -6,7 +6,7 @@ import { useTimers } from '@/app/providers/TimerProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import CustomSelect from '@/components/composed/CustomSelect';
-import DatePicker from '@/components/composed/DatePicker';
+import DatePicker, { type DatePickerChangeEvent } from '@/components/composed/DatePicker';
 import TimezoneSelectionModal from '@/features/world-clock/components/TimezoneSelectionModal';
 import { Button } from '@/components/ui/button';
 import { AutoResizer, AutoTransition } from '@/components/ui';
@@ -59,9 +59,11 @@ export default function AddTimerModal({ onClose, onBack, embedded = false }: Add
   });
   
   // 处理表单输入变化
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement> | DatePickerChangeEvent) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name) {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
   
   // 设置颜色

@@ -27,7 +27,7 @@ import { cn } from '@/components/ui/utils';
 
 export type DatePickerChangeEvent = {
   target: {
-    name?: string;
+    name: string;
     value: string;
   };
 };
@@ -215,6 +215,7 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(function DatePick
           <button
             type="button"
             id={id}
+            data-testid="datepicker-trigger"
             aria-haspopup="dialog"
             aria-expanded={isOpen}
             disabled={disabled}
@@ -249,7 +250,7 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(function DatePick
                 <span
                   role="button"
                   tabIndex={0}
-                  aria-label={t('common.clear', '清除')}
+                  aria-label={t('common.clearInput', '清空')}
                   className="rounded-full p-1 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                   onClick={handleClear}
                   onKeyDown={(e) => {
