@@ -11,7 +11,6 @@ import {
   FiHeart,
   FiZap,
 } from 'react-icons/fi';
-import { LuSparkles } from 'react-icons/lu';
 import { usePageTransition } from '@/hooks/usePageTransition';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';

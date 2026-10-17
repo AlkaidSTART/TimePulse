@@ -70,10 +70,17 @@ function loadInitialSettings(): PersistedData {
     if (parsed.nickname === '阳光旅人') {
       parsed.nickname = '';
     }
-    return {
+    if (parsed.avatar === '☀️' || parsed.avatar === '太阳' || parsed.avatar === '专注') {
+      parsed.avatar = '';
+    } else if (parsed.avatar) {
+      parsed.avatar = parsed.avatar.replace(/☀️/g, '').replace(/太阳/g, '').trim();
+    }
+    const merged = {
       ...DEFAULT_SETTINGS,
       ...parsed,
     };
+    saveSettings(merged);
+    return merged;
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -108,6 +115,12 @@ export const usePersonalSettingsStore = create<PersonalSettingsState>((set, get)
     updateSettings: (partial) => {
       set((state) => {
         const nextState = { ...state, ...partial };
+        if (nextState.avatar) {
+          nextState.avatar = nextState.avatar.replace(/☀️/g, '').replace(/太阳/g, '').trim();
+        }
+        if (nextState.nickname === '阳光旅人') {
+          nextState.nickname = '';
+        }
         saveSettings({
           nickname: nextState.nickname,
           avatar: nextState.avatar,

@@ -1,4 +1,4 @@
-import { useState, useId } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
   FiArrowLeft,
@@ -57,11 +57,29 @@ export default function PersonalSettingsPage() {
     resetSettings,
   } = usePersonalSettingsStore();
 
-  const [inputNickname, setInputNickname] = useState(nickname);
+  const cleanInitialNickname = nickname === '阳光旅人' ? '' : nickname;
+  const cleanInitialAvatar =
+    avatar === '☀️' || avatar === '太阳' || avatar === '专注'
+      ? ''
+      : avatar.replace(/☀️/g, '').replace(/太阳/g, '').trim();
+
+  const [inputNickname, setInputNickname] = useState(cleanInitialNickname);
   const [inputMotto, setInputMotto] = useState(customMotto);
-  const [selectedAvatar, setSelectedAvatar] = useState(avatar);
+  const [selectedAvatar, setSelectedAvatar] = useState(cleanInitialAvatar);
   const [newNoteContent, setNewNoteContent] = useState('');
   const [saveToast, setSaveToast] = useState(false);
+
+  useEffect(() => {
+    if (avatar.includes('☀️') || avatar.includes('太阳') || avatar === '专注') {
+      const cleaned = avatar.replace(/☀️/g, '').replace(/太阳/g, '').trim();
+      updateSettings({ avatar: cleaned });
+      setSelectedAvatar(cleaned);
+    }
+    if (nickname === '阳光旅人') {
+      updateSettings({ nickname: '' });
+      setInputNickname('');
+    }
+  }, [avatar, nickname, updateSettings]);
 
   const nicknameInputId = useId();
   const mottoInputId = useId();
@@ -70,11 +88,13 @@ export default function PersonalSettingsPage() {
 
   // 保存个人资料修改
   const handleSaveProfile = () => {
+    const cleanAvatar = selectedAvatar.replace(/☀️/g, '').replace(/太阳/g, '').trim();
     updateSettings({
       nickname: inputNickname.trim(),
-      avatar: selectedAvatar,
+      avatar: cleanAvatar,
       customMotto: inputMotto.trim(),
     });
+    setSelectedAvatar(cleanAvatar);
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 2000);
   };
@@ -193,7 +213,10 @@ export default function PersonalSettingsPage() {
                 type="text"
                 maxLength={4}
                 value={selectedAvatar}
-                onChange={(e) => setSelectedAvatar(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/☀️/g, '').replace(/太阳/g, '');
+                  setSelectedAvatar(val);
+                }}
                 placeholder=""
                 aria-label="自定义标签"
                 className="w-20 px-2.5 py-1.5 rounded-xl text-center text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/10 dark:border-white/15 focus:outline-none focus:ring-2 focus:ring-primary-500"

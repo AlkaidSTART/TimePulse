@@ -58,4 +58,15 @@ describe('usePersonalSettingsStore', () => {
     state = usePersonalSettingsStore.getState();
     expect(state.cheerNotes.length).toBe(0);
   });
+
+  it('sanitizes legacy sun emoji or text from avatar and nickname', () => {
+    const { updateSettings } = usePersonalSettingsStore.getState();
+    updateSettings({
+      avatar: '☀️4',
+      nickname: '阳光旅人',
+    });
+    const state = usePersonalSettingsStore.getState();
+    expect(state.avatar).toBe('4');
+    expect(state.nickname).toBe('');
+  });
 });
