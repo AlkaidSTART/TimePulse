@@ -302,10 +302,14 @@ export default function MobileTabBar({
           opacity: isVisible ? 1 : 0,
         }}
         transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed bottom-3 inset-x-3 z-40 lg:hidden max-w-[400px] sm:max-w-[440px] mx-auto pointer-events-auto"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        className="fixed bottom-3 landscape:bottom-1.5 inset-x-3 z-40 lg:hidden max-w-[400px] sm:max-w-[440px] landscape:max-w-[360px] mx-auto pointer-events-auto"
+        style={{
+          paddingBottom: 'max(0px, env(safe-area-inset-bottom, 0px))',
+          paddingLeft: 'env(safe-area-inset-left, 0px)',
+          paddingRight: 'env(safe-area-inset-right, 0px)',
+        }}
       >
-        <div className="relative mx-auto flex h-[64px] w-full items-center justify-around rounded-full border border-black/[0.06] bg-white/80 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.08),0_4px_12px_-2px_rgba(0,0,0,0.04)] backdrop-blur-2xl cream:bg-[#faf7ee]/90 cream:border-stone-300/50 cream:shadow-[0_12px_36px_-6px_rgba(120,95,65,0.12),0_4px_12px_-2px_rgba(120,95,65,0.05)] dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)] overflow-hidden">
+        <div className="relative mx-auto flex h-[64px] landscape:h-[46px] w-full items-center justify-around rounded-full border border-black/[0.06] bg-white/80 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.08),0_4px_12px_-2px_rgba(0,0,0,0.04)] backdrop-blur-2xl cream:bg-[#faf7ee]/90 cream:border-stone-300/50 cream:shadow-[0_12px_36px_-6px_rgba(120,95,65,0.12),0_4px_12px_-2px_rgba(120,95,65,0.05)] dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)] overflow-hidden">
           {/* Top 1px Specular Light Shelf */}
           <div
             className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 cream:via-white/95 dark:via-white/20 to-transparent"
@@ -321,7 +325,7 @@ export default function MobileTabBar({
                     type="button"
                     onClick={handleAddClick}
                     whileTap={{ scale: 0.92 }}
-                    className="liquid-droplet-button relative flex size-11 items-center justify-center rounded-full text-gray-900 dark:text-white cursor-pointer transition-all focus:outline-none overflow-hidden select-none"
+                    className="liquid-droplet-button relative flex size-11 landscape:size-9 items-center justify-center rounded-full text-gray-900 dark:text-white cursor-pointer transition-all focus:outline-none overflow-hidden select-none"
                     aria-label="新建计时器"
                   >
                     {/* Top Specular Lens Dome Highlight */}
@@ -342,7 +346,7 @@ export default function MobileTabBar({
                       className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/50 dark:via-white/20 to-transparent"
                       aria-hidden="true"
                     />
-                    <FiPlus className="size-5 stroke-[2.6] text-gray-900 dark:text-white relative z-10 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]" />
+                    <FiPlus className="size-5 landscape:size-4 stroke-[2.6] text-gray-900 dark:text-white relative z-10 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]" />
                   </motion.button>
                 </div>
               );
@@ -393,13 +397,13 @@ export default function MobileTabBar({
 
                   {/* Content: Icon + Label (Strictly Transparent Achromatic Liquid Glass Contrast, Zero Blue) */}
                   <motion.div
-                    className="relative z-10 flex flex-col items-center justify-center gap-1"
+                    className="relative z-10 flex flex-col items-center justify-center gap-1 landscape:gap-0.5"
                     animate={isActive ? { scale: [0.96, 1.04, 1] } : { scale: 1 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                   >
                     <div className="relative">
                       <Icon
-                        className={`size-[18px] transition-colors duration-200 ${
+                        className={`size-[18px] landscape:size-[15px] transition-colors duration-200 ${
                           isActive
                             ? 'stroke-[2.4] text-gray-950 dark:text-white drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
                             : 'stroke-[1.8] text-stone-500 hover:text-stone-700 dark:text-gray-400 dark:hover:text-gray-200'
@@ -407,7 +411,7 @@ export default function MobileTabBar({
                       />
                     </div>
                     <span
-                      className={`text-[10px] tracking-tight transition-colors duration-200 whitespace-nowrap ${
+                      className={`text-[10px] landscape:text-[9px] tracking-tight transition-colors duration-200 whitespace-nowrap ${
                         isActive
                           ? 'font-bold text-gray-950 dark:text-white drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
                           : 'font-medium text-stone-500 dark:text-gray-400'

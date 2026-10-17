@@ -222,7 +222,7 @@ export default function Home() {
                 animate={{ y: isFullscreen && !isHeaderVisible ? 0 : headerHeight / 2 }}
                 transition={{ y: { duration: shouldReduceMotion ? 0 : 0.45, ease: 'easeInOut' } }}
                 className={`relative flex h-full min-h-0 flex-col items-center justify-center ${
-                  isFullscreen ? '' : 'py-6 lg:py-12 pb-24 lg:pb-12'
+                  isFullscreen ? '' : 'py-6 lg:py-12 pb-24 lg:pb-12 landscape:py-2 landscape:pb-14 lg:landscape:py-12 lg:landscape:pb-12'
                 }`}
                 data-page-view="main"
               >

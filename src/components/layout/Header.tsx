@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls, useReducedMotion } from 'framer-motion';
-import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo, FiUser } from 'react-icons/fi';
+import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo, FiUser, FiRotateCw } from 'react-icons/fi';
 import { SiWechat } from 'react-icons/si';
 import { LuPalette } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
@@ -20,6 +20,7 @@ import WebDock from './WebDock';
 import AnimatedLogo from './AnimatedLogo';
 import RouteNavigation from './RouteNavigation';
 import { usePageTransition } from '@/hooks/usePageTransition';
+import { useOrientation } from '@/hooks/useOrientation';
 import { useTodoStore, useVersionStore } from '@/stores';
 import { FiList } from 'react-icons/fi';
 import { throttle, debounce } from '@/utils/performance';
@@ -153,6 +154,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const { theme, toggleTheme, accentColor } = useTheme();
   const { isFullscreen, isHeaderVisible, headerHideDelay, showHeader, hideHeader, toggleFullscreen } = useFullscreen();
   const { view, transitionTo } = usePageTransition();
+  const { isLandscape, toggleOrientation } = useOrientation();
   const { t, currentLang, changeLanguage } = useTranslation();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>(() => (view === 'main' ? 'timer' : (view as MobileTab)));
@@ -782,8 +784,12 @@ export default function Header({ onHeightChange }: HeaderProps) {
 
       {/* Mobile & Pad Top Bar: Refined Minimal Header */}
       <div
-        className="lg:hidden flex items-center justify-between px-4 md:px-8 pt-3.5 pb-1 w-full pointer-events-auto bg-transparent"
-        style={{ paddingTop: 'max(0.875rem, env(safe-area-inset-top, 0px))' }}
+        className="lg:hidden flex items-center justify-between px-4 md:px-8 pt-3.5 pb-1 landscape:pt-1.5 landscape:pb-0.5 w-full pointer-events-auto bg-transparent"
+        style={{
+          paddingTop: isLandscape ? 'max(0.375rem, env(safe-area-inset-top, 0px))' : 'max(0.875rem, env(safe-area-inset-top, 0px))',
+          paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
+          paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
+        }}
       >
         {/* Brand Logo with subtle ambient highlight & Quick Timer List Entry */}
         <div className="flex items-center gap-2">
@@ -828,7 +834,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
           </button>
         </div>
 
-        {/* Right Side: Quick Action Group (Timezone, Share, Settings) */}
+        {/* Right Side: Quick Action Group (Timezone, Share, Orientation, Settings) */}
         <div className="flex items-center gap-1.5">
           {timezoneInfo && (
             <div
@@ -851,6 +857,21 @@ export default function Header({ onHeightChange }: HeaderProps) {
             <FiShare2 className="size-3.5" />
           </button>
 
+          {/* 横竖屏切换 (Toggle Screen Orientation) */}
+          <button
+            type="button"
+            className={`inline-flex size-8 items-center justify-center rounded-full border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all ${
+              isLandscape
+                ? 'bg-black/10 dark:bg-white/20 text-gray-900 dark:text-white'
+                : 'bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14]'
+            }`}
+            onClick={() => void toggleOrientation()}
+            aria-label={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
+            title={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
+          >
+            <FiRotateCw className={`size-3.5 transition-transform duration-300 ${isLandscape ? 'rotate-90 text-primary-500' : ''}`} />
+          </button>
+
           {/* 个人设置 (Personal Settings Route) */}
           <button
             type="button"
@@ -863,8 +884,8 @@ export default function Header({ onHeightChange }: HeaderProps) {
               transitionTo('settings');
               setMobileTab('settings');
             }}
-            aria-label={t('header.settingsShort', '设置')}
-            title={t('header.settingsShort', '设置')}
+            aria-label={t('header.settingsTab', '个人设置')}
+            title={t('header.settingsTab', '个人设置')}
           >
             <FiUser className="size-3.5" />
             {hasUpdate && (

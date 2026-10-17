@@ -61,6 +61,9 @@
     "todoShort": "待办",
     "manageShort": "列表",
     "settingsShort": "设置",
+    "toggleOrientation": "横竖屏切换",
+    "rotateToLandscape": "切换横屏",
+    "rotateToPortrait": "切换竖屏",
     "themeLibrary": "字体配色",
     "navAria": "页面路由导航",
     "pendingTodos": "个待办待完成"
@@ -489,7 +492,12 @@
     "todoWidgetDesc": "右下角悬浮胶囊与轻量弹窗",
     "view": "查看",
     "timerColor": "主题颜色",
-    "saveChanges": "保存更改"
+    "saveChanges": "保存更改",
+    "orientation": "横竖屏与显示",
+    "orientationDesc": "支持自适应旋转、全屏横屏时钟与 StandBy 桌面模式",
+    "orientationPortrait": "竖屏模式",
+    "orientationLandscape": "横屏模式",
+    "autoRotateNotice": "支持跟随手机重力感应自动切换，也可手动一键锁定横屏"
   },
   "version": {
     "title": "版本与更新",

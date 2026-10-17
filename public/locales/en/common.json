@@ -61,6 +61,9 @@
     "todoShort": "Tasks",
     "manageShort": "List",
     "settingsShort": "Settings",
+    "toggleOrientation": "Toggle Orientation",
+    "rotateToLandscape": "Switch to Landscape",
+    "rotateToPortrait": "Switch to Portrait",
     "themeLibrary": "Font Colors",
     "navAria": "Page navigation",
     "pendingTodos": "tasks pending"
@@ -489,7 +492,12 @@
     "todoWidgetDesc": "Bottom-right floating capsule & popup window",
     "view": "View",
     "timerColor": "Timer Color",
-    "saveChanges": "Save Changes"
+    "saveChanges": "Save Changes",
+    "orientation": "Orientation & Display",
+    "orientationDesc": "Adaptive auto-rotation, landscape clock and StandBy desk mode",
+    "orientationPortrait": "Portrait",
+    "orientationLandscape": "Landscape",
+    "autoRotateNotice": "Supports device gravity auto-rotation, or manually lock to landscape"
   },
   "version": {
     "title": "Version & Updates",

@@ -29,30 +29,38 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
-              return 'vendor-react';
-            }
-            if (id.includes('framer-motion')) {
-              return 'vendor-motion';
-            }
-            if (id.includes('qrcode.react')) {
-              return 'vendor-qr';
-            }
-            if (id.includes('react-colorful')) {
-              return 'vendor-color';
-            }
-            if (id.includes('date-fns') || id.includes('solarlunar')) {
-              return 'vendor-date';
-            }
-            if (id.includes('@number-flow') || id.includes('overlayscrollbars')) {
-              return 'vendor-ui';
-            }
-            if (id.includes('react-icons') || id.includes('lucide-react')) {
-              return 'vendor-icons';
-            }
-            return 'vendor-misc';
+          if (!id.includes('node_modules')) return;
+          const parts = id.split('node_modules/');
+          const rawPkg = parts[parts.length - 1];
+          const pkg = rawPkg.startsWith('@')
+            ? rawPkg.split('/').slice(0, 2).join('/')
+            : rawPkg.split('/')[0];
+
+          if (pkg === 'react' || pkg === 'react-dom' || pkg === 'scheduler') {
+            return 'vendor-react';
           }
+          if (pkg === 'framer-motion' || pkg === 'motion' || pkg?.startsWith('motion-')) {
+            return 'vendor-motion';
+          }
+          if (pkg === 'qrcode.react') {
+            return 'vendor-qr';
+          }
+          if (pkg === 'react-colorful') {
+            return 'vendor-color';
+          }
+          if (pkg === 'date-fns' || pkg === 'solarlunar') {
+            return 'vendor-date';
+          }
+          if (pkg?.startsWith('@radix-ui') || pkg?.startsWith('@floating-ui')) {
+            return 'vendor-radix';
+          }
+          if (pkg?.includes('number-flow') || pkg === 'overlayscrollbars' || pkg === 'clsx' || pkg === 'tailwind-merge' || pkg === 'class-variance-authority') {
+            return 'vendor-ui';
+          }
+          if (pkg === 'react-icons' || pkg === 'lucide-react') {
+            return 'vendor-icons';
+          }
+          return 'vendor-misc';
         },
       },
     },

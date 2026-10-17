@@ -186,17 +186,6 @@ export default function CheerPage() {
           className="relative w-full rounded-2xl border border-black/[0.06] dark:border-white/10 bg-white/60 dark:bg-white/[0.04] p-5 sm:p-6 text-center backdrop-blur-xl shadow-xs"
         >
           <div className="relative z-10 flex flex-col items-center">
-            {/* 顶栏小标签：专属称呼 / 问候 */}
-            <div className="mb-2 flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-              <LuSparkles className="size-3 text-amber-500" />
-              <span>{nickname ? `致 ${nickname}` : '美好时光'}</span>
-              {cheerCount > 0 && (
-                <span className="text-[11px] px-1.5 py-0.2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-300 font-medium ml-0.5">
-                  已充能 {cheerCount}
-                </span>
-              )}
-            </div>
-
             {/* 舒适适中的问候语（去除了过大的粗暴加粗标题） */}
             <h1 className="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100 leading-relaxed max-w-lg">
               {greetingText}

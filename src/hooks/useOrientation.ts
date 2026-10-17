@@ -28,6 +28,15 @@ function getSystemOrientation(): { orientation: OrientationType; angle: number; 
     return { orientation: 'portrait', angle: 0, isLandscape: false };
   }
 
+  const simulated = typeof document !== 'undefined' ? document.documentElement.dataset.simulatedOrientation : undefined;
+  if (simulated === 'landscape' || simulated === 'portrait') {
+    return {
+      orientation: simulated,
+      angle: simulated === 'landscape' ? 90 : 0,
+      isLandscape: simulated === 'landscape',
+    };
+  }
+
   // 1. Check screen.orientation API
   if (window.screen?.orientation?.type) {
     const isLand = window.screen.orientation.type.startsWith('landscape');

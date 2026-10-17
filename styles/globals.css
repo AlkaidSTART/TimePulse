@@ -3,6 +3,7 @@
 @source "../src";
 @custom-variant cream (&:where(.cream, .cream *));
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant mobile-landscape (@media (orientation: landscape) and (max-height: 550px));
 
 /* Keep every Tailwind ring inside its control so overflow/animation wrappers cannot clip it. */
 [class^="ring-"],
@@ -69,6 +70,15 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
 html[data-android-app='true'] {
   --tp-safe-top: max(env(safe-area-inset-top, 0px), 24px);
   --tp-safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px);
+}
+
+@media (orientation: landscape) {
+  html[data-android-app='true'] {
+    --tp-safe-top: env(safe-area-inset-top, 0px);
+    --tp-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --tp-safe-left: max(env(safe-area-inset-left, 0px), 16px);
+    --tp-safe-right: max(env(safe-area-inset-right, 0px), 16px);
+  }
 }
 
 /* 主内容让出系统栏。桌面浏览器 env() 恒为 0，这里等同于无变化。 */

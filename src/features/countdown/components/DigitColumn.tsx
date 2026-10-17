@@ -21,21 +21,21 @@ const sixtyBasedDigits = {
 };
 
 const fontSizeClasses: Record<FontSize, string> = {
-  small: 'text-4xl sm:text-5xl md:text-6xl',
-  medium: 'text-5xl sm:text-6xl md:text-7xl',
-  large: 'text-6xl sm:text-7xl md:text-8xl',
+  small: 'text-4xl sm:text-5xl md:text-6xl landscape:max-md:text-3xl landscape:max-md:sm:text-4xl',
+  medium: 'text-5xl sm:text-6xl md:text-7xl landscape:max-md:text-4xl landscape:max-md:sm:text-5xl',
+  large: 'text-6xl sm:text-7xl md:text-8xl landscape:max-md:text-5xl landscape:max-md:sm:text-6xl',
 };
 
 const labelFontSizeClasses: Record<FontSize, string> = {
-  small: 'text-sm',
-  medium: 'text-base',
-  large: 'text-lg',
+  small: 'text-sm landscape:max-md:text-xs',
+  medium: 'text-base landscape:max-md:text-xs',
+  large: 'text-lg landscape:max-md:text-sm',
 };
 
 const labelSlotHeightClasses: Record<FontSize, string> = {
-  small: 'h-5',
-  medium: 'h-6',
-  large: 'h-7',
+  small: 'h-5 landscape:max-md:h-4',
+  medium: 'h-6 landscape:max-md:h-4',
+  large: 'h-7 landscape:max-md:h-5',
 };
 
 function DigitColumn({
@@ -51,8 +51,8 @@ function DigitColumn({
   const shouldReduceMotion = useReducedMotion();
   const digitCount = Math.max(2, Math.abs(value).toString().length);
   const widthClass = digitCount >= 3
-    ? 'w-24 sm:w-32 md:w-40'
-    : 'w-20 sm:w-24 md:w-32';
+    ? 'w-24 sm:w-32 md:w-40 landscape:max-md:w-20 landscape:max-md:sm:w-28'
+    : 'w-20 sm:w-24 md:w-32 landscape:max-md:w-16 landscape:max-md:sm:w-20';
 
   const numberFlowTiming = useMemo(() => ({
     duration: shouldReduceMotion ? 0 : 420,
@@ -71,7 +71,7 @@ function DigitColumn({
       className="flex flex-col items-center"
     >
       <motion.div
-        className={`${widthClass} h-24 sm:h-32 md:h-36 rounded-2xl liquid-glass-digit flex items-center justify-center relative overflow-hidden`}
+        className={`${widthClass} h-24 sm:h-32 md:h-36 landscape:max-md:h-20 landscape:max-md:sm:h-24 rounded-2xl liquid-glass-digit flex items-center justify-center relative overflow-hidden`}
         whileHover={shouldReduceMotion ? undefined : {
           scale: 1.025,
           y: -2,

@@ -169,7 +169,7 @@ function CalendarTimeRows({
 
   return (
     <motion.div
-      className="flex flex-col items-center justify-center lg:flex-row"
+      className="flex flex-col landscape:flex-row lg:flex-row items-center justify-center"
       layout="position"
       animate={{ rowGap: hasCalendarUnits ? 4 : 0 }}
       transition={{
@@ -249,7 +249,7 @@ function CalendarTimeRows({
               transition: { duration: 0.2, delay: calendarExitDelay, ease: 'easeOut' },
             }}
             transition={{ duration: 0.2, ease: 'easeOut', layout: { type: 'tween', duration: 0.28, ease: 'easeInOut' } }}
-            className={`relative hidden lg:mx-2 lg:inline-block ${separatorClassName} font-light text-gray-400/80 dark:text-gray-500/80 select-none`}
+            className={`relative hidden landscape:mx-2 landscape:inline-block lg:mx-2 lg:inline-block ${separatorClassName} font-light text-gray-400/80 dark:text-gray-500/80 select-none`}
             style={{
               top: -separatorVerticalOffset,
             }}
@@ -604,16 +604,16 @@ export default function TimerDisplay() {
     if (isFullscreen) {
       // 全屏模式：使用固定大尺寸
       return {
-        small: 'text-5xl sm:text-6xl md:text-7xl',
-        medium: 'text-6xl sm:text-7xl md:text-8xl',
-        large: 'text-7xl sm:text-8xl md:text-9xl'
+        small: 'text-5xl sm:text-6xl md:text-7xl landscape:max-md:text-4xl landscape:max-md:sm:text-5xl',
+        medium: 'text-6xl sm:text-7xl md:text-8xl landscape:max-md:text-5xl landscape:max-md:sm:text-6xl',
+        large: 'text-7xl sm:text-8xl md:text-9xl landscape:max-md:text-6xl landscape:max-md:sm:text-7xl',
       };
     } else {
       // 普通模式：使用响应式尺寸
       return {
-        small: 'text-4xl sm:text-5xl md:text-6xl',
-        medium: 'text-5xl sm:text-6xl md:text-7xl',
-        large: 'text-6xl sm:text-7xl md:text-8xl'
+        small: 'text-4xl sm:text-5xl md:text-6xl landscape:max-md:text-3xl landscape:max-md:sm:text-4xl',
+        medium: 'text-5xl sm:text-6xl md:text-7xl landscape:max-md:text-4xl landscape:max-md:sm:text-5xl',
+        large: 'text-6xl sm:text-7xl md:text-8xl landscape:max-md:text-5xl landscape:max-md:sm:text-6xl',
       };
     }
   };
@@ -704,10 +704,10 @@ export default function TimerDisplay() {
       {timerTitle ? (
         <AnimatedRegion
           transitionKey="timer-title"
-          className="pb-4"
+          className="pb-4 landscape:max-md:pb-1.5"
         >
           <motion.h2
-            className={`${isFullscreen ? 'text-3xl md:text-4xl' : 'text-xl sm:text-2xl md:text-3xl'} font-medium`}
+            className={`${isFullscreen ? 'text-3xl md:text-4xl landscape:max-md:text-xl' : 'text-xl sm:text-2xl md:text-3xl landscape:max-md:text-lg'} font-medium`}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -767,7 +767,7 @@ export default function TimerDisplay() {
         <AnimatedRegion
           transitionKey={`controls:${activeTimer.id}:${activeTimer.type === 'stopwatch' ? 'stopwatch' : 'none'}`}
           type="slideUp"
-          className="pt-8"
+          className="pt-8 landscape:max-md:pt-3"
         >
           {activeTimer.type === 'stopwatch' ? (
             <motion.div
@@ -814,7 +814,7 @@ export default function TimerDisplay() {
         <AnimatedRegion
           transitionKey={`finished:${activeTimer.id}:${isFinished && activeTimer.type === 'countdown' ? 'yes' : 'no'}`}
           type="scale"
-          className="pt-8"
+          className="pt-8 landscape:max-md:pt-3"
         >
           {isFinished && activeTimer.type === 'countdown' ? (
             <motion.div
@@ -831,7 +831,7 @@ export default function TimerDisplay() {
         {getTimerDescription() ? (
           <AnimatedRegion
             transitionKey={`description:${activeTimer.id}:${activeTimer.type}:${getTimerDescription()}`}
-            className="pt-6"
+            className="pt-6 landscape:max-md:pt-2"
           >
             <motion.p
               className="text-sm text-gray-500 dark:text-gray-400"
@@ -847,7 +847,7 @@ export default function TimerDisplay() {
         <AnimatedRegion
           transitionKey={`laps:${activeTimer.id}:${activeStopwatchTimer?.laps?.length ?? 0}`}
           type="slideUp"
-          className="pt-6"
+          className="pt-6 landscape:max-md:pt-2"
         >
           {activeStopwatchTimer && activeStopwatchTimer.laps && activeStopwatchTimer.laps.length > 0 ? (
             <motion.button
