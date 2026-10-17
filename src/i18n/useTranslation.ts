@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { normalizeLanguage, type Language } from './types';
+import defaultZhTranslations from '../../public/locales/zh/common.json';
 
 type TranslationTree = Record<string, unknown>;
 type TranslationFunction = (key: string, defaultValue?: string) => string;
@@ -35,17 +36,24 @@ export function useTranslation(): {
   changeLanguage: (language: Language) => void;
   isLoading: boolean;
 } {
-  const [translations, setTranslations] = useState<TranslationTree>({});
-  const [currentLang, setCurrentLang] = useState<Language>('zh-CN');
-  const [isLoading, setIsLoading] = useState(true);
+  const [currentLang, setCurrentLang] = useState<Language>(() => getLanguage());
+  const [translations, setTranslations] = useState<TranslationTree>(
+    () => defaultZhTranslations as TranslationTree,
+  );
+  const [isLoading, setIsLoading] = useState(() => getLanguage() !== 'zh-CN');
 
   useEffect(() => {
     let cancelled = false;
     const initializeTranslations = async () => {
       const language = getLanguage();
       setCurrentLang(language);
+      if (language === 'zh-CN') {
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(true);
       const translationData = await loadLanguageFile(language);
-      const fallbackData = translationData ?? (await loadLanguageFile('zh-CN'));
+      const fallbackData = translationData ?? (defaultZhTranslations as TranslationTree);
       if (!cancelled && fallbackData) setTranslations(fallbackData);
       if (!cancelled) setIsLoading(false);
     };
@@ -54,10 +62,12 @@ export function useTranslation(): {
   }, []);
 
   const t = useCallback<TranslationFunction>((key, defaultValue = '') => {
-    if (isLoading) return defaultValue;
     const value = getNestedValue(translations, key);
-    return typeof value === 'string' || typeof value === 'number' ? String(value) : (defaultValue || key);
-  }, [isLoading, translations]);
+    if (typeof value === 'string' || typeof value === 'number') {
+      return String(value);
+    }
+    return defaultValue || key;
+  }, [translations]);
 
   const changeLanguage = (language: Language) => {
     const url = new URL(window.location.href);

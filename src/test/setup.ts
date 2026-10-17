@@ -37,3 +37,28 @@ if (!isStorageUsable()) {
     writable: true,
   });
 }
+
+// 模拟测试环境下的 i18n 静态语言文件 fetch 请求
+import zhLocale from '../../public/locales/zh/common.json';
+import enLocale from '../../public/locales/en/common.json';
+
+const originalFetch = globalThis.fetch;
+globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  const urlStr = String(input);
+  if (urlStr.includes('/locales/en/common.json') || urlStr.includes('/locales/en-US/common.json')) {
+    return new Response(JSON.stringify(enLocale), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  if (urlStr.includes('/locales/zh/common.json') || urlStr.includes('/locales/zh-CN/common.json')) {
+    return new Response(JSON.stringify(zhLocale), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  if (originalFetch) {
+    return originalFetch(input, init);
+  }
+  return new Response('{}', { status: 404 });
+};

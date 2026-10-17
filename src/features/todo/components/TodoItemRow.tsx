@@ -22,7 +22,7 @@ export default function TodoItemRow({
   onEdit,
   onDragEnd,
 }: TodoItemRowProps) {
-  const { t } = useTranslation();
+  const { t, currentLang } = useTranslation();
   const dragControls = useDragControls();
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(item.text);
@@ -88,7 +88,11 @@ export default function TodoItemRow({
           borderColor: item.completed ? accentColor : undefined,
           backgroundColor: item.completed ? accentColor : 'transparent',
         }}
-        aria-label={`${item.text} - ${item.completed ? t('todo.itemAriaCompleted') : t('todo.itemAriaUncompleted')}`}
+        aria-label={
+          currentLang === 'en-US'
+            ? `${item.completed ? t('todo.itemAriaCompleted') : t('todo.itemAriaUncompleted')}: ${item.text}`
+            : `将${item.text}${item.completed ? t('todo.itemAriaCompleted') : t('todo.itemAriaUncompleted')}`
+        }
       >
         {item.completed && (
           <motion.div

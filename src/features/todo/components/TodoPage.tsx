@@ -163,19 +163,18 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
 
   // 一键载入专注预设清单
   const handleLoadFocusPresets = () => {
-    const isEn = currentLang === 'en-US';
     const presets =
       state.activeTab === 'checklist'
         ? [
-            { text: isEn ? 'Pour a warm glass of water' : '倒好温水并放好水杯', type: 'checklist' as TodoType },
-            { text: isEn ? 'Enable Do Not Disturb / Silent mode' : '手机开启勿扰 / 静音模式', type: 'checklist' as TodoType },
-            { text: isEn ? 'Close unrelated tabs and chat apps' : '关闭无关浏览器标签页与聊天软件', type: 'checklist' as TodoType },
-            { text: isEn ? 'Write down core goal for this session' : '写下本轮番茄钟核心交付物', type: 'checklist' as TodoType },
+            { text: t('todo.presetChecklist1', '倒好温水并放好水杯'), type: 'checklist' as TodoType },
+            { text: t('todo.presetChecklist2', '手机开启勿扰 / 静音模式'), type: 'checklist' as TodoType },
+            { text: t('todo.presetChecklist3', '关闭无关浏览器标签页与聊天软件'), type: 'checklist' as TodoType },
+            { text: t('todo.presetChecklist4', '写下本轮番茄钟核心交付物'), type: 'checklist' as TodoType },
           ]
         : [
-            { text: isEn ? "Identify today's 3 most critical tasks" : '梳理今天最重要的 3 件事', type: 'todo' as TodoType },
-            { text: isEn ? 'Stay focused and complete milestone 1' : '保持专注，完成第一阶段核心目标', type: 'todo' as TodoType },
-            { text: isEn ? 'Review notes and wrap up daily progress' : '整理工作笔记与复盘今日进展', type: 'todo' as TodoType },
+            { text: t('todo.presetTodo1', '梳理今天最重要的 3 件事'), type: 'todo' as TodoType },
+            { text: t('todo.presetTodo2', '保持专注，完成第一阶段核心目标'), type: 'todo' as TodoType },
+            { text: t('todo.presetTodo3', '整理工作笔记与复盘今日进展'), type: 'todo' as TodoType },
           ];
     dispatch({ type: 'batch_add', items: presets });
   };
