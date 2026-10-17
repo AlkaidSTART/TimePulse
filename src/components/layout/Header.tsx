@@ -1,14 +1,13 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
-import { FiMenu, FiX, FiSettings, FiMoon, FiSun, FiUser, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage } from 'react-icons/fi';
+import { FiMenu, FiX, FiSettings, FiMoon, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage } from 'react-icons/fi';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Language } from '@/i18n/types';
-import { LoginModal } from '@/features/sync';
 import { ShareModal } from '@/features/sharing';
 import TimerCreationFlow from '@/features/timer-management/components/TimerCreationFlow';
 import TimerTabs from '@/features/timer-management/components/TimerTabs';
@@ -111,7 +110,6 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const { t, changeLanguage } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isManageOpen, setIsManageOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [editingTimer, setEditingTimer] = useState<TimerEditState | null>(null);
   const [manageDirection, setManageDirection] = useState<1 | -1>(1);
@@ -176,14 +174,6 @@ export default function Header({ onHeightChange }: HeaderProps) {
     ...timerOrder.filter((id) => timersById.has(id)),
     ...timers.map((timer) => timer.id).filter((id) => !timerOrder.includes(id)),
   ];
-  // 打开登录模态框
-  const openLoginModal = () => {
-    setIsLoginOpen(true);
-    if (window.location.hash !== '#login') {
-      window.location.hash = 'login';
-    }
-  };
-
   // 处理全屏切换
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -375,16 +365,6 @@ export default function Header({ onHeightChange }: HeaderProps) {
               {isFullscreen ? <FiMinimize className="text-xl" /> : <FiMaximize className="text-xl" />}
             </button>
 
-            {/* 登录按钮 */}
-            <button
-              className="p-2 ml-1 rounded-full btn-ghost text-gray-700 dark:text-gray-300 cursor-pointer"
-              onClick={openLoginModal}
-              data-insightflare-event="login_open"
-              data-insightflare-event-from="desktop"
-            >
-              <FiUser className="text-xl" />
-            </button>
-
             {/* 主题切换 */}
             <button
               className="p-2 ml-1 rounded-full btn-ghost text-gray-700 dark:text-gray-300 cursor-pointer"
@@ -518,20 +498,6 @@ export default function Header({ onHeightChange }: HeaderProps) {
                 >
                   <FiSettings className="text-xl" />
                   <span className="text-xs ml-2 flex-1 text-right">{t('header.settings')}</span>
-                </button>
-                
-                {/* 添加"登录"按钮 */}
-                <button
-                  className="flex items-center justify-between p-3 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-gray-200/60 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-black/20 cursor-pointer transition-colors"
-                  onClick={() => {
-                    openLoginModal();
-                    setIsMenuOpen(false);
-                  }}
-                  data-insightflare-event="login_open"
-                  data-insightflare-event-from="mobile"
-                >
-                  <FiUser className="text-xl" />
-                  <span className="text-xs ml-2 flex-1 text-right">{t('header.login')}</span>
                 </button>
                 
                 {/* 添加"分享"按钮 */}
@@ -870,18 +836,6 @@ export default function Header({ onHeightChange }: HeaderProps) {
               </div>
             </motion.div>
           </motion.div>
-        ) : null}
-      </AutoTransition>
-
-      {/* 登录模态框 */}
-      <AutoTransition portal transitionKey={isLoginOpen ? 'login-open' : 'login-closed'} initial={false} type="fade">
-        {isLoginOpen ? (
-          <LoginModal onClose={() => {
-            setIsLoginOpen(false);
-            if (window.location.hash === '#login') {
-              window.location.hash = '';
-            }
-          }} />
         ) : null}
       </AutoTransition>
 

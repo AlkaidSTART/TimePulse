@@ -52,11 +52,6 @@ export interface WorldClockTimer extends BaseTimer {
 
 export type Timer = CountdownTimer | StopwatchTimer | WorldClockTimer;
 
-export interface SyncPayload {
-  timers: Timer[];
-  activeTimerId: string | null;
-}
-
 export interface Holiday {
   name: string;
   date: string;
@@ -128,14 +123,6 @@ export function parseTimer(value: unknown): Timer | null {
 export function parseTimers(value: unknown): Timer[] {
   if (!Array.isArray(value)) return [];
   return value.map(parseTimer).filter((timer): timer is Timer => timer !== null);
-}
-
-export function parseSyncPayload(value: unknown): SyncPayload | null {
-  const record = asRecord(value);
-  if (!record) return null;
-  const timers = parseTimers(record.timers);
-  const activeTimerId = typeof record.activeTimerId === 'string' ? record.activeTimerId : null;
-  return { timers, activeTimerId };
 }
 
 export function toTimestamp(value: TimeValue | null | undefined): number {

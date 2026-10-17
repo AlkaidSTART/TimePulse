@@ -44,7 +44,7 @@ test('loads the static SPA and preserves the add-timer hash flow', async ({ page
   expect(runtimeErrors).toEqual([]);
 });
 
-test('opens the migrated background, sharing, and sync flows', async ({ page }) => {
+test('opens the migrated background and sharing flows', async ({ page }) => {
   const runtimeErrors: string[] = [];
   page.on('pageerror', (error) => runtimeErrors.push(`[pageerror] ${error.message}`));
   page.on('console', (message) => {
@@ -65,10 +65,6 @@ test('opens the migrated background, sharing, and sync flows', async ({ page }) 
   await page.goto('/', { waitUntil: 'commit' });
   await page.locator('[data-insightflare-event="share_open"]').first().click();
   await expect(page.getByRole('heading', { name: '分享计时器' })).toBeVisible();
-
-  await page.goto('/', { waitUntil: 'commit' });
-  await page.locator('[data-insightflare-event="login_open"]').first().click();
-  await expect(page.getByRole('heading', { name: '数据同步' })).toBeVisible();
 
   expect(runtimeErrors).toEqual([]);
 });

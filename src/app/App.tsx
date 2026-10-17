@@ -19,29 +19,6 @@ function useViteAppLifecycle() {
   useEffect(() => {
     console.log(`TimePulse 初始化完成 - ${new Date().toLocaleString()}`);
 
-    const checkSyncId = () => {
-      const params = new URLSearchParams(window.location.search);
-      const syncId = params.get('syncId');
-      const syncPass = params.get('syncPass');
-
-      if (!syncId) return;
-
-      localStorage.setItem('timepulse_sync_id', syncId);
-      console.log(`已从URL导入同步ID: ${syncId}`);
-
-      if (syncPass) {
-        localStorage.setItem('timepulse_sync_password', syncPass);
-        console.log('已从URL导入同步密码');
-      }
-
-      params.delete('syncId');
-      params.delete('syncPass');
-      const nextUrl = `${window.location.pathname}${params.toString() ? `?${params}` : ''}${window.location.hash}`;
-      window.history.replaceState({}, document.title, nextUrl);
-    };
-
-    checkSyncId();
-
     const onControllerChange = () => {
       console.log('Service Worker已接管页面，可以发送通知');
     };
