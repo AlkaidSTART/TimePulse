@@ -2,7 +2,9 @@
 
 致力于成为最漂亮的计时器应用。
 
-TimePulse 是一个具有现代化 UI 和交互的计时器网页应用，支持多计时器管理、数据分享、用户数据同步、全屏展示等功能，可进行倒计时、正计时和显示世界时钟。采用玻璃态设计和流畅动画效果，提供极佳的视觉体验。
+> 本仓库是 [RavelloH/TimePulse](https://github.com/RavelloH/TimePulse) 的独立二次开发版本（非官方）。
+
+TimePulse 是一个具有现代化 UI 和交互的计时器网页应用，支持多计时器管理、数据分享、全屏展示等功能，可进行倒计时、正计时和显示世界时钟。采用玻璃态设计和流畅动画效果，提供极佳的视觉体验。
 
 预览: [TimePulse](https://timepulse.ravelloh.top/)
 
@@ -22,7 +24,7 @@ TimePulse 是一个具有现代化 UI 和交互的计时器网页应用，支持
 
 ### 核心功能
 - 支持多个计时器的创建和管理
-- 数据本地存储与云端同步
+- 数据本地存储
 - 支持生成分享链接和二维码
 - 支持全屏展示模式
 - 智能识别常用节假日
@@ -45,12 +47,11 @@ TimePulse 是一个具有现代化 UI 和交互的计时器网页应用，支持
 - Framer Motion - 高级动画库
 - Tailwind CSS - 实用工具优先的 CSS 框架
 - localStorage - 本地数据持久化
-- [KV Cache](https://github.com/RavelloH/kv-cache) - 云端数据存储服务
 
 ## 快速开始
 > 作为 Vite 构建的纯前端项目，可以在任何静态托管服务上部署。
 >
-> 另外，你也可以下载 [Releases](https://github.com/RavelloH/TimePulse/releases) 中的静态预构建资源（形如site-vx.x.x.zip），将其部署在Github Pages、Cloudflare Pages或其他任何静态托管服务商上
+> 另外，你也可以下载 [Releases](https://github.com/AlkaidSTART/TimePulse/releases) 中的静态预构建资源（形如site-vx.x.x.zip），将其部署在Github Pages、Cloudflare Pages或其他任何静态托管服务商上
 
 ### Vercel一键部署
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRavelloH%2FTimePulse)
@@ -85,7 +86,6 @@ pnpm build
 - 点击右上角菜单切换主题或编辑计时器
 - 点击右上角全屏按钮进入全屏模式
 - 向下滚动可查看更多信息和运行日志
-- 在设置中生成同步ID，用于在不同设备间同步数据
 
 ## 浏览器兼容性
 
@@ -99,4 +99,7 @@ pnpm build
 
 ## 许可证
 
-MIT License
+本项目为 [RavelloH/TimePulse](https://github.com/RavelloH/TimePulse) 的二次开发版本。
+
+- 本项目新增的代码与修改：Apache License 2.0，见 [LICENSE](LICENSE)
+- 源自上游项目的部分：MIT License，见 [LICENSE-MIT](LICENSE-MIT)
