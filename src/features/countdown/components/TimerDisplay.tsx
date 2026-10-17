@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useRef, type ReactNode } from 'react';
+import { Fragment, useState, useEffect, useRef, lazy, Suspense, type ReactNode } from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
@@ -7,7 +7,6 @@ import DigitColumn from './DigitColumn';
 import { addNotification } from '@/services/notificationManager';
 import { track, bucketDurationMs } from '@/services/analytics';
 import { FiPlay, FiPause, FiSquare, FiFlag, FiList } from 'react-icons/fi';
-import LapTimesModal from '@/features/stopwatch/components/LapTimesModal';
 import {
   getTimerType,
   type CountdownTimer,
@@ -21,7 +20,9 @@ import {
 import { splitCalendarDuration } from '@/domain/time';
 import { getNextTimerUpdateDelay } from '../timerSchedule';
 import { AutoResizer, AutoTransition, type TransitionType } from '@/components/ui';
-import StopwatchStopConfirmModal from '@/features/stopwatch/components/StopwatchStopConfirmModal';
+
+const LapTimesModal = lazy(() => import('@/features/stopwatch/components/LapTimesModal'));
+const StopwatchStopConfirmModal = lazy(() => import('@/features/stopwatch/components/StopwatchStopConfirmModal'));
 
 type DisplayTime = {
   years: number;
@@ -847,12 +848,14 @@ export default function TimerDisplay() {
       {/* 分段计时弹窗 */}
       <AutoTransition portal transitionKey={isLapModalOpen && activeStopwatchTimer ? 'lap-modal-open' : 'lap-modal-closed'} initial={false} type="fade">
         {isLapModalOpen && activeStopwatchTimer ? (
-          <LapTimesModal 
-            onClose={() => setIsLapModalOpen(false)}
-            timerId={activeStopwatchTimer.id}
-            laps={activeStopwatchTimer.laps || []}
-            timerColor={activeTimer.color}
-          />
+          <Suspense fallback={null}>
+            <LapTimesModal 
+              onClose={() => setIsLapModalOpen(false)}
+              timerId={activeStopwatchTimer.id}
+              laps={activeStopwatchTimer.laps || []}
+              timerColor={activeTimer.color}
+            />
+          </Suspense>
         ) : null}
       </AutoTransition>
 
@@ -863,18 +866,20 @@ export default function TimerDisplay() {
         type="fade"
       >
         {isStopwatchStopDialogOpen && activeTimer.type === 'stopwatch' ? (
-          <StopwatchStopConfirmModal
-            title={t('controls.stopConfirmTitle')}
-            description={t('controls.stopConfirmDescription')}
-            cancelLabel={t('common.cancel')}
-            confirmLabel={t('controls.stopConfirmAction')}
-            timerColor={activeTimer.color}
-            onCancel={() => setIsStopwatchStopDialogOpen(false)}
-            onConfirm={() => {
-              handleStopwatchControl('stop');
-              setIsStopwatchStopDialogOpen(false);
-            }}
-          />
+          <Suspense fallback={null}>
+            <StopwatchStopConfirmModal
+              title={t('controls.stopConfirmTitle')}
+              description={t('controls.stopConfirmDescription')}
+              cancelLabel={t('common.cancel')}
+              confirmLabel={t('controls.stopConfirmAction')}
+              timerColor={activeTimer.color}
+              onCancel={() => setIsStopwatchStopDialogOpen(false)}
+              onConfirm={() => {
+                handleStopwatchControl('stop');
+                setIsStopwatchStopDialogOpen(false);
+              }}
+            />
+          </Suspense>
         ) : null}
       </AutoTransition>
     </motion.div>

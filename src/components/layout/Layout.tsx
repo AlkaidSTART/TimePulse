@@ -1,8 +1,10 @@
-import type { ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import Header from './Header';
 import UpdateToast from '@/features/notification/components/UpdateToast';
-import { OptimisticUpdateBanner, AboutVersionModal } from '@/features/version';
+import OptimisticUpdateBanner from '@/features/version/components/OptimisticUpdateBanner';
 import { ThemeColorSynchronizer } from '@/app/providers/ThemeProvider';
+
+const AboutVersionModal = lazy(() => import('@/features/version/components/AboutVersionModal'));
 
 type LayoutProps = {
   children: ReactNode;
@@ -21,7 +23,9 @@ export default function Layout({ children, onHeaderHeightChange }: LayoutProps) 
 
         <UpdateToast />
         <OptimisticUpdateBanner />
-        <AboutVersionModal />
+        <Suspense fallback={null}>
+          <AboutVersionModal />
+        </Suspense>
       </div>
     </ThemeColorSynchronizer>
   );

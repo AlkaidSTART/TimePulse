@@ -25,6 +25,37 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+              return 'vendor-react';
+            }
+            if (id.includes('framer-motion')) {
+              return 'vendor-motion';
+            }
+            if (id.includes('qrcode.react')) {
+              return 'vendor-qr';
+            }
+            if (id.includes('react-colorful')) {
+              return 'vendor-color';
+            }
+            if (id.includes('date-fns') || id.includes('solarlunar')) {
+              return 'vendor-date';
+            }
+            if (id.includes('@number-flow') || id.includes('overlayscrollbars')) {
+              return 'vendor-ui';
+            }
+            if (id.includes('react-icons')) {
+              return 'vendor-icons';
+            }
+            return 'vendor-misc';
+          }
+        },
+      },
+    },
   },
   optimizeDeps: {
     noDiscovery: true,

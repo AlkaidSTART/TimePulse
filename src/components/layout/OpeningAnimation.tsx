@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useTheme, type Theme } from '@/app/providers/ThemeProvider';
+import { preloadCriticalResources } from '@/services/resourcePreloader';
 
 const TILE_IDS = [0, 1, 2, 3] as const;
 const TILE_HUE_OFFSETS = [-36, -12, 12, 36];
@@ -65,6 +66,10 @@ export default function OpeningAnimation() {
   const palette = useMemo(() => buildPalette(accentColor, theme), [accentColor, theme]);
 
   const finish = useCallback(() => setIsExiting(true), []);
+
+  useEffect(() => {
+    preloadCriticalResources();
+  }, []);
 
   useEffect(() => {
     if (shouldReduceMotion) {

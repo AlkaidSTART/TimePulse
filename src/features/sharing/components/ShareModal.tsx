@@ -8,7 +8,7 @@ import { useTranslation } from '@/i18n/useTranslation';
 import { createShareUrl } from '@/services/sharing';
 import { track } from '@/services/analytics';
 import CustomSelect from '@/components/composed/CustomSelect';
-import { AutoResizer, AutoTransition } from '@/components/ui';
+import { AutoResizer, AutoTransition, LazyImage } from '@/components/ui';
 
 type ShareModalProps = {
   onClose: () => void;
@@ -219,10 +219,11 @@ export default function ShareModal({ onClose, defaultTab = 'website' }: ShareMod
 
             <div className="mb-6 flex flex-col items-center justify-center">
               <div className="p-4 bg-white rounded-2xl shadow-sm border border-black/5 dark:border-white/10 flex flex-col items-center">
-                <img
+                <LazyImage
                   src="/website-qr.png"
                   alt={t('share.websiteQrAlt', 'TimePulse 网站访问二维码')}
                   className="w-[200px] h-[200px] object-contain select-none"
+                  containerClassName="w-[200px] h-[200px]"
                 />
               </div>
               <p className="mt-2.5 text-xs text-center text-gray-500 dark:text-gray-400">

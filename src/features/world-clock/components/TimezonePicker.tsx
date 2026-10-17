@@ -2,6 +2,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { FiMapPin, FiSearch } from 'react-icons/fi';
 import { useTranslation } from '@/i18n/useTranslation';
 import { allTimezones, getTimezoneAccentColor, type TimezoneOption } from './timezone-data';
+import { useDebouncedValue } from '@/utils/performance';
 
 type TimezonePickerBaseProps = {
   onSelectTimezone: (timezone: TimezoneOption) => void;
@@ -59,6 +60,7 @@ export function TimezonePicker({
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const searchTerm = controlledSearchTerm ?? localSearchTerm;
   const setSearchTerm = setControlledSearchTerm ?? setLocalSearchTerm;
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 150);
 
   const localizedTimezones = useMemo<LocalizedTimezoneOption[]>(() => allTimezones.map((timezone) => {
     const translationKey = `timezone.${timezone.timezone.replace(/\//g, '_').replace(/\-/g, '_')}`;
@@ -81,10 +83,10 @@ export function TimezonePicker({
   }), [t]);
 
   const filteredTimezones = useMemo(() => {
-    const searchLower = searchTerm.toLowerCase();
+    const searchLower = debouncedSearchTerm.trim().toLowerCase();
     if (!searchLower) return localizedTimezones;
     return localizedTimezones.filter((timezone) => timezone.searchIndex.includes(searchLower));
-  }, [localizedTimezones, searchTerm]);
+  }, [localizedTimezones, debouncedSearchTerm]);
 
   const handleSelectTimezone = useCallback((timezone: TimezoneOption): void => {
     onSelectTimezone(timezone);

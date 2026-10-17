@@ -51,6 +51,12 @@ function saveBackgroundSettings(settings: BackgroundSettings): void {
   }
 }
 
+import { debounce } from '@/utils/performance';
+
+const debouncedSaveBackgroundSettings = debounce((settings: BackgroundSettings) => {
+  saveBackgroundSettings(settings);
+}, 200);
+
 const initialSettings = readInitialBackgroundSettings();
 
 export const useBackgroundStore = create<BackgroundState>((set, get) => ({
@@ -83,13 +89,13 @@ export const useBackgroundStore = create<BackgroundState>((set, get) => ({
   setBgOpacity: (bgOpacity) => {
     set({ bgOpacity });
     const { backgroundType, customBackgroundId, backgroundMode, blurAmount } = get();
-    saveBackgroundSettings({ backgroundType, customBackgroundId, backgroundMode, bgOpacity, blurAmount });
+    debouncedSaveBackgroundSettings({ backgroundType, customBackgroundId, backgroundMode, bgOpacity, blurAmount });
   },
 
   setBlurAmount: (blurAmount) => {
     set({ blurAmount });
     const { backgroundType, customBackgroundId, backgroundMode, bgOpacity } = get();
-    saveBackgroundSettings({ backgroundType, customBackgroundId, backgroundMode, bgOpacity, blurAmount });
+    debouncedSaveBackgroundSettings({ backgroundType, customBackgroundId, backgroundMode, bgOpacity, blurAmount });
   },
 
   setBackgroundConfig: (config) => {

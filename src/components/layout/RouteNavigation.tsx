@@ -5,7 +5,7 @@ import { usePageTransition, type PageView } from '@/hooks/usePageTransition';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTranslation } from '@/i18n/useTranslation';
-import { readTodoItems, TODO_STORAGE_EVENT } from '@/features/todo';
+import { readTodoItems, TODO_STORAGE_EVENT } from '@/features/todo/todoStorage';
 
 type RouteNavigationProps = {
   compact?: boolean;

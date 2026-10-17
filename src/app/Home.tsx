@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AutoResizer, AutoTransition } from '@/components/ui';
 import Layout from '@/components/layout/Layout';
-import { CustomBackground, GradientBackground } from '@/features/background/components';
-import BackgroundSettingsModal from '@/features/background/components/BackgroundSettingsModal';
-import FullscreenSettingsModal from '@/features/fullscreen/components/FullscreenSettingsModal';
+import CustomBackground from '@/features/background/components/CustomBackground';
+import GradientBackground from '@/features/background/components/GradientBackground';
 import TimerDisplay from '@/features/countdown/components/TimerDisplay';
 import { useTimers } from './providers/TimerProvider';
 import { useTheme } from './providers/ThemeProvider';
@@ -13,13 +12,16 @@ import { useTranslation } from '@/i18n/useTranslation';
 import { parseShareUrl } from '@/services/sharing';
 import { usePageTransition } from '@/hooks/usePageTransition';
 import {
-  TodoPage,
-  TodoListWidget,
   readTodoWidgetVisible,
   writeTodoWidgetVisible,
   TODO_STORAGE_EVENT,
-} from '@/features/todo';
+} from '@/features/todo/todoStorage';
 import type { Timer } from '../domain/timer';
+
+const BackgroundSettingsModal = lazy(() => import('@/features/background/components/BackgroundSettingsModal'));
+const FullscreenSettingsModal = lazy(() => import('@/features/fullscreen/components/FullscreenSettingsModal'));
+const TodoPage = lazy(() => import('@/features/todo/components/TodoPage'));
+const TodoListWidget = lazy(() => import('@/features/todo/components/TodoListWidget'));
 
 export default function Home() {
   const { timers, activeTimerId, setActiveTimerId, addTimer } = useTimers();
@@ -217,15 +219,17 @@ export default function Home() {
               exit="exit"
               className="absolute inset-0 z-10"
             >
-              <TodoPage
-                onBack={() => transitionTo('main')}
-                onOpenAsWidget={() => {
-                  setIsWidgetEnabled(true);
-                  writeTodoWidgetVisible(true);
-                  transitionTo('main');
-                  setIsTodoWidgetOpen(true);
-                }}
-              />
+              <Suspense fallback={null}>
+                <TodoPage
+                  onBack={() => transitionTo('main')}
+                  onOpenAsWidget={() => {
+                    setIsWidgetEnabled(true);
+                    writeTodoWidgetVisible(true);
+                    transitionTo('main');
+                    setIsTodoWidgetOpen(true);
+                  }}
+                />
+              </Suspense>
             </motion.div>
           ) : null}
         </AnimatePresence>
@@ -234,42 +238,48 @@ export default function Home() {
       {/* 背景设置弹窗 */}
       <AutoTransition portal transitionKey={isBackgroundSettingsOpen ? 'background-open' : 'background-closed'} initial={false}>
         {isBackgroundSettingsOpen ? (
-          <BackgroundSettingsModal onClose={() => {
-            setIsBackgroundSettingsOpen(false);
-            if (window.location.hash === '#background') {
-              window.location.hash = '';
-            }
-          }} />
+          <Suspense fallback={null}>
+            <BackgroundSettingsModal onClose={() => {
+              setIsBackgroundSettingsOpen(false);
+              if (window.location.hash === '#background') {
+                window.location.hash = '';
+              }
+            }} />
+          </Suspense>
         ) : null}
       </AutoTransition>
 
       {/* 全屏设置弹窗 */}
       <AutoTransition portal transitionKey={isFullscreenSettingsOpen ? 'fullscreen-open' : 'fullscreen-closed'} initial={false}>
         {isFullscreenSettingsOpen ? (
-          <FullscreenSettingsModal onClose={() => {
-            setIsFullscreenSettingsOpen(false);
-            if (window.location.hash === '#fullscreen-settings') {
-              window.location.hash = '';
-            }
-          }} />
+          <Suspense fallback={null}>
+            <FullscreenSettingsModal onClose={() => {
+              setIsFullscreenSettingsOpen(false);
+              if (window.location.hash === '#fullscreen-settings') {
+                window.location.hash = '';
+              }
+            }} />
+          </Suspense>
         ) : null}
       </AutoTransition>
 
       {/* 小型支持拖拽的 TodoList & Checklist 悬浮挂件（取决于用户偏好选择是否显示） */}
       {!isFullscreen && view === 'main' && isWidgetEnabled && (
-        <TodoListWidget
-          isOpen={isTodoWidgetOpen}
-          onOpenChange={setIsTodoWidgetOpen}
-          onOpenAsPage={() => {
-            setIsTodoWidgetOpen(false);
-            transitionTo('todo');
-          }}
-          onHideWidget={() => {
-            setIsTodoWidgetOpen(false);
-            writeTodoWidgetVisible(false);
-            setIsWidgetEnabled(false);
-          }}
-        />
+        <Suspense fallback={null}>
+          <TodoListWidget
+            isOpen={isTodoWidgetOpen}
+            onOpenChange={setIsTodoWidgetOpen}
+            onOpenAsPage={() => {
+              setIsTodoWidgetOpen(false);
+              transitionTo('todo');
+            }}
+            onHideWidget={() => {
+              setIsTodoWidgetOpen(false);
+              writeTodoWidgetVisible(false);
+              setIsWidgetEnabled(false);
+            }}
+          />
+        </Suspense>
       )}
     </>
   );

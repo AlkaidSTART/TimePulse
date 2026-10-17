@@ -9,6 +9,7 @@ export default [
       'node_modules/**',
       'test-results/**',
       'playwright-report/**',
+      'src-tauri/target/**',
     ],
   },
   {

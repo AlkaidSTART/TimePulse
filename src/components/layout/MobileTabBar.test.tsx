@@ -1,0 +1,95 @@
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import MobileTabBar from './MobileTabBar';
+import { ThemeProvider } from '@/app/providers/ThemeProvider';
+
+describe('MobileTabBar component', () => {
+  const defaultProps = {
+    activeTab: 'timer' as const,
+    onTabChange: vi.fn(),
+    timers: [
+      {
+        id: 'timer-1',
+        name: '工作倒计时',
+        type: 'countdown' as const,
+        targetDate: new Date(Date.now() + 60000).toISOString(),
+        timezone: 'Asia/Shanghai',
+        color: '#0EA5E9',
+        createdAt: new Date().toISOString(),
+      },
+    ],
+    activeTimerId: 'timer-1',
+    setActiveTimerId: vi.fn(),
+    onOpenAdd: vi.fn(),
+    onOpenBackground: vi.fn(),
+    onOpenFullscreenSettings: vi.fn(),
+    onOpenShare: vi.fn(),
+    theme: 'light' as const,
+    toggleTheme: vi.fn(),
+    isFullscreen: false,
+    toggleFullscreen: vi.fn(),
+    accentColor: '#0EA5E9',
+    isVisible: true,
+    deleteTimer: vi.fn(),
+    updateTimer: vi.fn(),
+    reorderTimers: vi.fn(),
+  };
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('renders all tab navigation items', () => {
+    render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByText(/计时/i)).toBeDefined();
+    expect(screen.getByText(/待办/i)).toBeDefined();
+    expect(screen.getByText(/列表/i)).toBeDefined();
+    expect(screen.getByText(/设置/i)).toBeDefined();
+  });
+
+  it('renders settings and functions bottom sheet in single-screen layout when activeTab is settings', () => {
+    render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="settings" />
+      </ThemeProvider>,
+    );
+
+    // Sheet title
+    expect(screen.getByText('设置与功能')).toBeDefined();
+
+    // Quick control cards
+    expect(screen.getByText(/米白/i)).toBeDefined();
+    expect(screen.getByText(/全屏/i)).toBeDefined();
+    expect(screen.getByText(/挂件/i)).toBeDefined();
+    expect(screen.getByText(/语言/i)).toBeDefined();
+
+    // Features and services
+    expect(screen.getByText(/背景壁纸/i)).toBeDefined();
+    expect(screen.getByText(/待办清单/i)).toBeDefined();
+    expect(screen.getByText(/分享与二维码/i)).toBeDefined();
+    expect(screen.getByText(/版本与更新/i)).toBeDefined();
+  });
+
+  it('triggers toggleTheme when theme card is clicked in settings', () => {
+    render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="settings" />
+      </ThemeProvider>,
+    );
+
+    const themeCard = screen.getByText(/米白/i).closest('button');
+    expect(themeCard).not.toBeNull();
+    fireEvent.click(themeCard!);
+
+    expect(defaultProps.toggleTheme).toHaveBeenCalledTimes(1);
+  });
+});

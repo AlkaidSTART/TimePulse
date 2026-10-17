@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
 import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo } from 'react-icons/fi';
@@ -9,10 +9,7 @@ import { useTheme } from '@/app/providers/ThemeProvider';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Language } from '@/i18n/types';
-import { ShareModal } from '@/features/sharing';
-import TimerCreationFlow from '@/features/timer-management/components/TimerCreationFlow';
 import TimerTabs from '@/features/timer-management/components/TimerTabs';
-import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
 import { AutoResizer, AutoTransition } from '@/components/ui';
 import { LinearDialogTransition } from '@/components/composed';
@@ -22,6 +19,11 @@ import RouteNavigation from './RouteNavigation';
 import { usePageTransition } from '@/hooks/usePageTransition';
 import { useTodoStore, useVersionStore } from '@/stores';
 import { FiList } from 'react-icons/fi';
+import { throttle, debounce } from '@/utils/performance';
+
+const ShareModal = lazy(() => import('@/features/sharing/components/ShareModal'));
+const TimerCreationFlow = lazy(() => import('@/features/timer-management/components/TimerCreationFlow'));
+const HexColorPicker = lazy(() => import('react-colorful').then((m) => ({ default: m.HexColorPicker })));
 
 type TimerUpdate = {
   name: string;
@@ -195,14 +197,22 @@ export default function Header({ onHeightChange }: HeaderProps) {
     };
     updateHeight();
 
+    const debouncedUpdateHeight = debounce(updateHeight, 100);
+
     if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', updateHeight);
-      return () => window.removeEventListener('resize', updateHeight);
+      window.addEventListener('resize', debouncedUpdateHeight);
+      return () => {
+        debouncedUpdateHeight.cancel();
+        window.removeEventListener('resize', debouncedUpdateHeight);
+      };
     }
 
-    const resizeObserver = new ResizeObserver(updateHeight);
+    const resizeObserver = new ResizeObserver(() => debouncedUpdateHeight());
     resizeObserver.observe(nav);
-    return () => resizeObserver.disconnect();
+    return () => {
+      debouncedUpdateHeight.cancel();
+      resizeObserver.disconnect();
+    };
   }, [onHeightChange]);
 
   useEffect(() => {
@@ -318,16 +328,19 @@ export default function Header({ onHeightChange }: HeaderProps) {
       }, headerHideDelay);
     };
 
-    document.addEventListener('mousemove', handleActivity);
+    const throttledActivity = throttle(handleActivity, 150);
+
+    document.addEventListener('mousemove', throttledActivity, { passive: true });
     // 触屏设备没有 mousemove，用 pointerdown 作为“唤出顶栏”的手势
-    document.addEventListener('pointerdown', handleActivity);
+    document.addEventListener('pointerdown', throttledActivity, { passive: true });
 
     // 进入全屏后先显示顶栏，再按同样的延时自动隐藏
     handleActivity();
 
     return () => {
-      document.removeEventListener('mousemove', handleActivity);
-      document.removeEventListener('pointerdown', handleActivity);
+      document.removeEventListener('mousemove', throttledActivity);
+      document.removeEventListener('pointerdown', throttledActivity);
+      throttledActivity.cancel();
       if (hideTimer) {
         clearTimeout(hideTimer);
       }
@@ -774,11 +787,13 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     ></div>
                     {showColorPicker && (
                       <div className="pt-2 space-y-3">
-                        <HexColorPicker 
-                          color={editingTimer.color} 
-                          onChange={(color) => setEditingTimer({...editingTimer, color})} 
-                          className="w-full"
-                        />
+                        <Suspense fallback={<div className="h-44 w-full animate-pulse rounded-lg bg-black/5 dark:bg-white/5" />}>
+                          <HexColorPicker 
+                            color={editingTimer.color} 
+                            onChange={(color) => setEditingTimer({...editingTimer, color})} 
+                            className="w-full"
+                          />
+                        </Suspense>
                         <div className="grid grid-cols-5 gap-2 pt-1">
                           {PRESET_COLORS.map(color => (
                             <button
@@ -990,20 +1005,26 @@ export default function Header({ onHeightChange }: HeaderProps) {
         ) : null}
       </AutoTransition>
 
-      <TimerCreationFlow
-        open={isTimerCreationOpen}
-        onOpenChange={setIsTimerCreationOpen}
-      />
+      {isTimerCreationOpen && (
+        <Suspense fallback={null}>
+          <TimerCreationFlow
+            open={isTimerCreationOpen}
+            onOpenChange={setIsTimerCreationOpen}
+          />
+        </Suspense>
+      )}
 
       {/* 分享模态框 */}
       <AutoTransition portal transitionKey={isShareOpen ? 'share-open' : 'share-closed'} initial={false} type="fade">
         {isShareOpen ? (
-          <ShareModal onClose={() => {
-            setIsShareOpen(false);
-            if (window.location.hash === '#share') {
-              window.location.hash = '';
-            }
-          }} />
+          <Suspense fallback={null}>
+            <ShareModal onClose={() => {
+              setIsShareOpen(false);
+              if (window.location.hash === '#share') {
+                window.location.hash = '';
+              }
+            }} />
+          </Suspense>
         ) : null}
       </AutoTransition>
     </motion.header>
