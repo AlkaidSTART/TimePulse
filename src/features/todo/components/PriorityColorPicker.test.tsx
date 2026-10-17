@@ -1,9 +1,13 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 import PriorityColorPicker from './PriorityColorPicker';
 import { ThemeProvider } from '@/app/providers/ThemeProvider';
 
 describe('PriorityColorPicker component', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   const renderPicker = (props: React.ComponentProps<typeof PriorityColorPicker>) => {
     return render(
       <ThemeProvider>

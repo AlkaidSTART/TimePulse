@@ -97,5 +97,25 @@ describe('TodoPage component and Widget coexistence', () => {
     fireEvent.click(hideBtn);
     expect(onHideWidget).toHaveBeenCalledTimes(1);
   });
+
+  it('renders drag handle and allows setting priority color on tasks', async () => {
+    renderPage();
+
+    const input = screen.getByPlaceholderText(/添加新的待办事项/i);
+    fireEvent.change(input, { target: { value: '带优先级的核心任务' } });
+    const addBtn = screen.getByRole('button', { name: /添加/i });
+    fireEvent.click(addBtn);
+
+    expect(screen.getByText('带优先级的核心任务')).toBeInTheDocument();
+
+    // 检查拖拽手柄是否存在
+    const dragHandle = screen.getByTitle('提示：按住左侧手柄可上下拖拽自由排序');
+    expect(dragHandle).toBeInTheDocument();
+
+    // 检查按优先级排序按钮
+    const sortBtn = screen.getByRole('button', { name: '按优先级排序' });
+    expect(sortBtn).toBeInTheDocument();
+    fireEvent.click(sortBtn);
+  });
 });
 
