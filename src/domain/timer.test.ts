@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getTimerType, parseSyncPayload, parseTimer } from './timer';
+import { getTimerType, parseTimer } from './timer';
 
 describe('timer boundary parsing', () => {
   it('treats old records without a type as countdowns and retains fields', () => {
@@ -17,7 +17,6 @@ describe('timer boundary parsing', () => {
 
   it('rejects malformed records without throwing', () => {
     expect(parseTimer({ name: 'missing id' })).toBeNull();
-    expect(parseSyncPayload({ timers: 'not-an-array' })).toEqual({ timers: [], activeTimerId: null });
   });
 
   it('normalizes stopwatch state at the boundary', () => {

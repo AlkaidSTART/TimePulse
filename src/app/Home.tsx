@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AutoResizer, AutoTransition } from '@/components/ui';
 import Layout from '@/components/layout/Layout';
 import { CustomBackground, GradientBackground } from '@/features/background/components';
-import { LoginModal } from '@/features/sync';
 import BackgroundSettingsModal from '@/features/background/components/BackgroundSettingsModal';
 import FullscreenSettingsModal from '@/features/fullscreen/components/FullscreenSettingsModal';
 import TimerDisplay from '@/features/countdown/components/TimerDisplay';
@@ -24,7 +23,6 @@ export default function Home() {
   const showMainPage = !isAbout || isFullscreen;
   const [headerHeight, setHeaderHeight] = useState(0);
   
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isBackgroundSettingsOpen, setIsBackgroundSettingsOpen] = useState(false);
   const [isFullscreenSettingsOpen, setIsFullscreenSettingsOpen] = useState(false);
   const [log, setLog] = useState<string[]>([]);
@@ -129,18 +127,6 @@ export default function Home() {
       </Layout>
       
       
-      {/* 登录弹窗 */}
-      <AutoTransition portal transitionKey={isLoginModalOpen ? 'login-open' : 'login-closed'} initial={false}>
-        {isLoginModalOpen ? (
-          <LoginModal onClose={() => {
-            setIsLoginModalOpen(false);
-            if (window.location.hash === '#login') {
-              window.location.hash = '';
-            }
-          }} />
-        ) : null}
-      </AutoTransition>
-
       {/* 背景设置弹窗 */}
       <AutoTransition portal transitionKey={isBackgroundSettingsOpen ? 'background-open' : 'background-closed'} initial={false}>
         {isBackgroundSettingsOpen ? (

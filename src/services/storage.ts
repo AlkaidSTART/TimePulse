@@ -1,6 +1,6 @@
 import type { BackgroundSettings, FullscreenSettings } from '../domain/settings';
-import type { SyncPayload, Timer } from '../domain/timer';
-import { parseSyncPayload, parseTimers } from '../domain/timer';
+import type { Timer } from '../domain/timer';
+import { parseTimers } from '../domain/timer';
 
 export const STORAGE_KEYS = {
   timers: 'timers',
@@ -9,8 +9,6 @@ export const STORAGE_KEYS = {
   accentColor: 'accent-color',
   background: 'timepulse_background_settings',
   fullscreen: 'timepulse_fullscreen_settings',
-  syncId: 'timepulse_sync_id',
-  syncPassword: 'timepulse_sync_password',
   notificationPreference: 'timepulse_notification_preference',
 } as const;
 
@@ -42,10 +40,6 @@ export function writeTimers(timers: Timer[], storage: Storage = localStorage): v
   } catch (error) {
     console.error('保存计时器失败:', error);
   }
-}
-
-export function readSyncPayload(value: unknown): SyncPayload | null {
-  return parseSyncPayload(value);
 }
 
 export function readSettings<T extends BackgroundSettings | FullscreenSettings>(key: string, fallback: T, storage: Storage = localStorage): T {

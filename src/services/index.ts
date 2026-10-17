@@ -1,7 +1,6 @@
 export * from './serviceWorker';
 export * from './sharing';
 export * from './storage';
-export * from './sync';
 export * from './urlState';
 export * from './analytics';
 export * from './imageStorage';
@@ -9,4 +8,3 @@ export * from './notificationManager';
 export * from './notifications';
 export * from './sharing';
 export * from './storage';
-export * from './sync';
