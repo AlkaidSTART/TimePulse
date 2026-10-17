@@ -19,6 +19,7 @@ import {
   FiCoffee,
   FiChevronRight,
   FiInfo,
+  FiImage,
 } from 'react-icons/fi';
 import { SiWechat } from 'react-icons/si';
 import { LuSparkles, LuPalette } from 'react-icons/lu';
@@ -38,6 +39,8 @@ export default function PersonalSettingsPage() {
   const { theme, toggleTheme, accentColor, updateAccentColor, setThemePreset } = useTheme();
   const { t, currentLang, changeLanguage } = useTranslation();
   const openAboutModal = useVersionStore((s) => s.openAboutModal);
+  const currentVersion = useVersionStore((s) => s.currentVersion);
+  const hasUpdate = useVersionStore((s) => s.hasUpdate);
 
   const {
     nickname,
@@ -85,7 +88,14 @@ export default function PersonalSettingsPage() {
   };
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-y-auto px-4 py-6 md:px-8 lg:py-10 select-none pb-28 lg:pb-24">
+    <div
+      data-page-view="settings"
+      className="relative flex h-full w-full flex-col overflow-y-auto px-4 py-6 md:px-8 lg:py-10 select-none pb-28 lg:pb-24"
+      style={{
+        paddingTop: 'max(4.25rem, calc(3.5rem + env(safe-area-inset-top, 0px)))',
+        paddingBottom: 'max(6.5rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)))',
+      }}
+    >
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
 
         {/* 顶部标题栏与返回按钮 */}
@@ -93,9 +103,15 @@ export default function PersonalSettingsPage() {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => transitionTo('cheer')}
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.history.length > 1) {
+                  window.history.back();
+                } else {
+                  transitionTo('main');
+                }
+              }}
               className="flex items-center justify-center size-9 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-gray-700 dark:text-gray-200 transition-colors"
-              title="返回打气页"
+              title="返回"
             >
               <FiArrowLeft className="size-4" />
             </button>
@@ -379,6 +395,70 @@ export default function PersonalSettingsPage() {
               })}
             </div>
           </div>
+
+          {/* 界面语言偏好 */}
+          <div className="flex items-center justify-between pt-2 border-t border-black/[0.05] dark:border-white/10">
+            <div className="flex items-center gap-2">
+              <FiGlobe className="size-4 text-sky-500" />
+              <div>
+                <span className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200">
+                  {t('mobile.language', '语言偏好 / Language')}
+                </span>
+                <p className="text-[11px] text-gray-400">
+                  {currentLang === 'zh-CN' ? '当前：简体中文' : 'Current: English'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center p-0.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] text-xs font-semibold shrink-0 border border-black/[0.04] dark:border-white/[0.04]">
+              <button
+                type="button"
+                onClick={() => currentLang !== 'zh-CN' && changeLanguage('zh-CN')}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  currentLang === 'zh-CN'
+                    ? 'bg-white dark:bg-white/[0.16] text-gray-900 dark:text-white shadow-xs font-bold'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                中文
+              </button>
+              <button
+                type="button"
+                onClick={() => currentLang !== 'en-US' && changeLanguage('en-US')}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-sans ${
+                  currentLang === 'en-US'
+                    ? 'bg-white dark:bg-white/[0.16] text-gray-900 dark:text-white shadow-xs font-bold'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                EN
+              </button>
+            </div>
+          </div>
+
+          {/* 背景壁纸与毛玻璃 */}
+          <div className="flex items-center justify-between pt-2 border-t border-black/[0.05] dark:border-white/10">
+            <div className="flex items-center gap-2">
+              <FiImage className="size-4 text-purple-500" />
+              <div>
+                <span className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200">
+                  {t('mobile.wallpaper', '背景壁纸与氛围')}
+                </span>
+                <p className="text-[11px] text-gray-400">
+                  {t('mobile.wallpaperDesc', '渐变配色、自定义壁纸与毛玻璃模糊度')}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                window.location.hash = 'background';
+              }}
+              className="px-3 py-1.5 rounded-xl border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.06] hover:bg-black/[0.06] dark:hover:bg-white/[0.12] text-xs font-semibold text-primary-600 dark:text-primary-400 flex items-center gap-1 cursor-pointer"
+            >
+              <span>{t('mobile.customize', '定制')}</span>
+              <FiChevronRight className="size-3.5" />
+            </button>
+          </div>
         </section>
 
         {/* 4. 今日打气心得与心情足迹 */}
@@ -498,6 +578,33 @@ export default function PersonalSettingsPage() {
                 </div>
               </div>
               <FiChevronRight className="size-4 text-emerald-500 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
+
+          {/* 版本与更新卡片 */}
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-black/[0.06] dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] mt-2">
+            <div className="flex items-center gap-3">
+              <div className="size-9 rounded-lg bg-neutral-500/10 text-neutral-600 dark:bg-white/10 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                <FiInfo className="size-5" />
+              </div>
+              <div className="text-left">
+                <div className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <span>{t('version.title', '版本与更新')}</span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300">
+                    v{currentVersion}
+                  </span>
+                </div>
+                <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                  {hasUpdate ? t('version.hasNewVersion', '发现新版本可供升级') : t('version.upToDate', '当前已是最新版本')}
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => openAboutModal('version')}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary-500/10 text-primary-600 dark:bg-primary-500/15 dark:text-primary-400 hover:bg-primary-500/20 transition-colors cursor-pointer"
+            >
+              {hasUpdate ? '立即升级' : '查看详情'}
             </button>
           </div>
         </section>

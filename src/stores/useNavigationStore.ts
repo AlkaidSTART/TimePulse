@@ -22,15 +22,15 @@ export const PAGE_ORDER: Record<PageView, number> = {
 };
 
 function getInitialView(): PageView {
-  if (typeof window === 'undefined') return 'main';
+  if (typeof window === 'undefined') return 'cheer';
   const rawHash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
   if (rawHash === 'cheer') return 'cheer';
   if (rawHash === 'todo') return 'todo';
   if (rawHash === 'settings' || rawHash === 'profile') return 'settings';
   if (rawHash === 'main' || rawHash === 'timer') return 'main';
 
-  // 默认无指定路由时，始终进入极简时钟主页
-  return 'main';
+  // 默认无指定路由时，进入元气打气页面
+  return 'cheer';
 }
 
 const initialView = getInitialView();

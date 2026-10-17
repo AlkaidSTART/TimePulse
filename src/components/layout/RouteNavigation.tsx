@@ -59,15 +59,15 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
     {
       id: 'cheer',
       label: t('header.cheerTab', '元气打气'),
-      shortLabel: '打气',
+      shortLabel: t('header.cheerShort', '打气'),
       icon: LuSparkles,
       title: '元气打气与时光问候',
       description: '时间问候、元气充能与今日灵感',
     },
     {
       id: 'main',
-      label: t('header.timers', '当前时间'),
-      shortLabel: '时钟',
+      label: t('header.timers', '计时器'),
+      shortLabel: t('header.timersShort', '计时'),
       icon: FiClock,
       title: '当前时间与计时器',
       description: '时钟、倒计时、正计时与世界时区',
@@ -125,7 +125,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               whileHover={{ y: -0.5 }}
               whileTap={{ scale: 0.94 }}
               className={`group relative flex items-center justify-center gap-1.5 rounded-full select-none cursor-pointer outline-none transition-all duration-200 ${
-                compact ? 'px-2 py-1 text-[11px]' : 'px-3 py-1.5 text-xs'
+                compact ? 'px-2 py-1 text-[11px]' : 'px-2.5 xl:px-3 py-1.5 text-xs'
               } ${
                 isActive
                   ? 'text-gray-950 dark:text-white font-semibold'
@@ -200,7 +200,14 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                     : 'text-gray-700 dark:text-gray-200 group-hover:text-gray-950 dark:group-hover:text-white'
                 }`}
               >
-                {labelText}
+                {compact ? (
+                  route.shortLabel
+                ) : (
+                  <>
+                    <span className="hidden xl:inline">{route.label}</span>
+                    <span className="inline xl:hidden">{route.shortLabel}</span>
+                  </>
+                )}
               </span>
 
               {/* Todo Pending Badge */}

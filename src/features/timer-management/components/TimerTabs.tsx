@@ -10,6 +10,7 @@ interface TimerTabsProps {
   timers: Timer[];
   activeTimerId: string | null;
   setActiveTimerId: (id: string) => void;
+  className?: string;
 }
 
 type CapsuleRect = Pick<DOMRect, 'left' | 'top' | 'width' | 'height'>;
@@ -23,7 +24,7 @@ function transformBetween(from: CapsuleRect, base: CapsuleRect): string {
   return `translate(${dx}px, ${dy}px) scale(${from.width / base.width}, ${from.height / base.height})`;
 }
 
-export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: TimerTabsProps) {
+export default function TimerTabs({ timers, activeTimerId, setActiveTimerId, className = '' }: TimerTabsProps) {
   const { accentColor } = useTheme();
   const reducedMotion = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -261,7 +262,7 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
 
   return (
     <div
-      className="pointer-events-none absolute inset-x-0 top-[calc(50%-0.875rem)] z-30 hidden h-7 md:block"
+      className={`relative z-20 flex items-center justify-center h-7 ${className}`}
       onKeyDown={(event) => {
         if (isExpanded && (event.key === 'Escape' || event.key === 'Tab')) {
           if (event.key === 'Escape') event.preventDefault();
@@ -270,7 +271,7 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
       }}
     >
       <div
-        className="pointer-events-auto absolute top-0 left-1/2 z-10 -translate-x-1/2"
+        className="pointer-events-auto relative z-10"
         style={{
           pointerEvents: isExpanded ? 'none' : 'auto',
         }}
@@ -432,7 +433,7 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
           id={menuId}
           role="menu"
           aria-label="计时器"
-          className="timer-island-scroll pointer-events-none absolute left-1/2 flex max-h-64 w-[min(860px,calc(100vw-32px))] -translate-x-1/2 flex-wrap items-center justify-center gap-2 py-2"
+          className="timer-island-scroll pointer-events-none absolute left-1/2 z-50 flex max-h-64 w-[min(860px,calc(100vw-32px))] -translate-x-1/2 flex-wrap items-center justify-center gap-2 py-2"
           style={{ top: 'calc(100% + 28px)', overflow: isOpening || isClosing ? 'visible' : undefined }}
         >
           {timers.map((timer) => {

@@ -83,7 +83,7 @@ describe('Header component timezone display', () => {
     expect(screen.queryByText(/Asia\/Shanghai/i)).not.toBeInTheDocument();
   });
 
-  it('renders list and settings buttons in the mobile top right header and opens sheets on click', async () => {
+  it('renders list and settings buttons in the mobile top right header and navigates on click', async () => {
     const { fireEvent } = await import('@testing-library/react');
     useTimerStore.setState({
       timers: [
@@ -120,8 +120,8 @@ describe('Header component timezone display', () => {
     fireEvent.click(listBtn);
     expect(screen.getByText('全部计时器')).toBeDefined();
 
-    // Close sheet or click settings button opens settings sheet
+    // Click settings button navigates to settings route
     fireEvent.click(settingsBtn);
-    expect(screen.getByText('设置与功能')).toBeDefined();
+    expect(useNavigationStore.getState().view).toBe('settings');
   });
 });

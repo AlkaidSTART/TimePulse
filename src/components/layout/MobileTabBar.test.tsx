@@ -43,7 +43,7 @@ describe('MobileTabBar component', () => {
     cleanup();
   });
 
-  it('renders tab navigation items and excludes list and settings from bottom bar', () => {
+  it('renders tab navigation items including cheer, timer, add, todo, and settings in bottom bar', () => {
     render(
       <ThemeProvider>
         <MobileTabBar {...defaultProps} />
@@ -52,9 +52,39 @@ describe('MobileTabBar component', () => {
 
     expect(screen.getByText(/时钟|计时/i)).toBeDefined();
     expect(screen.getByText(/待办/i)).toBeDefined();
+    expect(screen.getByText(/打气/i)).toBeDefined();
+    expect(screen.getByText(/个人设置|设置/i)).toBeDefined();
     expect(screen.getByLabelText('新建计时器')).toBeDefined();
     expect(screen.queryByText(/^列表$/i)).toBeNull();
-    expect(screen.queryByText(/^设置$/i)).toBeNull();
+  });
+
+  it('triggers onTabChange with settings when settings tab is clicked', () => {
+    const onTabChange = vi.fn();
+    render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} onTabChange={onTabChange} />
+      </ThemeProvider>,
+    );
+
+    const settingsTab = screen.getByText(/个人设置|设置/i).closest('button');
+    expect(settingsTab).not.toBeNull();
+    fireEvent.click(settingsTab!);
+
+    expect(onTabChange).toHaveBeenCalledWith('settings');
+  });
+
+  it('renders liquid droplet indicator for active settings route when activeTab is settings', () => {
+    const { container } = render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="settings" />
+      </ThemeProvider>,
+    );
+
+    const dropletIndicator = container.querySelector('.liquid-droplet-pill');
+    expect(dropletIndicator).not.toBeNull();
+
+    const activeLabel = screen.getByText(/个人设置|设置/i);
+    expect(activeLabel.className).toContain('text-gray-950');
   });
 
   it('renders all timers list sheet when activeTab is list', () => {
@@ -135,53 +165,6 @@ describe('MobileTabBar component', () => {
     expect(addButton).not.toBeNull();
     expect(addButton.className).toContain('liquid-droplet-button');
     expect(addButton.style.backgroundColor).toBe('');
-  });
-
-  it('renders settings and functions bottom sheet in single-screen layout when activeTab is settings', () => {
-    render(
-      <ThemeProvider>
-        <MobileTabBar {...defaultProps} activeTab="settings" />
-      </ThemeProvider>,
-    );
-
-    // Sheet title
-    expect(screen.getByText('设置与功能')).toBeDefined();
-
-    // Quick control cards
-    expect(screen.getByText(/米白/i)).toBeDefined();
-    expect(screen.getByText(/全屏/i)).toBeDefined();
-    expect(screen.getByText(/挂件/i)).toBeDefined();
-    expect(screen.getByText(/语言/i)).toBeDefined();
-
-    // Features and services
-    expect(screen.getByText(/背景壁纸/i)).toBeDefined();
-    expect(screen.getByText(/待办清单/i)).toBeDefined();
-    expect(screen.getByText(/分享与二维码/i)).toBeDefined();
-    expect(screen.getByText(/版本与更新/i)).toBeDefined();
-  });
-
-  it('triggers toggleTheme when theme card is clicked in settings', () => {
-    render(
-      <ThemeProvider>
-        <MobileTabBar {...defaultProps} activeTab="settings" />
-      </ThemeProvider>,
-    );
-
-    const themeCard = screen.getByText(/米白/i).closest('button');
-    expect(themeCard).not.toBeNull();
-    fireEvent.click(themeCard!);
-
-    expect(defaultProps.toggleTheme).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders theme palette library button in settings sheet', () => {
-    render(
-      <ThemeProvider>
-        <MobileTabBar {...defaultProps} activeTab="settings" />
-      </ThemeProvider>,
-    );
-
-    expect(screen.getByText(/字体配色/i)).toBeDefined();
   });
 });
 

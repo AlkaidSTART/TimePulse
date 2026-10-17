@@ -155,7 +155,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const { view, transitionTo } = usePageTransition();
   const { t, currentLang, changeLanguage } = useTranslation();
   const [isToolsOpen, setIsToolsOpen] = useState(false);
-  const [mobileTab, setMobileTab] = useState<MobileTab>('timer');
+  const [mobileTab, setMobileTab] = useState<MobileTab>(() => (view === 'main' ? 'timer' : (view as MobileTab)));
   const [isManageOpen, setIsManageOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [editingTimer, setEditingTimer] = useState<TimerEditState | null>(null);
@@ -404,10 +404,10 @@ export default function Header({ onHeightChange }: HeaderProps) {
       {/* Desktop Header: Completely transparent */}
       <nav
         ref={navRef}
-        className="hidden lg:flex w-full items-center justify-between relative px-6 md:px-10 py-3.5 bg-transparent"
+        className="hidden lg:grid grid-cols-[1fr_auto_1fr] items-center w-full relative px-6 md:px-8 xl:px-10 py-3.5 bg-transparent"
       >
         {/* Left: Logo & Route Navigation */}
-        <div className="flex items-center gap-3.5 z-10 shrink-0">
+        <div className="flex items-center gap-3.5 z-10 justify-self-start min-w-0">
           <motion.div 
             className="flex items-center justify-start shrink-0"
             initial={{ opacity: 0, x: -15 }}
@@ -428,41 +428,43 @@ export default function Header({ onHeightChange }: HeaderProps) {
           </motion.div>
 
           {/* Subtle separator */}
-          <div className="h-4 w-px bg-gray-300/60 dark:bg-white/15 hidden sm:block" />
+          <div className="h-4 w-px bg-gray-300/60 dark:bg-white/15 hidden sm:block shrink-0" />
 
           {/* Route Navigation with Hover Effects and Active Route Display */}
           <RouteNavigation />
         </div>
 
-        {/* Center: Dynamic Island Capsule Switcher (always visible) */}
-        <TimerTabs
-          timers={timers}
-          activeTimerId={activeTimerId}
-          setActiveTimerId={(id) => {
-            setActiveTimerId(id);
-            if (view === 'todo') {
-              transitionTo('main');
-            }
-          }}
-        />
+        {/* Center: Dynamic Island Capsule Switcher */}
+        <div className="flex items-center justify-center justify-self-center z-20 px-2 min-w-0">
+          <TimerTabs
+            timers={timers}
+            activeTimerId={activeTimerId}
+            setActiveTimerId={(id) => {
+              setActiveTimerId(id);
+              if (view === 'todo') {
+                transitionTo('main');
+              }
+            }}
+          />
+        </div>
 
         {/* Right Controls: Streamlined, clean, cohesive */}
-        <div className="flex items-center justify-end z-10 gap-1.5 shrink-0">
+        <div className="flex items-center justify-end justify-self-end z-10 gap-1.5 min-w-0">
           {/* Current Timezone Display */}
           {timezoneInfo && (
             <div
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/40 dark:bg-white/10 border border-white/20 dark:border-white/10 text-xs font-medium text-gray-700 dark:text-gray-200 backdrop-blur-md select-none transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-full bg-white/40 dark:bg-white/10 border border-white/20 dark:border-white/10 text-xs font-medium text-gray-700 dark:text-gray-200 backdrop-blur-md select-none transition-colors shadow-xs"
               title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
             >
               <FiGlobe className="size-3.5 shrink-0 text-primary-500 dark:text-primary-400" />
-              <span className="truncate max-w-[120px] xl:max-w-[180px]">{timezoneInfo.text}</span>
+              <span className="hidden xl:inline truncate max-w-[100px] 2xl:max-w-[160px]">{timezoneInfo.text}</span>
             </div>
           )}
 
           {/* Quick Add Timer */}
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-500/10 text-primary-600 hover:bg-primary-500/20 dark:bg-primary-500/15 dark:text-primary-300 font-medium text-xs cursor-pointer transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-500/10 text-primary-600 hover:bg-primary-500/20 dark:bg-primary-500/15 dark:text-primary-300 font-medium text-xs cursor-pointer transition-colors shrink-0"
             onClick={() => {
               setIsTimerCreationOpen(true);
               if (window.location.hash !== '#add') window.location.hash = 'add';
@@ -475,12 +477,12 @@ export default function Header({ onHeightChange }: HeaderProps) {
             <span>新建</span>
           </button>
 
-          <div className="h-4 w-px bg-gray-300/50 dark:bg-white/10 mx-0.5" />
+          <div className="h-4 w-px bg-gray-300/50 dark:bg-white/10 mx-0.5 shrink-0" />
 
           {/* Background Settings */}
           <button
             type="button"
-            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            className="hidden xl:inline-flex size-8.5 rounded-full items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors shrink-0"
             onClick={() => {
               if (window.location.hash !== '#background') window.location.hash = 'background';
             }}
@@ -493,7 +495,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
           {/* Share */}
           <button
             type="button"
-            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            className="hidden xl:inline-flex size-8.5 rounded-full items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors shrink-0"
             onClick={() => {
               setIsShareOpen(true);
               if (window.location.hash !== '#share') window.location.hash = 'share';
@@ -861,8 +863,8 @@ export default function Header({ onHeightChange }: HeaderProps) {
               transitionTo('settings');
               setMobileTab('settings');
             }}
-            aria-label={t('header.settingsTab', '个人设置')}
-            title={t('header.settingsTab', '个人设置')}
+            aria-label={t('header.settingsShort', '设置')}
+            title={t('header.settingsShort', '设置')}
           >
             <FiSettings className="size-3.5" />
             {hasUpdate && (
