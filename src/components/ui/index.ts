@@ -11,3 +11,4 @@ export * from './tabs';
 export * from './toast';
 export * from './utils';
 export * from './LazyImage';
+export * from './popover';

@@ -184,6 +184,7 @@ export function useGlobalTouchGestures({
       // 3. 水平滑动手势 (Horizontal Swipe)
       // ==========================================
       const isHorizontalSwipe = absX >= 52 && absX >= absY * 1.5 && elapsedTime < 480;
+      console.log('DEBUG SWIPE:', { currentView, deltaX, isHorizontalSwipe, totalTimers, curIdx });
       if (!isHorizontalSwipe) return;
 
       const { timersCount: totalTimers, activeTimerIndex: curIdx, onNextTimer: nextTimer, onPrevTimer: prevTimer } = propsRef.current;

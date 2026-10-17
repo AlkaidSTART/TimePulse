@@ -11,6 +11,7 @@ import { useFullscreen } from './providers/FullscreenProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import { parseShareUrl } from '@/services/sharing';
 import { usePageTransition } from '@/hooks/usePageTransition';
+import { useGlobalTouchGestures } from '@/hooks/useGlobalTouchGestures';
 import {
   readTodoWidgetVisible,
   writeTodoWidgetVisible,
@@ -43,43 +44,25 @@ export default function Home() {
   const [isWidgetEnabled, setIsWidgetEnabled] = useState(() => readTodoWidgetVisible());
   const [isTodoWidgetOpen, setIsTodoWidgetOpen] = useState(false);
 
-  // Mobile horizontal swipe gestures to switch timers
-  const touchStartXRef = useRef<number | null>(null);
-  const touchStartYRef = useRef<number | null>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (isFullscreen || timers.length <= 1) return;
-    touchStartXRef.current = e.touches[0].clientX;
-    touchStartYRef.current = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartXRef.current === null || touchStartYRef.current === null || timers.length <= 1) {
-      touchStartXRef.current = null;
-      touchStartYRef.current = null;
-      return;
-    }
-    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
-    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
-    touchStartXRef.current = null;
-    touchStartYRef.current = null;
-
-    // Detect distinct horizontal swipe
-    if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
-      const currentIndex = timers.findIndex((t) => t.id === activeTimerId);
-      if (currentIndex !== -1) {
-        if (deltaX < 0) {
-          // Swipe left -> next timer
-          const nextIndex = (currentIndex + 1) % timers.length;
-          setActiveTimerId(timers[nextIndex].id);
-        } else {
-          // Swipe right -> prev timer
-          const prevIndex = (currentIndex - 1 + timers.length) % timers.length;
-          setActiveTimerId(timers[prevIndex].id);
-        }
-      }
-    }
-  };
+  // 全局移动端触摸手势系统（多页面左右滑动切换、计时器切换、全屏手势、双击全屏、触觉反馈）
+  const activeTimerIndex = timers.findIndex((t) => t.id === activeTimerId);
+  useGlobalTouchGestures({
+    enabled: true,
+    timersCount: timers.length,
+    activeTimerIndex: activeTimerIndex >= 0 ? activeTimerIndex : 0,
+    onNextTimer: () => {
+      if (timers.length <= 1) return;
+      const curIdx = timers.findIndex((t) => t.id === activeTimerId);
+      const nextIdx = (curIdx + 1) % timers.length;
+      setActiveTimerId(timers[nextIdx].id);
+    },
+    onPrevTimer: () => {
+      if (timers.length <= 1) return;
+      const curIdx = timers.findIndex((t) => t.id === activeTimerId);
+      const prevIdx = (curIdx - 1 + timers.length) % timers.length;
+      setActiveTimerId(timers[prevIdx].id);
+    },
+  });
 
   // 监听URL参数以同步数据
   useEffect(() => {
@@ -202,8 +185,6 @@ export default function Home() {
               className="absolute inset-0 z-10"
             >
               <motion.main
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
                 initial={false}
                 animate={{ y: isFullscreen && !isHeaderVisible ? 0 : headerHeight / 2 }}
                 transition={{ y: { duration: shouldReduceMotion ? 0 : 0.45, ease: 'easeInOut' } }}
