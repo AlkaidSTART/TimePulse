@@ -573,6 +573,19 @@ export default function Header({ onHeightChange }: HeaderProps) {
             {isFullscreen ? <FiMinimize className="size-4.5" /> : <FiMaximize className="size-4.5" />}
           </button>
 
+          {/* Orientation Toggle (横竖屏切换) */}
+          <button
+            type="button"
+            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            onClick={() => void toggleOrientation()}
+            title={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
+            aria-label={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
+            data-insightflare-event="orientation_toggle"
+            data-insightflare-event-to={isLandscape ? 'portrait' : 'landscape'}
+          >
+            <FiRotateCw className={`size-4.5 transition-transform duration-300 ${isLandscape ? 'rotate-90 text-primary-500' : ''}`} />
+          </button>
+
           {/* More Tools Popover Menu */}
           <div className="relative" ref={toolsRef}>
             <button

@@ -39,6 +39,7 @@ describe('PersonalSettingsPage component', () => {
     expect(screen.getByText('定制你的称呼、专属座右铭与主题外观')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '返回' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '恢复默认' })).toBeInTheDocument();
+    expect(screen.getByText('选择专注风格标签')).toBeInTheDocument();
   });
 
   it('allows editing nickname and motto, and shows save toast', () => {

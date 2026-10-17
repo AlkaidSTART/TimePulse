@@ -62,23 +62,42 @@ export default function TodoItemRow({
     }
   };
 
+  const cardStyle: React.CSSProperties = {
+    ...provided?.draggableProps.style,
+    ...(item.color
+      ? ({
+          '--todo-item-color': item.color,
+          '--todo-item-bg': item.completed ? `${item.color}0d` : `${item.color}15`,
+          '--todo-item-bg-hover': item.completed ? `${item.color}16` : `${item.color}24`,
+          '--todo-item-border': item.completed ? `${item.color}20` : `${item.color}3d`,
+          '--todo-item-border-hover': item.completed ? `${item.color}30` : `${item.color}60`,
+          backgroundColor: 'var(--todo-item-bg)',
+          borderColor: 'var(--todo-item-border)',
+        } as React.CSSProperties)
+      : {}),
+  };
+
   return (
     <div
       ref={provided?.innerRef}
       {...(provided?.draggableProps || {})}
-      style={provided?.draggableProps.style}
+      style={cardStyle}
       className={`group relative flex items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 transition-all select-none overflow-visible ${
         snapshot?.isDragging
           ? 'shadow-2xl ring-2 ring-primary-500/60 bg-white/95 dark:bg-[#18181b] z-50 scale-[1.01]'
           : item.completed
-          ? 'border-black/[0.04] bg-black/[0.02] dark:border-white/[0.04] dark:bg-white/[0.02] opacity-60'
+          ? item.color
+            ? 'opacity-65 hover:[background-color:var(--todo-item-bg-hover)] hover:[border-color:var(--todo-item-border-hover)]'
+            : 'border-black/[0.04] bg-black/[0.02] dark:border-white/[0.04] dark:bg-white/[0.02] opacity-60'
+          : item.color
+          ? 'shadow-xs hover:[background-color:var(--todo-item-bg-hover)] hover:[border-color:var(--todo-item-border-hover)]'
           : 'border-black/[0.06] bg-white/75 hover:bg-white/95 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] shadow-xs'
       } backdrop-blur-md`}
     >
-      {/* 左侧颜色预设微指示条（标记了颜色时展示） */}
+      {/* 左侧颜色预设指示条（标记了颜色时展示） */}
       {item.color && (
         <span
-          className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full shadow-2xs transition-all pointer-events-none"
+          className="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-xl transition-all pointer-events-none"
           style={{ backgroundColor: item.color }}
         />
       )}
@@ -101,7 +120,11 @@ export default function TodoItemRow({
         whileTap={shouldReduceMotion ? undefined : { scale: 0.85 }}
         className="relative flex size-5 shrink-0 items-center justify-center rounded-md border transition-colors cursor-pointer"
         style={{
-          borderColor: item.completed ? (item.color || accentColor) : undefined,
+          borderColor: item.completed
+            ? (item.color || accentColor)
+            : item.color
+            ? `${item.color}80`
+            : undefined,
           backgroundColor: item.completed ? (item.color || accentColor) : 'transparent',
         }}
         aria-label={
@@ -146,30 +169,23 @@ export default function TodoItemRow({
             >
               {item.text}
             </span>
-
-            {/* 优先级颜色徽标（已标记颜色时展示） */}
-            {item.color && onSetPriority && (
-              <PriorityColorPicker
-                color={item.color}
-                priority={item.priority}
-                onSelect={(c, p) => onSetPriority(item.id, c, p)}
-                showText={true}
-                size="xs"
-              />
-            )}
           </div>
         )}
       </div>
 
       {/* 快捷操作区：优先级标记、快速编辑与删除 */}
       <div className="flex shrink-0 items-center gap-1 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
-        {/* 未标记颜色时，快捷操作栏中提供优先级标志触发器 */}
-        {!item.color && onSetPriority && (
+        {onSetPriority && (
           <PriorityColorPicker
             color={item.color}
             priority={item.priority}
             onSelect={(c, p) => onSetPriority(item.id, c, p)}
             size="xs"
+            title={
+              item.color
+                ? t('todo.changePriorityColor', '修改或清除优先级颜色')
+                : t('todo.setPriorityColor', '设置优先级颜色')
+            }
           />
         )}
 

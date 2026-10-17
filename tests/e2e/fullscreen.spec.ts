@@ -1,32 +1,20 @@
 import { expect, test } from '@playwright/test';
 
-test('inspect fullscreen behavior', async ({ page }) => {
+test('mobile fullscreen test with F11', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/', { waitUntil: 'commit' });
+  await page.waitForTimeout(2000);
+
+  // Press F11
+  await page.keyboard.press('F11');
   await page.waitForTimeout(1000);
 
-  // Check cheer page is visible initially
+  await page.screenshot({ path: 'test-results/mobile-after-f11.png' });
+
   const cheerVisible = await page.locator('[data-page-view="cheer"]').isVisible();
-  console.log('Initial cheer page visible:', cheerVisible);
+  const mainVisible = await page.locator('[data-page-view="main"]').isVisible();
+  console.log('Mobile - cheer visible:', cheerVisible, 'main visible:', mainVisible);
 
-  // Take screenshot before fullscreen
-  await page.screenshot({ path: 'test-results/before-fullscreen.png' });
-
-  // Click fullscreen button
-  const fullscreenBtn = page.locator('[data-insightflare-event="fullscreen_toggle"]').first();
-  console.log('Fullscreen button exists:', await fullscreenBtn.count());
-  await fullscreenBtn.click();
-  await page.waitForTimeout(1000);
-
-  // Check visibility of pages
-  const cheerAfter = await page.locator('[data-page-view="cheer"]').isVisible();
-  const mainAfter = await page.locator('[data-page-view="main"]').isVisible();
-  console.log('After fullscreen - cheer visible:', cheerAfter);
-  console.log('After fullscreen - main visible:', mainAfter);
-
-  // Take screenshot after fullscreen
-  await page.screenshot({ path: 'test-results/after-fullscreen.png' });
-
-  // Check what text is visible on the page
   const textContent = await page.locator('body').innerText();
-  console.log('Body text content after fullscreen:', JSON.stringify(textContent));
+  console.log('Mobile body text:', JSON.stringify(textContent));
 });
