@@ -50,6 +50,7 @@ describe('usePlatformShortcuts', () => {
       isRunning: false,
       startTime: new Date().toISOString(),
       totalPausedTime: 0,
+      laps: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

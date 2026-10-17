@@ -13,7 +13,7 @@ import {
 } from 'react-icons/fi';
 import { LuSparkles } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
-import type { Timer, TimerType } from '@/domain/timer';
+import type { CountdownTimer, Timer, TimerType } from '@/domain/timer';
 import { useTranslation } from '@/i18n/useTranslation';
 import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
@@ -47,6 +47,11 @@ type TimerEditState = {
   name: string;
   color?: string;
   type?: TimerType;
+  countdownType?: 'long' | 'short';
+  durationSeconds?: number;
+  shortHours?: number;
+  shortMinutes?: number;
+  shortSeconds?: number;
   targetDate?: string;
   targetTime?: string;
   isLimitedEdit?: boolean;
@@ -245,10 +250,22 @@ export default function MobileTabBar({
 
   const startEditTimer = (timer: Timer) => {
     if (timer.type === 'countdown' || !timer.type) {
+      const cd = timer as CountdownTimer;
+      const duration = typeof cd.durationSeconds === 'number' ? cd.durationSeconds : 0;
+      const h = Math.floor(duration / 3600);
+      const m = Math.floor((duration % 3600) / 60);
+      const s = duration % 60;
+
       setEditingTimer({
         ...timer,
+        countdownType: cd.countdownType ?? 'long',
+        durationSeconds: duration,
+        shortHours: h,
+        shortMinutes: m,
+        shortSeconds: s,
         targetDate: new Date(timer.targetDate).toISOString().substring(0, 10),
         targetTime: new Date(timer.targetDate).toTimeString().substring(0, 5),
+        isLimitedEdit: false,
       });
     } else {
       setEditingTimer({
@@ -266,6 +283,17 @@ export default function MobileTabBar({
     if (editingTimer.isLimitedEdit) {
       updateTimer(editingTimer.id, {
         name: editingTimer.name,
+        color: editingTimer.color,
+      });
+    } else if (editingTimer.countdownType === 'short') {
+      const totalSecs = (Number(editingTimer.shortHours) || 0) * 3600 +
+                        (Number(editingTimer.shortMinutes) || 0) * 60 +
+                        (Number(editingTimer.shortSeconds) || 0);
+      const targetDateObj = new Date(Date.now() + totalSecs * 1000);
+      updateTimer(editingTimer.id, {
+        name: editingTimer.name,
+        durationSeconds: totalSecs,
+        targetDate: targetDateObj.toISOString(),
         color: editingTimer.color,
       });
     } else {
@@ -512,7 +540,11 @@ export default function MobileTabBar({
                   <div className="flex flex-col gap-4 p-1">
                     <div className="flex items-center justify-between pb-1">
                       <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
-                        {editingTimer.isLimitedEdit ? '编辑计时器' : '编辑倒计时'}
+                        {editingTimer.isLimitedEdit
+                          ? '编辑计时器'
+                          : editingTimer.countdownType === 'short'
+                          ? '编辑短期倒计时'
+                          : '编辑长期倒计时'}
                       </h4>
                       <button
                         type="button"
@@ -538,33 +570,91 @@ export default function MobileTabBar({
                     </div>
 
                     {!editingTimer.isLimitedEdit && (
-                      <div className="flex flex-col gap-3">
+                      editingTimer.countdownType === 'short' ? (
                         <div>
                           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            目标日期
+                            倒计时时长
                           </label>
-                          <DatePicker
-                            value={editingTimer.targetDate}
-                            onChange={(e) =>
-                              setEditingTimer({ ...editingTimer, targetDate: e.target.value })
-                            }
-                            triggerClassName="rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm h-auto py-2 px-3"
-                          />
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">小时</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={99}
+                                value={editingTimer.shortHours ?? 0}
+                                onChange={(e) =>
+                                  setEditingTimer({
+                                    ...editingTimer,
+                                    shortHours: Math.max(0, parseInt(e.target.value) || 0),
+                                  })
+                                }
+                                className="w-full px-2 py-1.5 rounded-lg bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-center font-mono text-xs focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">分钟</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={59}
+                                value={editingTimer.shortMinutes ?? 0}
+                                onChange={(e) =>
+                                  setEditingTimer({
+                                    ...editingTimer,
+                                    shortMinutes: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)),
+                                  })
+                                }
+                                className="w-full px-2 py-1.5 rounded-lg bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-center font-mono text-xs focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">秒</span>
+                              <input
+                                type="number"
+                                min={0}
+                                max={59}
+                                value={editingTimer.shortSeconds ?? 0}
+                                onChange={(e) =>
+                                  setEditingTimer({
+                                    ...editingTimer,
+                                    shortSeconds: Math.max(0, Math.min(59, parseInt(e.target.value) || 0)),
+                                  })
+                                }
+                                className="w-full px-2 py-1.5 rounded-lg bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-center font-mono text-xs focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            目标时间
-                          </label>
-                          <input
-                            type="time"
-                            value={editingTimer.targetTime}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                              setEditingTimer({ ...editingTimer, targetTime: e.target.value })
-                            }
-                            className="w-full px-3 py-2 rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
-                          />
+                      ) : (
+                        <div className="flex flex-col gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              目标日期
+                            </label>
+                            <DatePicker
+                              value={editingTimer.targetDate}
+                              onChange={(e) =>
+                                setEditingTimer({ ...editingTimer, targetDate: e.target.value })
+                              }
+                              triggerClassName="rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm h-auto py-2 px-3"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              目标时间
+                            </label>
+                            <input
+                              type="time"
+                              value={editingTimer.targetTime}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                setEditingTimer({ ...editingTimer, targetTime: e.target.value })
+                              }
+                              className="w-full px-3 py-2 rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm focus:ring-2 focus:ring-primary-500 focus:outline-none"
+                            />
+                          </div>
                         </div>
-                      </div>
+                      )
                     )}
 
                     <div>

@@ -27,6 +27,10 @@ let databasePromise: Promise<IDBDatabase> | null = null;
  * 所有经过 IndexedDB 的模块都必须使用这个 opener，避免版本号不一致导致 VersionError。
  */
 export function openTimePulseDatabase(): Promise<IDBDatabase> {
+  if (typeof indexedDB === 'undefined') {
+    return Promise.reject(new Error('IndexedDB is not supported in this environment'));
+  }
+
   if (!databasePromise) {
     databasePromise = new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);

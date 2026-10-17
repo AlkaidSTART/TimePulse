@@ -35,7 +35,7 @@ if (content.includes('android:configChanges="')) {
   const match = content.match(configChangesRegex);
   if (match) {
     const flags = match[1].split('|');
-    const requiredFlags = ['orientation', 'screenSize', 'screenLayout', 'smallestScreenSize', 'keyboardHidden'];
+    const requiredFlags = ['orientation', 'screenSize', 'screenLayout', 'smallestScreenSize', 'keyboard', 'keyboardHidden'];
     for (const flag of requiredFlags) {
       if (!flags.includes(flag)) {
         flags.push(flag);
@@ -44,6 +44,18 @@ if (content.includes('android:configChanges="')) {
     const newConfigChanges = `android:configChanges="${flags.join('|')}"`;
     content = content.replace(configChangesRegex, newConfigChanges);
   }
+}
+
+// 确保 Android 虚拟软键盘弹出时平滑压缩视口高度，配合 CSS safe-area 避让输入焦点
+if (content.includes('android:windowSoftInputMode="')) {
+  content = content.replace(/android:windowSoftInputMode="[^"]*"/, 'android:windowSoftInputMode="adjustResize"');
+  console.log('[patch-android-orientation] 已将 android:windowSoftInputMode 设置为 adjustResize');
+} else {
+  content = content.replace(
+    /(<activity[\s\S]*?)(android:name="\.MainActivity")/,
+    '$1android:windowSoftInputMode="adjustResize"\n            $2',
+  );
+  console.log('[patch-android-orientation] 已在 MainActivity 注入 android:windowSoftInputMode="adjustResize"');
 }
 
 writeFileSync(manifestPath, content);
