@@ -86,6 +86,21 @@ describe('MobileTabBar component', () => {
     expect(droplet?.children.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('renders an enlarged liquid glass capsule with outer perimeter wrapper and no line under text', () => {
+    const { container } = render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="timer" />
+      </ThemeProvider>,
+    );
+
+    const droplet = container.querySelector('.liquid-droplet-pill');
+    expect(droplet).not.toBeNull();
+    expect(droplet?.className).toContain('inset-y-0.5');
+    expect(droplet?.className).toContain('inset-x-0.5');
+    // Ensure no guideline line is rendered under the label
+    expect(screen.queryByTestId('mobile-active-route-indicator-line')).toBeNull();
+  });
+
   it('synchronizes Mobile and Pad layout by using lg:hidden on nav container', () => {
     const { container } = render(
       <ThemeProvider>

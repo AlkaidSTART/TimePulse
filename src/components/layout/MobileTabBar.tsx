@@ -319,7 +319,7 @@ export default function MobileTabBar({
         className="fixed bottom-3 inset-x-3 z-40 lg:hidden max-w-[420px] sm:max-w-[460px] md:max-w-[500px] mx-auto pointer-events-auto"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
-        <div className="relative mx-auto flex h-[60px] w-full items-center justify-around rounded-full border border-black/[0.06] bg-white/80 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.08),0_4px_12px_-2px_rgba(0,0,0,0.04)] backdrop-blur-2xl cream:bg-[#faf7ee]/90 cream:border-stone-300/50 cream:shadow-[0_12px_36px_-6px_rgba(120,95,65,0.12),0_4px_12px_-2px_rgba(120,95,65,0.05)] dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)] overflow-hidden">
+        <div className="relative mx-auto flex h-[64px] w-full items-center justify-around rounded-full border border-black/[0.06] bg-white/80 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.08),0_4px_12px_-2px_rgba(0,0,0,0.04)] backdrop-blur-2xl cream:bg-[#faf7ee]/90 cream:border-stone-300/50 cream:shadow-[0_12px_36px_-6px_rgba(120,95,65,0.12),0_4px_12px_-2px_rgba(120,95,65,0.05)] dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)] overflow-hidden">
           {/* Top 1px Specular Light Shelf */}
           <div
             className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 cream:via-white/95 dark:via-white/20 to-transparent"
@@ -380,7 +380,7 @@ export default function MobileTabBar({
                   {isActive && (
                     <motion.div
                       layoutId="mobile-active-tab-indicator"
-                      className="liquid-droplet-pill absolute inset-1 rounded-full pointer-events-none overflow-hidden"
+                      className="liquid-droplet-pill absolute inset-y-0.5 inset-x-0.5 rounded-full pointer-events-none overflow-hidden"
                       transition={tabSpring}
                     >
                       {/* Top Specular Lens Dome Highlight */}
@@ -396,16 +396,6 @@ export default function MobileTabBar({
                           }}
                         />
                       </div>
-                      {/* Active Route Indicator Guide Line (当前停留路由的细线指引) */}
-                      <div
-                        data-testid="mobile-active-route-indicator-line"
-                        className="pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2 h-[2px] w-5 rounded-full"
-                        style={{
-                          backgroundColor: accentColor || '#0ea5e9',
-                          boxShadow: `0 0 8px 1.5px color-mix(in srgb, ${accentColor || '#0ea5e9'} 65%, transparent), 0 1px 2px rgba(0, 0, 0, 0.12)`,
-                        }}
-                        aria-hidden="true"
-                      />
 
                       {/* Bottom Meniscus Surface Tension Line */}
                       <div
@@ -417,7 +407,7 @@ export default function MobileTabBar({
 
                   {/* Content: Icon + Label (Strictly Transparent Achromatic Liquid Glass Contrast, Zero Blue) */}
                   <motion.div
-                    className="relative z-10 flex flex-col items-center justify-center gap-0.5 -translate-y-0.5"
+                    className="relative z-10 flex flex-col items-center justify-center gap-1"
                     animate={isActive ? { scale: [0.96, 1.04, 1] } : { scale: 1 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                   >

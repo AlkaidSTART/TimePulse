@@ -55,16 +55,6 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
   --text-color-transition-duration: 350ms;
 }
 
-.box {
-  width: 100px;
-  height: 100px;
-  background-color: var(--hue-1);
-  border-radius: 10px;
-  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.12), 0 0 16px -2px var(--hue-1);
-  will-change: transform;
-}
-
-
 /* 安全区（Android 边到边 / iOS 刘海屏）。
    Tauri 2.8 起 Android 模板默认 enableEdgeToEdge()，WebView 会绘制到状态栏与手势条之下；
    只有 Chromium WebView 136+ 才上报真实的 env(safe-area-inset-*)，
@@ -616,27 +606,26 @@ select,
   /* 移动端底部导航 - 苹果液态玻璃纯透明水滴指示器 (Apple Liquid Glass Water Droplet) */
   .liquid-droplet-pill {
     position: absolute;
-    inset: 0.25rem;
     border-radius: 9999px;
     overflow: hidden;
     pointer-events: none;
     background: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.26) 0%,
-      rgba(255, 255, 255, 0.05) 50%,
-      rgba(255, 255, 255, 0.18) 100%
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.3) 100%
     );
     -webkit-backdrop-filter: blur(18px) saturate(180%) contrast(105%);
     backdrop-filter: blur(18px) saturate(180%) contrast(105%);
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(0, 0, 0, 0.32);
     box-shadow:
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.9),
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.95),
       inset 1px 0 1px 0 rgba(255, 255, 255, 0.35),
       inset -1px 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.3),
-      inset 0 0 12px 0 rgba(255, 255, 255, 0.12),
-      0 4px 14px -1px rgba(0, 0, 0, 0.06),
-      0 2px 6px -1px rgba(0, 0, 0, 0.03);
+      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.35),
+      inset 0 0 12px 0 rgba(255, 255, 255, 0.14),
+      0 4px 14px -1px rgba(0, 0, 0, 0.08),
+      0 2px 6px -1px rgba(0, 0, 0, 0.04);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
   }
@@ -644,30 +633,31 @@ select,
   .cream .liquid-droplet-pill {
     background: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.32) 0%,
-      rgba(255, 252, 245, 0.06) 50%,
-      rgba(255, 250, 240, 0.2) 100%
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 252, 245, 0.16) 50%,
+      rgba(255, 250, 240, 0.38) 100%
     );
-    border: 1px solid rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(0, 0, 0, 0.32);
     box-shadow:
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.95),
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.98),
       inset 1px 0 1px 0 rgba(255, 255, 255, 0.4),
       inset -1px 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.35),
-      inset 0 0 12px 0 rgba(255, 250, 240, 0.15),
-      0 4px 14px -1px rgba(120, 95, 65, 0.07),
-      0 2px 6px -1px rgba(120, 95, 65, 0.03);
+      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.4),
+      inset 0 0 12px 0 rgba(255, 250, 240, 0.16),
+      0 4px 14px -1px rgba(120, 95, 65, 0.09),
+      0 2px 6px -1px rgba(120, 95, 65, 0.04);
   }
 
   .dark .liquid-droplet-pill {
     background: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.14) 0%,
-      rgba(255, 255, 255, 0.02) 50%,
-      rgba(255, 255, 255, 0.08) 100%
+      rgba(255, 255, 255, 0.15) 0%,
+      rgba(255, 255, 255, 0.03) 50%,
+      rgba(255, 255, 255, 0.09) 100%
     );
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(0, 0, 0, 0.65);
     box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.2),
       inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.45),
       inset 1px 0 1px 0 rgba(255, 255, 255, 0.2),
       inset -1px 0 1px 0 rgba(255, 255, 255, 0.1),
@@ -684,52 +674,49 @@ select,
     overflow: hidden;
     pointer-events: auto;
     background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.28) 0%,
-      rgba(255, 255, 255, 0.06) 50%,
-      rgba(255, 255, 255, 0.2) 100%
+      145deg,
+      rgba(255, 255, 255, 0.85) 0%,
+      rgba(255, 255, 255, 0.5) 100%
     );
-    -webkit-backdrop-filter: blur(20px) saturate(180%) contrast(105%);
-    backdrop-filter: blur(20px) saturate(180%) contrast(105%);
-    border: 1px solid rgba(255, 255, 255, 0.58);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(0, 0, 0, 0.28);
     box-shadow:
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.9),
-      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.3),
-      inset 0 0 12px 0 rgba(255, 255, 255, 0.12),
-      0 4px 14px -1px rgba(0, 0, 0, 0.08),
-      0 2px 6px -1px rgba(0, 0, 0, 0.04);
+      0 4px 16px -2px rgba(0, 0, 0, 0.08),
+      0 2px 6px -1px rgba(0, 0, 0, 0.04),
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
+      inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
   }
 
   .cream .liquid-droplet-button {
     background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.34) 0%,
-      rgba(255, 252, 245, 0.08) 50%,
-      rgba(255, 250, 240, 0.22) 100%
+      145deg,
+      rgba(255, 255, 255, 0.88) 0%,
+      rgba(250, 244, 232, 0.6) 100%
     );
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.28);
     box-shadow:
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.95),
-      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.35),
-      0 4px 14px -1px rgba(120, 95, 65, 0.09),
-      0 2px 6px -1px rgba(120, 95, 65, 0.04);
+      0 4px 16px -2px rgba(130, 105, 75, 0.14),
+      0 2px 6px -1px rgba(130, 105, 75, 0.07),
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
+      inset 0 -1px 1.5px 0 rgba(190, 170, 140, 0.25);
   }
 
   .dark .liquid-droplet-button {
     background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.15) 0%,
-      rgba(255, 255, 255, 0.03) 50%,
-      rgba(255, 255, 255, 0.09) 100%
+      145deg,
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(255, 255, 255, 0.06) 100%
     );
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.55);
     box-shadow:
+      0 4px 16px -2px rgba(0, 0, 0, 0.45),
+      0 2px 6px -1px rgba(0, 0, 0, 0.25),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
       inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.45),
-      inset 0 -1px 1px 0 rgba(255, 255, 255, 0.18),
-      0 4px 16px -1px rgba(0, 0, 0, 0.45),
-      0 2px 6px -1px rgba(0, 0, 0, 0.25);
+      inset 0 -1px 1px 0 rgba(255, 255, 255, 0.18);
   }
 
   .btn {

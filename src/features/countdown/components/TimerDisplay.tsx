@@ -4,7 +4,7 @@ import { useTimers } from '@/app/providers/TimerProvider';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import DigitColumn from './DigitColumn';
-import TimerLoadingBox from './TimerLoadingBox';
+import TimerSkeleton from './TimerSkeleton';
 import { addNotification } from '@/services/notificationManager';
 import { track, bucketDurationMs } from '@/services/analytics';
 import { FiPlay, FiPause, FiSquare, FiFlag, FiList } from 'react-icons/fi';
@@ -585,8 +585,8 @@ export default function TimerDisplay() {
   useEffect(() => {
     if (!isInitialValuesReady || isDisplayVisible || !activeTimer) return undefined;
 
-    // Quick layout stabilization without blocking the user
-    const revealTimer = window.setTimeout(() => setIsDisplayVisible(true), 120);
+    // Instant layout stabilization with clean skeleton preview
+    const revealTimer = window.setTimeout(() => setIsDisplayVisible(true), 60);
     return () => window.clearTimeout(revealTimer);
   }, [
     isInitialValuesReady,
@@ -633,7 +633,7 @@ export default function TimerDisplay() {
   if (!activeTimer) {
     return (
       <div className="flex items-center justify-center min-h-[160px] py-12">
-        <TimerLoadingBox />
+        <TimerSkeleton />
       </div>
     );
   }
@@ -660,24 +660,26 @@ export default function TimerDisplay() {
         return `${t('timer.target')}: ${toDate((activeTimer as CountdownTimer).targetDate).toLocaleString()}`;
     }
   };
+
+  const timerTitle = getTimerTitle();
+  const skeletonColumns = showYears ? 5 : showDays ? 4 : 3;
   
   return (
     <div className="relative flex flex-col items-center justify-center w-full min-h-[160px]">
       <AnimatePresence>
         {!isDisplayVisible && (
           <motion.div
-            key="timer-loading-box"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
+            key="timer-skeleton"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{
               opacity: 0,
-              scale: 0.72,
-              filter: 'blur(8px)',
-              transition: { duration: 0.2, ease: [0.32, 0, 0.67, 0] },
+              filter: 'blur(4px)',
+              transition: { duration: 0.16, ease: 'easeOut' },
             }}
             className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
           >
-            <TimerLoadingBox color={activeTimer.color} />
+            <TimerSkeleton columns={skeletonColumns} showTitle={Boolean(timerTitle)} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -687,19 +689,19 @@ export default function TimerDisplay() {
         initial={false}
         animate={isDisplayVisible
           ? { opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }
-          : { opacity: 0, scale: 0.96, y: 28, filter: 'blur(4px)' }}
+          : { opacity: 0, scale: 0.98, y: 14, filter: 'blur(2px)' }}
         transition={{
-          y: { type: 'spring', damping: 22, stiffness: 260, mass: 0.6 },
-          scale: { type: 'spring', damping: 22, stiffness: 260, mass: 0.6 },
-          opacity: { duration: 0.25, ease: 'easeOut' },
-          filter: { duration: 0.2, ease: 'easeOut' },
+          y: { type: 'spring', damping: 24, stiffness: 300, mass: 0.5 },
+          scale: { type: 'spring', damping: 24, stiffness: 300, mass: 0.5 },
+          opacity: { duration: 0.18, ease: 'easeOut' },
+          filter: { duration: 0.16, ease: 'easeOut' },
         }}
         aria-hidden={!isDisplayVisible}
         inert={!isDisplayVisible}
       >
         <div className="relative flex flex-col items-center">
       {/* 计时器名称 */}
-      {getTimerTitle() ? (
+      {timerTitle ? (
         <AnimatedRegion
           transitionKey="timer-title"
           className="pb-4"

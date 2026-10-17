@@ -81,7 +81,7 @@ describe('TimerDisplay component', () => {
     expect(screen.getByRole('heading', { level: 2, name: '考研倒计时', hidden: true })).toBeInTheDocument();
   });
 
-  it('renders loading box while timer display is not yet visible', () => {
+  it('renders skeleton while timer display is not yet visible', () => {
     useTimerStore.setState({
       timers: [
         {
@@ -109,7 +109,7 @@ describe('TimerDisplay component', () => {
       </ThemeProvider>,
     );
 
-    expect(screen.getByTestId('timer-loading-box')).toBeInTheDocument();
+    expect(screen.getByTestId('timer-skeleton')).toBeInTheDocument();
   });
 });
 

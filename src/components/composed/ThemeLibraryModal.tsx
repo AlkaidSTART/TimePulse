@@ -82,14 +82,9 @@ export default function ThemeLibraryModal({
             >
               <LuPalette className="size-3.5 stroke-[2.2]" />
             </div>
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
-                {t('theme.title', '字体配色库')}
-              </h3>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                {t('theme.subtitle', '灵感源自 ChatGPT 极简美学，仅调整倒计时字体颜色')}
-              </p>
-            </div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
+              {t('theme.title', '字体配色库')}
+            </h3>
           </div>
           <button
             type="button"
@@ -102,13 +97,7 @@ export default function ThemeLibraryModal({
         </div>
       )}
 
-      {/* 提示信息：仅改变字体，不影响米白/白色背景 */}
-      <div className="mb-2 px-2.5 py-1.5 rounded-lg bg-black/[0.03] dark:bg-white/[0.04] text-[11px] text-gray-600 dark:text-gray-300 flex items-center gap-1.5 select-none">
-        <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
-        <span>{t('theme.note', '仅改变数字与字体颜色，不影响米白色或白色主题')}</span>
-      </div>
-
-      {/* ChatGPT 风格色彩列表 */}
+      {/* 色彩列表 */}
       <div className="flex flex-col gap-1 py-1" role="listbox" aria-label="主题配色列表">
         {CHATGPT_THEME_PRESETS.map((preset) => {
           const isSelected =
