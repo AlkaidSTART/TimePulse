@@ -111,10 +111,12 @@ jobs:
           java-version: '17'
 
       # 版本号与本仓库锁定的 @tauri-apps/cli 一致（见 tauri-cli 的 NDK_VERSION / SDK_VERSION）
+      # 注意：API 37 起 SDK 平台带小版本号，包名为 platforms;android-37.0，
+      # 不存在 platforms;android-37（安装会报 Failed to find package 并以 exit code 1 结束）
       - name: Setup Android SDK and NDK
         uses: android-actions/setup-android@v4
         with:
-          packages: 'platform-tools platforms;android-37 ndk;29.0.13846066'
+          packages: 'platform-tools platforms;android-37.0 ndk;29.0.13846066'
 
       - name: Configure Android Environment
         run: |
