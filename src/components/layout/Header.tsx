@@ -1,7 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
-import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo, FiPalette } from 'react-icons/fi';
+import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo } from 'react-icons/fi';
+import { LuPalette } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTimers } from '@/app/providers/TimerProvider';
@@ -544,7 +545,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
-                      <FiPalette className="size-4 text-primary-500" />
+                      <LuPalette className="size-4 text-primary-500" />
                       <span>{t('theme.title', '主题配色库')}</span>
                     </div>
                     <span

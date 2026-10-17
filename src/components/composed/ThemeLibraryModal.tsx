@@ -80,7 +80,7 @@ export default function ThemeLibraryModal({
               className="size-7 rounded-lg flex items-center justify-center shrink-0 text-white shadow-xs"
               style={{ backgroundColor: accentColor || '#10A37F' }}
             >
-              <FiPalette className="size-3.5 stroke-[2.2]" />
+              <LuPalette className="size-3.5 stroke-[2.2]" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
