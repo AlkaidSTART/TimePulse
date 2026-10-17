@@ -117,37 +117,38 @@ describe('useGlobalTouchGestures', () => {
   it('navigates through global pages on swipe in cheer, todo, settings', () => {
     renderHook(() => useGlobalTouchGestures());
 
+    const transitionSpy = vi.spyOn(useNavigationStore.getState(), 'transitionTo');
+
     // 1. From cheer, swipe left -> main
+    useNavigationStore.setState({ view: 'cheer' });
     act(() => {
-      window.location.hash = '#cheer';
-      useNavigationStore.getState().setView('cheer');
       simulateSwipe(250, 300, 150, 300);
     });
-    expect(useNavigationStore.getState().view).toBe('main');
+    expect(transitionSpy).toHaveBeenCalledWith('main');
 
     // 2. From todo, swipe right -> main
+    transitionSpy.mockClear();
+    useNavigationStore.setState({ view: 'todo' });
     act(() => {
-      window.location.hash = '#todo';
-      useNavigationStore.getState().setView('todo');
       simulateSwipe(150, 300, 250, 300);
     });
-    expect(useNavigationStore.getState().view).toBe('main');
+    expect(transitionSpy).toHaveBeenCalledWith('main');
 
     // 3. From todo, swipe left -> settings
+    transitionSpy.mockClear();
+    useNavigationStore.setState({ view: 'todo' });
     act(() => {
-      window.location.hash = '#todo';
-      useNavigationStore.getState().setView('todo');
       simulateSwipe(250, 300, 150, 300);
     });
-    expect(useNavigationStore.getState().view).toBe('settings');
+    expect(transitionSpy).toHaveBeenCalledWith('settings');
 
     // 4. From settings, swipe right -> todo
+    transitionSpy.mockClear();
+    useNavigationStore.setState({ view: 'settings' });
     act(() => {
-      window.location.hash = '#settings';
-      useNavigationStore.getState().setView('settings');
       simulateSwipe(150, 300, 250, 300);
     });
-    expect(useNavigationStore.getState().view).toBe('todo');
+    expect(transitionSpy).toHaveBeenCalledWith('todo');
   });
 
   it('exits fullscreen when pulling down in fullscreen mode', () => {
@@ -190,14 +191,15 @@ describe('useGlobalTouchGestures', () => {
 
     renderHook(() => useGlobalTouchGestures());
 
+    const transitionSpy = vi.spyOn(useNavigationStore.getState(), 'transitionTo');
+    useNavigationStore.setState({ view: 'todo' });
+
     act(() => {
-      window.location.hash = '#todo';
-      useNavigationStore.getState().setView('todo');
       simulateSwipe(150, 300, 250, 300, input);
     });
 
     // View should remain 'todo', no swipe navigation triggered
-    expect(useNavigationStore.getState().view).toBe('todo');
+    expect(transitionSpy).not.toHaveBeenCalled();
     document.body.removeChild(input);
   });
 });
