@@ -222,4 +222,44 @@ describe('todoReducer', () => {
 
     expect(ids).toEqual(['2', '3', '1', '4']);
   });
+
+  it('automatically sorts items on add and set_priority when autoSort is enabled', () => {
+    const initialState: TodoState = {
+      items: [
+        { ...createItem('1', 'Low', false), color: '#10B981', priority: 'low' },
+      ],
+      activeTab: 'todo',
+      autoSort: true,
+    };
+
+    // Adding urgent item should automatically place it at the top
+    const afterAdd = todoReducer(initialState, {
+      type: 'add',
+      text: 'Urgent',
+      color: '#EF4444',
+      priority: 'urgent',
+    });
+    expect(afterAdd.items[0].priority).toBe('urgent');
+    expect(afterAdd.items[1].priority).toBe('low');
+
+    // Updating low item to urgent should re-sort
+    const afterPriorityChange = todoReducer(
+      {
+        items: [
+          { ...createItem('1', 'Urgent 1', false), color: '#EF4444', priority: 'urgent' },
+          { ...createItem('2', 'Will be top', false), color: '#10B981', priority: 'low' },
+        ],
+        activeTab: 'todo',
+        autoSort: true,
+      },
+      {
+        type: 'set_priority',
+        id: '2',
+        color: '#EF4444',
+        priority: 'urgent',
+      },
+    );
+    expect(afterPriorityChange.items.map((i) => i.id)).toEqual(['1', '2']);
+  });
 });
+

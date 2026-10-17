@@ -116,4 +116,37 @@ export function writeTodoWidgetVisible(visible: boolean): void {
   }
 }
 
+const TODO_AUTO_SORT_KEY = 'timepulse_todo_auto_sort_v1';
+
+/**
+ * 读取用户是否开启按优先级自动排序（默认开启 true）
+ */
+export function readTodoAutoSort(): boolean {
+  if (typeof window === 'undefined') return true;
+  try {
+    const val = localStorage.getItem(TODO_AUTO_SORT_KEY);
+    if (val === null) return true;
+    return val === 'true';
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * 保存用户是否开启自动排序设置
+ */
+export function writeTodoAutoSort(enabled: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(TODO_AUTO_SORT_KEY, String(enabled));
+    window.dispatchEvent(
+      new CustomEvent(TODO_STORAGE_EVENT, {
+        detail: { type: 'auto_sort', enabled },
+      }),
+    );
+  } catch (error) {
+    console.warn('[TodoStorage] 保存自动排序配置失败:', error);
+  }
+}
+
 

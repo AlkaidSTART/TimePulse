@@ -20,6 +20,8 @@ import {
   writeTodoItems,
   readActiveTodoTab,
   writeActiveTodoTab,
+  readTodoAutoSort,
+  writeTodoAutoSort,
   TODO_STORAGE_EVENT,
 } from '../todoStorage';
 import type { TodoItem, TodoType, PriorityLevel } from '../types';
@@ -46,6 +48,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
   const [state, dispatch] = useReducer(todoReducer, {
     items: [],
     activeTab: 'todo',
+    autoSort: readTodoAutoSort(),
   });
 
   const [inputText, setInputText] = useState('');
@@ -62,10 +65,20 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
     const loadFromStorage = () => {
       const savedItems = readTodoItems();
       const savedTab = readActiveTodoTab();
+      const savedAutoSort = readTodoAutoSort();
       const currentJson = JSON.stringify(stateRef.current.items);
       const savedJson = JSON.stringify(savedItems);
-      if (currentJson !== savedJson || stateRef.current.activeTab !== savedTab) {
-        dispatch({ type: 'load', items: savedItems, activeTab: savedTab });
+      if (
+        currentJson !== savedJson ||
+        stateRef.current.activeTab !== savedTab ||
+        stateRef.current.autoSort !== savedAutoSort
+      ) {
+        dispatch({
+          type: 'load',
+          items: savedItems,
+          activeTab: savedTab,
+          autoSort: savedAutoSort,
+        });
       }
     };
     loadFromStorage();
@@ -88,6 +101,12 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
   useEffect(() => {
     writeActiveTodoTab(state.activeTab);
   }, [state.activeTab]);
+
+  useEffect(() => {
+    if (state.autoSort !== undefined) {
+      writeTodoAutoSort(state.autoSort);
+    }
+  }, [state.autoSort]);
 
   // 过滤当前 tab 的项目
   const currentTabItems = useMemo(() => {
@@ -172,6 +191,13 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
     if (nextState) {
       await triggerHaptic('test');
     }
+  };
+
+  const handleToggleAutoSort = async () => {
+    const nextState = !state.autoSort;
+    dispatch({ type: 'set_auto_sort', enabled: nextState });
+    writeTodoAutoSort(nextState);
+    await triggerHaptic('selection');
   };
 
   const handleTestVibrate = async () => {
@@ -476,7 +502,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
           ) : (
             <div className="flex flex-col gap-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 px-1 pb-1 text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                   <span>{t('todo.dragTip', '提示：按住左侧手柄可上下拖拽自由排序')}</span>
                   <button
                     type="button"
@@ -486,6 +512,24 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                   >
                     <FiBarChart2 className="size-3" />
                     <span>{t('todo.sortByPriority', '按优先级排序')}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleToggleAutoSort}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-all cursor-pointer ${
+                      state.autoSort
+                        ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:border-emerald-400/30 dark:bg-emerald-500/20 dark:text-emerald-400 shadow-2xs'
+                        : 'border-black/10 bg-black/5 text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400 hover:bg-black/10'
+                    }`}
+                    title={
+                      state.autoSort
+                        ? t('todo.autoSortOnTip', '自动排序已开启：添加任务或修改优先级时将自动按优先级排序（点击关闭）')
+                        : t('todo.autoSortOffTip', '自动排序已关闭：可自由上下拖拽排序（点击开启自动排序）')
+                    }
+                  >
+                    <span className={`size-1.5 rounded-full ${state.autoSort ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400'}`} />
+                    <span>{state.autoSort ? t('todo.autoSortOn', '自动排序：开') : t('todo.autoSortOff', '自动排序：关')}</span>
                   </button>
                 </div>
                 <span>{t('todo.editTip', '双击文本可快速修改')}</span>

@@ -4,6 +4,7 @@ import { FiCheck, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { DraggableProvided, DraggableStateSnapshot } from '@hello-pangea/dnd';
 import type { TodoItem, PriorityLevel } from '../types';
+import PriorityColorPicker from './PriorityColorPicker';
 import { useTranslation } from '@/i18n/useTranslation';
 
 export interface TodoItemRowProps {
@@ -83,7 +84,7 @@ export default function TodoItemRow({
       style={cardStyle}
       className={`group relative flex items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 select-none overflow-visible ${
         snapshot?.isDragging
-          ? '!transition-none shadow-2xl ring-2 ring-primary-500/60 bg-white/95 dark:bg-[#18181b] z-50 scale-[1.01]'
+          ? 'shadow-2xl ring-2 ring-primary-500/60 bg-white/95 dark:bg-[#18181b] z-50 scale-[1.01]'
           : item.completed
           ? item.color
             ? 'transition-all opacity-65 hover:[background-color:var(--todo-item-bg-hover)] hover:[border-color:var(--todo-item-border-hover)]'
@@ -172,8 +173,22 @@ export default function TodoItemRow({
         )}
       </div>
 
-      {/* 快捷操作区：快速编辑与删除 */}
-      <div className="flex shrink-0 items-center gap-1 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+      {/* 快捷操作区：优先级色彩标注、快速编辑与删除 */}
+      <div className="flex shrink-0 items-center gap-1 opacity-90 sm:opacity-70 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+        {onSetPriority && (
+          <PriorityColorPicker
+            color={item.color}
+            priority={item.priority}
+            onSelect={(c, p) => onSetPriority(item.id, c, p)}
+            size="xs"
+            title={
+              item.color
+                ? t('todo.changePriorityColor', '修改或清除任务配色标记')
+                : t('todo.setPriorityColor', '为任务标注优先级配色')
+            }
+          />
+        )}
+
         {!isEditing && (
           <button
             type="button"
