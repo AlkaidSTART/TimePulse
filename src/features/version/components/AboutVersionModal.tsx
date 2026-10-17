@@ -434,7 +434,7 @@ export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
                 <span>GitHub · {GITHUB_REPO}</span>
               </button>
               <div className="flex items-center gap-2">
-                <span>Apache-2.0</span>
+                <span>MIT</span>
               </div>
             </div>
           </motion.div>

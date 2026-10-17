@@ -20,6 +20,8 @@ import {
   writeTodoItems,
   readActiveTodoTab,
   writeActiveTodoTab,
+  readTodoAutoSort,
+  writeTodoAutoSort,
   TODO_STORAGE_EVENT,
 } from '../todoStorage';
 import type { TodoItem, TodoType, PriorityLevel } from '../types';
@@ -64,6 +66,7 @@ export default function TodoListWidget({
   const [state, dispatch] = useReducer(todoReducer, {
     items: [],
     activeTab: 'todo',
+    autoSort: readTodoAutoSort(),
   });
 
   const [inputText, setInputText] = useState('');
@@ -80,10 +83,20 @@ export default function TodoListWidget({
     const loadFromStorage = () => {
       const savedItems = readTodoItems();
       const savedTab = readActiveTodoTab();
+      const savedAutoSort = readTodoAutoSort();
       const currentJson = JSON.stringify(stateRef.current.items);
       const savedJson = JSON.stringify(savedItems);
-      if (currentJson !== savedJson || stateRef.current.activeTab !== savedTab) {
-        dispatch({ type: 'load', items: savedItems, activeTab: savedTab });
+      if (
+        currentJson !== savedJson ||
+        stateRef.current.activeTab !== savedTab ||
+        stateRef.current.autoSort !== savedAutoSort
+      ) {
+        dispatch({
+          type: 'load',
+          items: savedItems,
+          activeTab: savedTab,
+          autoSort: savedAutoSort,
+        });
       }
     };
     loadFromStorage();
@@ -106,6 +119,12 @@ export default function TodoListWidget({
   useEffect(() => {
     writeActiveTodoTab(state.activeTab);
   }, [state.activeTab]);
+
+  useEffect(() => {
+    if (state.autoSort !== undefined) {
+      writeTodoAutoSort(state.autoSort);
+    }
+  }, [state.autoSort]);
 
   // 过滤当前 tab 的项目
   const currentTabItems = useMemo(() => {
@@ -180,6 +199,13 @@ export default function TodoListWidget({
     if (nextState) {
       await triggerHaptic('test');
     }
+  };
+
+  const handleToggleAutoSort = async () => {
+    const nextState = !state.autoSort;
+    dispatch({ type: 'set_auto_sort', enabled: nextState });
+    writeTodoAutoSort(nextState);
+    await triggerHaptic('selection');
   };
 
   const handleTestVibrate = async () => {
@@ -344,6 +370,37 @@ export default function TodoListWidget({
                 )}
               </AnimatePresence>
             </div>
+
+            {/* 列表排序快捷条 */}
+            {currentTabItems.length > 0 && (
+              <div className="flex items-center justify-between px-1 pb-1 text-[11px] text-gray-500 dark:text-gray-400">
+                <span className="text-[10px]">{t('todo.dragTipShort', '可上下拖拽自由排序')}</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => dispatch({ type: 'sort_by_priority' })}
+                    className="inline-flex items-center gap-1 rounded-full border border-primary-500/20 bg-primary-500/10 px-1.5 py-0.5 text-[10px] font-medium text-primary-600 dark:text-primary-400 hover:bg-primary-500/20 transition-all cursor-pointer"
+                    title={t('todo.sortByPriorityTip', '根据设置的优先级颜色自动由高到低排列')}
+                  >
+                    <FiBarChart2 className="size-2.5" />
+                    <span>{t('todo.sortByPriority', '按优先级排序')}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleToggleAutoSort}
+                    className={`inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium transition-all cursor-pointer ${
+                      state.autoSort
+                        ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-600 dark:border-emerald-400/30 dark:bg-emerald-500/20 dark:text-emerald-400 shadow-2xs'
+                        : 'border-black/10 bg-black/5 text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400'
+                    }`}
+                  >
+                    <span className={`size-1 rounded-full ${state.autoSort ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                    <span>{state.autoSort ? '自动排序：开' : '自动排序：关'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* 列表主体：使用 @hello-pangea/dnd 进行拖拽排序 */}
             <div className="flex-1 overflow-y-auto pr-1 my-1 min-h-[140px] max-h-[260px] space-y-1.5">

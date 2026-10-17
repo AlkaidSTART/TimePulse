@@ -126,7 +126,4 @@ pnpm tauri android build --apk      # Android APK（需 Android SDK / NDK）
 
 ## 许可证
 
-本项目为 [RavelloH/TimePulse](https://github.com/RavelloH/TimePulse) 的二次开发版本。
-
-- 本项目新增的代码与修改：Apache License 2.0，见 [LICENSE](LICENSE)
-- 源自上游项目的部分：MIT License，见 [LICENSE-MIT](LICENSE-MIT)
+本项目基于 [MIT License](LICENSE) 开源。二次开发源自 [RavelloH/TimePulse](https://github.com/RavelloH/TimePulse)。

@@ -17,13 +17,41 @@ export function isAllCompleted(items: TodoItem[], type: TodoType): boolean {
   return filtered.every((item) => item.completed);
 }
 
+/**
+ * 快速按优先级排序指定的待办列表（未完成在前、优先级由高到低）
+ */
+export function sortItemsByPriority(items: TodoItem[]): TodoItem[] {
+  return [...items].sort((a, b) => {
+    // 未完成项排在已完成项前面
+    if (a.completed !== b.completed) {
+      return a.completed ? 1 : -1;
+    }
+    const weightA = getPriorityWeight(a.color, a.priority);
+    const weightB = getPriorityWeight(b.color, b.priority);
+    if (weightA !== weightB) {
+      return weightA - weightB;
+    }
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+}
+
 export function todoReducer(state: TodoState, action: TodoAction): TodoState {
   switch (action.type) {
     case 'load': {
+      const autoSort = action.autoSort ?? state.autoSort ?? false;
+      const curTab = action.activeTab ?? state.activeTab;
+      const items = autoSort
+        ? [
+            ...sortItemsByPriority(action.items.filter((i) => i.type === curTab)),
+            ...action.items.filter((i) => i.type !== curTab),
+          ]
+        : action.items;
+
       return {
         ...state,
-        items: action.items,
-        activeTab: action.activeTab ?? state.activeTab,
+        items,
+        activeTab: curTab,
+        autoSort,
       };
     }
 
@@ -48,24 +76,47 @@ export function todoReducer(state: TodoState, action: TodoAction): TodoState {
         priority: action.priority,
       };
 
+      const newItems = [newItem, ...state.items];
+      if (state.autoSort) {
+        const curTab = state.activeTab;
+        const curTabItems = newItems.filter((i) => i.type === curTab);
+        const otherItems = newItems.filter((i) => i.type !== curTab);
+        return {
+          ...state,
+          items: [...sortItemsByPriority(curTabItems), ...otherItems],
+        };
+      }
+
       return {
         ...state,
-        items: [newItem, ...state.items],
+        items: newItems,
       };
     }
 
     case 'toggle': {
+      const updated = state.items.map((item) => {
+        if (item.id !== action.id) return item;
+        const nextCompleted = !item.completed;
+        return {
+          ...item,
+          completed: nextCompleted,
+          completedAt: nextCompleted ? Date.now() : undefined,
+        };
+      });
+
+      if (state.autoSort) {
+        const curTab = state.activeTab;
+        const curTabItems = updated.filter((i) => i.type === curTab);
+        const otherItems = updated.filter((i) => i.type !== curTab);
+        return {
+          ...state,
+          items: [...sortItemsByPriority(curTabItems), ...otherItems],
+        };
+      }
+
       return {
         ...state,
-        items: state.items.map((item) => {
-          if (item.id !== action.id) return item;
-          const nextCompleted = !item.completed;
-          return {
-            ...item,
-            completed: nextCompleted,
-            completedAt: nextCompleted ? Date.now() : undefined,
-          };
-        }),
+        items: updated,
       };
     }
 
@@ -89,24 +140,50 @@ export function todoReducer(state: TodoState, action: TodoAction): TodoState {
     }
 
     case 'reorder': {
-      // action.items 是当前 activeTab 经过拖拽排好序的 items 列表
-      // 将其他 tab 的 items 原样保留，把当前 tab 的 items 替换为排好序的 items
+      // 手动自由拖拽后，暂时关闭自动排序，确保用户的自由定制顺序不被立刻冲掉
       const currentTab = state.activeTab;
       const otherItems = state.items.filter((item) => item.type !== currentTab);
       return {
         ...state,
+        autoSort: false,
         items: [...action.items, ...otherItems],
       };
     }
 
     case 'set_priority': {
+      const updated = state.items.map((item) =>
+        item.id === action.id
+          ? { ...item, color: action.color, priority: action.priority }
+          : item,
+      );
+
+      if (state.autoSort) {
+        const curTab = state.activeTab;
+        const curTabItems = updated.filter((i) => i.type === curTab);
+        const otherItems = updated.filter((i) => i.type !== curTab);
+        return {
+          ...state,
+          items: [...sortItemsByPriority(curTabItems), ...otherItems],
+        };
+      }
+
       return {
         ...state,
-        items: state.items.map((item) =>
-          item.id === action.id
-            ? { ...item, color: action.color, priority: action.priority }
-            : item,
-        ),
+        items: updated,
+      };
+    }
+
+    case 'set_auto_sort': {
+      if (!action.enabled) {
+        return { ...state, autoSort: false };
+      }
+      const currentTab = state.activeTab;
+      const currentTabItems = state.items.filter((item) => item.type === currentTab);
+      const otherItems = state.items.filter((item) => item.type !== currentTab);
+      return {
+        ...state,
+        autoSort: true,
+        items: [...sortItemsByPriority(currentTabItems), ...otherItems],
       };
     }
 
@@ -115,22 +192,9 @@ export function todoReducer(state: TodoState, action: TodoAction): TodoState {
       const currentTabItems = state.items.filter((item) => item.type === currentTab);
       const otherItems = state.items.filter((item) => item.type !== currentTab);
 
-      const sorted = [...currentTabItems].sort((a, b) => {
-        // 未完成项排在已完成项前面
-        if (a.completed !== b.completed) {
-          return a.completed ? 1 : -1;
-        }
-        const weightA = getPriorityWeight(a.color, a.priority);
-        const weightB = getPriorityWeight(b.color, b.priority);
-        if (weightA !== weightB) {
-          return weightA - weightB;
-        }
-        return (b.createdAt || 0) - (a.createdAt || 0);
-      });
-
       return {
         ...state,
-        items: [...sorted, ...otherItems],
+        items: [...sortItemsByPriority(currentTabItems), ...otherItems],
       };
     }
 
