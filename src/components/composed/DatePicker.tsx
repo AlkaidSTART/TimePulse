@@ -27,7 +27,7 @@ import { cn } from '@/components/ui/utils';
 
 export type DatePickerChangeEvent = {
   target: {
-    name: string;
+    name?: string;
     value: string;
   };
 };
@@ -113,7 +113,7 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(function DatePick
       if (onChange) {
         onChange({
           target: {
-            name,
+            name: name || '',
             value: newValue,
           },
         });
