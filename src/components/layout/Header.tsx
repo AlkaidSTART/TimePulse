@@ -297,8 +297,44 @@ export default function Header({ onHeightChange }: HeaderProps) {
     };
   }, [isFullscreen, headerHideDelay, showHeader, hideHeader]);
 
+function getActiveTimezoneInfo(timer: Timer | null): { text: string; full: string } | null {
+  if (!timer || timer.type === 'stopwatch') return null;
+  const timezone = timer.timezone || (typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC');
+  if (!timezone) return null;
+
+  let offset = '';
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'shortOffset',
+    }).formatToParts(new Date());
+    const offsetPart = parts.find((p) => p.type === 'timeZoneName')?.value;
+    if (offsetPart) {
+      offset = offsetPart.replace('GMT', 'UTC');
+    }
+  } catch {
+    // fallback if timezone string is invalid
+  }
+
+  if (timer.type === 'worldclock') {
+    const city = timer.city?.trim();
+    const country = timer.country?.trim();
+    const location = city || country || '';
+    const text = location ? `${location} · ${timezone}` : timezone;
+    const full = offset ? `${text} (${offset})` : text;
+    return { text, full };
+  }
+
+  // countdown timer
+  const text = timezone;
+  const full = offset ? `${text} (${offset})` : text;
+  return { text, full };
+}
+
   // 获取当前活动计时器
   const activeTimer = timers.find(timer => timer.id === activeTimerId) || null;
+  const isTimerView = view === 'main' || isFullscreen;
+  const timezoneInfo = isTimerView ? getActiveTimezoneInfo(activeTimer) : null;
 
   return (
     <>
@@ -360,6 +396,17 @@ export default function Header({ onHeightChange }: HeaderProps) {
 
         {/* Right Controls: Streamlined, clean, cohesive */}
         <div className="flex items-center justify-end z-10 gap-1.5 shrink-0">
+          {/* Current Timezone Display */}
+          {timezoneInfo && (
+            <div
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/40 dark:bg-white/10 border border-white/20 dark:border-white/10 text-xs font-medium text-gray-700 dark:text-gray-200 backdrop-blur-md select-none transition-colors shadow-xs"
+              title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
+            >
+              <FiGlobe className="size-3.5 shrink-0 text-primary-500 dark:text-primary-400" />
+              <span className="truncate max-w-[120px] xl:max-w-[180px]">{timezoneInfo.text}</span>
+            </div>
+          )}
+
           {/* Quick Add Timer */}
           <button
             type="button"

@@ -676,33 +676,35 @@ export default function TimerDisplay() {
     >
       <div className="relative flex flex-col items-center">
       {/* 计时器名称 */}
-      <AnimatedRegion
-        transitionKey="timer-title"
-        className="pb-4"
-      >
-        <motion.h2
-          className={`${isFullscreen ? 'text-3xl md:text-4xl' : 'text-xl sm:text-2xl md:text-3xl'} font-medium`}
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          style={{
-            color: activeTimer.color,
-            transition: 'color 0.5s var(--transition-timing)'
-          }}
+      {getTimerTitle() ? (
+        <AnimatedRegion
+          transitionKey="timer-title"
+          className="pb-4"
         >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.span
-              key={`title:${activeTimer.id}:${activeTimer.type}:${getTimerTitle()}`}
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
-            >
-              {getTimerTitle()}
-            </motion.span>
-          </AnimatePresence>
-        </motion.h2>
-      </AnimatedRegion>
+          <motion.h2
+            className={`${isFullscreen ? 'text-3xl md:text-4xl' : 'text-xl sm:text-2xl md:text-3xl'} font-medium`}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{
+              color: activeTimer.color,
+              transition: 'color 0.5s var(--transition-timing)'
+            }}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={`title:${activeTimer.id}:${activeTimer.type}:${getTimerTitle()}`}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+              >
+                {getTimerTitle()}
+              </motion.span>
+            </AnimatePresence>
+          </motion.h2>
+        </AnimatedRegion>
+      ) : null}
       
       {/* 时间显示 */}
       <LayoutGroup id="timer-display-numeric-layout">
@@ -801,19 +803,21 @@ export default function TimerDisplay() {
           ) : null}
         </AnimatedRegion>
 
-        <AnimatedRegion
-          transitionKey={`description:${activeTimer.id}:${activeTimer.type}:${getTimerDescription()}`}
-          className="pt-6"
-        >
-          <motion.p
-            className="text-sm text-gray-500 dark:text-gray-400"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
+        {getTimerDescription() ? (
+          <AnimatedRegion
+            transitionKey={`description:${activeTimer.id}:${activeTimer.type}:${getTimerDescription()}`}
+            className="pt-6"
           >
-            {getTimerDescription()}
-          </motion.p>
-        </AnimatedRegion>
+            <motion.p
+              className="text-sm text-gray-500 dark:text-gray-400"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              {getTimerDescription()}
+            </motion.p>
+          </AnimatedRegion>
+        ) : null}
 
         <AnimatedRegion
           transitionKey={`laps:${activeTimer.id}:${activeStopwatchTimer?.laps?.length ?? 0}`}
