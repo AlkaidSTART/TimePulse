@@ -196,7 +196,7 @@ export default function TodoListWidget({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 12 }}
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-            className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] right-4 z-40 flex w-[calc(100vw-2rem)] sm:w-96 flex-col rounded-3xl border border-white/20 bg-white/75 p-4 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-[#141416]/80 md:bottom-6 md:right-6"
+            className="fixed bottom-[calc(5.25rem+var(--tp-safe-bottom,0px))] right-4 z-40 flex w-[calc(100vw-2rem)] sm:w-96 flex-col rounded-3xl border border-white/20 bg-white/75 p-4 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-[#141416]/80 md:bottom-6 md:right-6"
             style={{ maxHeight: 'min(580px, calc(100vh - 120px))' }}
           >
             {/* 顶部标题与控制栏 */}
@@ -481,7 +481,7 @@ export default function TodoListWidget({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => handleOpenChange(true)}
-            className="fixed bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] right-4 z-40 flex items-center gap-2 rounded-full border border-white/30 bg-white/75 px-3.5 py-2 shadow-lg backdrop-blur-2xl dark:border-white/12 dark:bg-black/65 md:bottom-6 md:right-6 cursor-pointer"
+            className="fixed bottom-[calc(5.25rem+var(--tp-safe-bottom,0px))] right-4 z-40 flex items-center gap-2 rounded-full border border-white/30 bg-white/75 px-3.5 py-2 shadow-lg backdrop-blur-2xl dark:border-white/12 dark:bg-black/65 md:bottom-6 md:right-6 cursor-pointer"
             aria-label={t('todo.openWidgetAria', '打开待办与核对清单')}
           >
             <div className="flex size-6 items-center justify-center rounded-full text-white bg-sky-500">

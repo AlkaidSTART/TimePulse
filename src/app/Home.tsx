@@ -100,21 +100,17 @@ export default function Home() {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
 
-      switch (hash) {
-        case 'background':
-          setIsBackgroundSettingsOpen(true);
-          break;
-        case 'fullscreen-settings':
-          setIsFullscreenSettingsOpen(true);
-          break;
-        case 'todo-widget':
-          setIsWidgetEnabled(true);
-          writeTodoWidgetVisible(true);
-          setIsTodoWidgetOpen(true);
-          break;
+      setIsBackgroundSettingsOpen(hash === 'background');
+      setIsFullscreenSettingsOpen(hash === 'fullscreen-settings');
+
+      if (hash === 'todo-widget') {
+        setIsWidgetEnabled(true);
+        writeTodoWidgetVisible(true);
+        setIsTodoWidgetOpen(true);
       }
     };
 
+    handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
@@ -281,7 +277,7 @@ export default function Home() {
             <BackgroundSettingsModal onClose={() => {
               setIsBackgroundSettingsOpen(false);
               if (window.location.hash === '#background') {
-                window.location.hash = '';
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
               }
             }} />
           </Suspense>
@@ -295,7 +291,7 @@ export default function Home() {
             <FullscreenSettingsModal onClose={() => {
               setIsFullscreenSettingsOpen(false);
               if (window.location.hash === '#fullscreen-settings') {
-                window.location.hash = '';
+                window.history.replaceState(null, '', window.location.pathname + window.location.search);
               }
             }} />
           </Suspense>

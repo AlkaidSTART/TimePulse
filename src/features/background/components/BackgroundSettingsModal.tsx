@@ -61,6 +61,18 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
     track('background_tab_change', { tab: nextTab });
   };
 
+  // 监听 Escape 按键关闭弹窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   // 加载当前背景用于预览
   useEffect(() => {
     const loadPreview = async (): Promise<void> => {

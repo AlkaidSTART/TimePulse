@@ -160,3 +160,19 @@ test('does not leave notification or modal backdrops mounted while closed', asyn
   await page.getByRole('button', { name: '取消' }).last().click();
   await expect.poll(backdropCount).toBe(0);
 });
+
+test('loads the todo page route without errors', async ({ page }) => {
+  const runtimeErrors: string[] = [];
+  page.on('pageerror', (error) => runtimeErrors.push(`[pageerror] ${error.message}`));
+  page.on('console', (message) => {
+    if (message.type() === 'error' && !message.text().includes('Failed to load resource')) {
+      runtimeErrors.push(`[console.error] ${message.text()}`);
+    }
+  });
+
+  await page.goto('/#todo', { waitUntil: 'commit' });
+  await expect(page.locator('[data-page-view="todo"]')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText('待办与核对清单')).toBeVisible();
+  expect(runtimeErrors).toEqual([]);
+});
+

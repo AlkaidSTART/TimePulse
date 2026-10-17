@@ -229,6 +229,20 @@ export default function MobileTabBar({
     onTabChange(prevTab);
   };
 
+  useEffect(() => {
+    if (activeTab !== 'list') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        handleCloseSheet();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, prevTab]);
+
   const startEditTimer = (timer: Timer) => {
     if (timer.type === 'countdown' || !timer.type) {
       setEditingTimer({
@@ -305,9 +319,9 @@ export default function MobileTabBar({
         transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
         className="fixed bottom-3 landscape:bottom-1.5 inset-x-3 z-40 lg:hidden max-w-[400px] sm:max-w-[440px] landscape:max-w-[360px] mx-auto pointer-events-auto"
         style={{
-          paddingBottom: 'max(0px, env(safe-area-inset-bottom, 0px))',
-          paddingLeft: 'env(safe-area-inset-left, 0px)',
-          paddingRight: 'env(safe-area-inset-right, 0px)',
+          paddingBottom: 'max(0px, var(--tp-safe-bottom, env(safe-area-inset-bottom, 0px)))',
+          paddingLeft: 'var(--tp-safe-left, env(safe-area-inset-left, 0px))',
+          paddingRight: 'var(--tp-safe-right, env(safe-area-inset-right, 0px))',
         }}
       >
         <div className="relative mx-auto flex h-[64px] landscape:h-[46px] w-full items-center justify-around rounded-full border border-black/[0.06] bg-white/80 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.08),0_4px_12px_-2px_rgba(0,0,0,0.04)] backdrop-blur-2xl cream:bg-[#faf7ee]/90 cream:border-stone-300/50 cream:shadow-[0_12px_36px_-6px_rgba(120,95,65,0.12),0_4px_12px_-2px_rgba(120,95,65,0.05)] dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)] overflow-hidden">
@@ -448,7 +462,7 @@ export default function MobileTabBar({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 360 }}
-              className="relative z-10 flex max-h-[90vh] flex-col rounded-t-[32px] md:rounded-[32px] md:max-w-xl md:w-full md:mx-auto md:mb-6 border-t md:border border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-3xl cream:bg-[#faf7ee]/95 cream:border-stone-300/50 dark:border-white/[0.08] dark:bg-[#141416]/95"
+              className="relative z-10 flex max-h-[90vh] flex-col rounded-t-[32px] md:rounded-[32px] md:max-w-xl md:w-full md:mx-auto md:mb-6 border-t md:border border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,var(--tp-safe-bottom,env(safe-area-inset-bottom,0px)))] shadow-2xl backdrop-blur-3xl cream:bg-[#faf7ee]/95 cream:border-stone-300/50 dark:border-white/[0.08] dark:bg-[#141416]/95"
             >
               {/* Grab Bar */}
               <div className="mx-auto h-1 w-9 rounded-full bg-black/15 cream:bg-stone-400/30 dark:bg-white/20 mb-2.5" />

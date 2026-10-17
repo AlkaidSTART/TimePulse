@@ -2,7 +2,7 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#f7f4eb" />
     <meta name="description" content="TimePulse - 一个现代化的倒计时网页应用" />
     <link rel="icon" href="/favicon.ico" />
@@ -14,6 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
       media="print"
       onload="this.media='all'"
+      onerror="this.onerror=null;this.media='none'"
     />
     <noscript>
       <link
@@ -28,16 +29,23 @@
         const vendor = navigator.vendor || '';
         const isApplePlatform = /Mac|iPhone|iPad|iPod/i.test(platform) || /iPhone|iPad|iPod/i.test(userAgent);
         const isSafari = /Safari/i.test(userAgent) && /Apple/i.test(vendor) && !/Android|Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Opera/i.test(userAgent);
-        if (isApplePlatform || isSafari) document.documentElement.dataset.nativeScrollbars = 'true';
+        const isAndroid = /Android/i.test(userAgent);
+        const isWindows = /Win/i.test(platform) || /Windows/i.test(userAgent);
+        const isTouchDevice = 'ontouchstart' in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
 
-        // 标记运行环境：Android App（Tauri）需要额外避让系统状态栏与手势条。
-        // __TAURI_INTERNALS__ 由 wry 在文档开始前注入；isTauri 可能稍后才就绪，故监听一次 DOMContentLoaded 兜底。
+        // 移动端/触摸设备原生滚动条性能更优且避免 DOM 包装破坏手势；桌面非 Apple 环境采用平滑自定义滚动
+        if (isApplePlatform || isSafari || isAndroid || isTouchDevice) {
+          document.documentElement.dataset.nativeScrollbars = 'true';
+        }
+
+        // 标记运行环境：Android / Windows 系统及 Tauri 客户端针对性适配
         const markPlatform = () => {
           const isTauri = window.isTauri === true || '__TAURI_INTERNALS__' in window;
-          const isAndroid = /Android/i.test(userAgent);
           if (isTauri) document.documentElement.dataset.tauri = 'true';
           if (isAndroid) document.documentElement.dataset.platform = 'android';
+          if (isWindows) document.documentElement.dataset.platform = 'windows';
           if (isTauri && isAndroid) document.documentElement.dataset.androidApp = 'true';
+          if (isTauri && isWindows) document.documentElement.dataset.windowsApp = 'true';
         };
         markPlatform();
         document.addEventListener('DOMContentLoaded', markPlatform, { once: true });

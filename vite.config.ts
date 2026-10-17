@@ -66,7 +66,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    noDiscovery: true,
     include: [
       'react',
       'react-dom',
@@ -79,6 +78,7 @@ export default defineConfig({
       'lucide-react',
       'solarlunar',
       'uuid',
+      '@hello-pangea/dnd',
     ],
   },
   server: {

@@ -27,4 +27,20 @@ describe('timer boundary parsing', () => {
       laps: [],
     });
   });
+
+  it('preserves short-term countdown type and durationSeconds', () => {
+    const timer = parseTimer({
+      id: 'short-1',
+      name: '25分钟番茄钟',
+      type: 'countdown',
+      countdownType: 'short',
+      durationSeconds: 1500,
+      targetDate: '2026-10-17T12:25:00.000Z',
+    });
+    expect(timer).toMatchObject({
+      id: 'short-1',
+      countdownType: 'short',
+      durationSeconds: 1500,
+    });
+  });
 });

@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
-import { FiX, FiClock, FiPlayCircle, FiGlobe, FiChevronRight } from 'react-icons/fi';
+import { FiX, FiClock, FiCalendar, FiPlayCircle, FiGlobe, FiChevronRight } from 'react-icons/fi';
 import { useTranslation } from '@/i18n/useTranslation';
 import { cn } from '@/lib/utils';
 import type { TimerType } from '@/domain/timer';
 
+export type TimerModalType = TimerType | 'countdown-short' | 'countdown-long';
+
 type TimerTypeModalProps = {
   onClose: () => void;
-  onSelectType: (type: TimerType) => void;
+  onSelectType: (type: TimerModalType) => void;
   embedded?: boolean;
 };
 
@@ -15,10 +17,10 @@ export default function TimerTypeModal({ onClose, onSelectType, embedded = false
 
   const timerTypes = [
     {
-      id: 'countdown' as const,
-      name: t('timer.countdown', '倒计时'),
-      tag: t('timer.countdownTag', '倒数'),
-      description: t('timer.countdownDesc', '设置目标时间，倒数到零'),
+      id: 'countdown-short' as const,
+      name: t('timer.countdownShort', '短期倒计时'),
+      tag: t('timer.countdownShortTag', '分秒'),
+      description: t('timer.countdownShortDesc', '设定小时、分钟与秒，短时间日常倒数'),
       icon: FiClock,
       iconBg: 'bg-gradient-to-br from-rose-500/15 via-rose-500/10 to-orange-500/10 dark:from-rose-500/25 dark:via-rose-500/15 dark:to-orange-500/15',
       iconColor: 'text-rose-500 dark:text-rose-400',
@@ -28,6 +30,21 @@ export default function TimerTypeModal({ onClose, onSelectType, embedded = false
       hoverBorder: 'hover:border-rose-400/50 dark:hover:border-rose-400/40 cream:hover:border-rose-400/60',
       hoverBg: 'hover:bg-gradient-to-r hover:from-rose-500/[0.06] hover:via-white/80 hover:to-orange-500/[0.03] dark:hover:from-rose-500/[0.12] dark:hover:via-white/[0.05] dark:hover:to-orange-500/[0.04] cream:hover:from-rose-500/[0.08] cream:hover:via-[#fffdf9] cream:hover:to-orange-500/[0.04]',
       hoverShadow: 'hover:shadow-[0_12px_28px_-6px_rgba(244,63,94,0.18),0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_12px_28px_-6px_rgba(244,63,94,0.25)] cream:hover:shadow-[0_12px_28px_-6px_rgba(225,29,72,0.14)]',
+    },
+    {
+      id: 'countdown-long' as const,
+      name: t('timer.countdownLong', '长期倒计时'),
+      tag: t('timer.countdownLongTag', '日期'),
+      description: t('timer.countdownLongDesc', '设定目标日期与时间，倒数重要日子'),
+      icon: FiCalendar,
+      iconBg: 'bg-gradient-to-br from-amber-500/15 via-orange-500/10 to-rose-500/10 dark:from-amber-500/25 dark:via-orange-500/15 dark:to-rose-500/15',
+      iconColor: 'text-amber-500 dark:text-amber-400',
+      iconRing: 'ring-1 ring-inset ring-amber-500/20 dark:ring-amber-400/30',
+      iconShadow: 'shadow-[0_2px_10px_rgba(245,158,11,0.16)]',
+      badgeBg: 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300 cream:bg-amber-500/15 cream:text-amber-700',
+      hoverBorder: 'hover:border-amber-400/50 dark:hover:border-amber-400/40 cream:hover:border-amber-400/60',
+      hoverBg: 'hover:bg-gradient-to-r hover:from-amber-500/[0.06] hover:via-white/80 hover:to-orange-500/[0.03] dark:hover:from-amber-500/[0.12] dark:hover:via-white/[0.05] dark:hover:to-orange-500/[0.04] cream:hover:from-amber-500/[0.08] cream:hover:via-[#fffdf9] cream:hover:to-orange-500/[0.04]',
+      hoverShadow: 'hover:shadow-[0_12px_28px_-6px_rgba(245,158,11,0.18),0_4px_12px_-2px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_12px_28px_-6px_rgba(245,158,11,0.25)] cream:hover:shadow-[0_12px_28px_-6px_rgba(217,119,6,0.14)]',
     },
     {
       id: 'stopwatch' as const,

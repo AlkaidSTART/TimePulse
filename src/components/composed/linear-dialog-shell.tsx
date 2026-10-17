@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import type { MouseEvent, ReactNode } from 'react';
+import { useEffect, type MouseEvent, type ReactNode } from 'react';
 import { AutoResizer } from '@/components/ui';
 
 type LinearDialogShellProps = {
@@ -16,6 +16,17 @@ export function LinearDialogShell({ onClose, children }: LinearDialogShellProps)
   const stopPropagation = (event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   return (
     <motion.div

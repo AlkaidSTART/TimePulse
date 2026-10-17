@@ -785,9 +785,9 @@ export default function Header({ onHeightChange }: HeaderProps) {
       <div
         className="lg:hidden flex items-center justify-between px-4 md:px-8 pt-3.5 pb-1 landscape:pt-1.5 landscape:pb-0.5 w-full pointer-events-auto bg-transparent"
         style={{
-          paddingTop: isLandscape ? 'max(0.375rem, env(safe-area-inset-top, 0px))' : 'max(0.875rem, env(safe-area-inset-top, 0px))',
-          paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
-          paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
+          paddingTop: isLandscape ? 'max(0.375rem, var(--tp-safe-top, env(safe-area-inset-top, 0px)))' : 'max(0.875rem, var(--tp-safe-top, env(safe-area-inset-top, 0px)))',
+          paddingLeft: 'max(1rem, var(--tp-safe-left, env(safe-area-inset-left, 0px)))',
+          paddingRight: 'max(1rem, var(--tp-safe-right, env(safe-area-inset-right, 0px)))',
         }}
       >
         {/* Brand Logo with subtle ambient highlight & Quick Timer List Entry */}

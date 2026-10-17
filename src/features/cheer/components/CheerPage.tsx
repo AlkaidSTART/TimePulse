@@ -174,7 +174,10 @@ export default function CheerPage() {
   }, [currentQuote, isCopied]);
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-y-auto px-4 py-8 landscape:py-3 landscape:pb-20 md:py-12 select-none">
+    <div
+      data-page-view="cheer"
+      className="relative flex h-full w-full flex-col items-center justify-center overflow-y-auto px-4 py-8 landscape:py-3 landscape:pb-20 md:py-12 select-none"
+    >
       <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-5 sm:gap-6 my-auto">
         
         {/* 顶部：极简雅致的时间与日期（向下微调位移，舒展优雅） */}

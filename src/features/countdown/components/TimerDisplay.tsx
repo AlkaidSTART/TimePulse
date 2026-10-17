@@ -7,7 +7,7 @@ import DigitColumn from './DigitColumn';
 import TimerLoading from './TimerLoading';
 import { addNotification } from '@/services/notificationManager';
 import { track, bucketDurationMs } from '@/services/analytics';
-import { FiPlay, FiPause, FiSquare, FiFlag, FiList } from 'react-icons/fi';
+import { FiPlay, FiPause, FiSquare, FiFlag, FiList, FiRotateCcw } from 'react-icons/fi';
 import {
   getTimerType,
   type CountdownTimer,
@@ -736,8 +736,18 @@ export default function TimerDisplay() {
         return isRunning ? t('timer.running') : t('timer.paused');
       case 'worldclock':
         return ''; // 世界时钟不再在时间下方显示 `${country} - ${timezone}`
-      default:
-        return `${t('timer.target')}: ${toDate((activeTimer as CountdownTimer).targetDate).toLocaleString()}`;
+      default: {
+        const cd = activeTimer as CountdownTimer;
+        if (cd.countdownType === 'short') {
+          const targetTimeStr = toDate(cd.targetDate).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          });
+          return `${t('timer.target')}: ${targetTimeStr}`;
+        }
+        return `${t('timer.target')}: ${toDate(cd.targetDate).toLocaleString()}`;
+      }
     }
   };
 
@@ -893,9 +903,26 @@ export default function TimerDisplay() {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="liquid-glass-control px-6 py-4 rounded-xl"
+              className="liquid-glass-control px-6 py-4 rounded-xl flex flex-col items-center gap-3"
             >
               <p className="text-lg font-medium text-gray-800 dark:text-gray-200">{t('timer.finished')}</p>
+              {(activeTimer as CountdownTimer).countdownType === 'short' && (activeTimer as CountdownTimer).durationSeconds ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const cd = activeTimer as CountdownTimer;
+                    const durationSecs = cd.durationSeconds || 60;
+                    const newTargetDate = new Date(Date.now() + durationSecs * 1000).toISOString();
+                    updateTimer(activeTimer.id, { targetDate: newTargetDate });
+                    setIsFinished(false);
+                  }}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors cursor-pointer select-none"
+                  style={{ color: activeTimer.color }}
+                >
+                  <FiRotateCcw className="text-sm" />
+                  <span>{t('timer.restart', '重新开始')}</span>
+                </button>
+              ) : null}
             </motion.div>
           ) : null}
         </AnimatedRegion>
