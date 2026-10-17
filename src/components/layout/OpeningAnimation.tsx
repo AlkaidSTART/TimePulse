@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { useTheme } from '@/app/providers/ThemeProvider';
+import { useTheme, type Theme } from '@/app/providers/ThemeProvider';
 
 const TILE_IDS = [0, 1, 2, 3] as const;
 const TILE_HUE_OFFSETS = [-36, -12, 12, 36];
@@ -26,14 +26,14 @@ function rgbToHue(red: number, green: number, blue: number): number {
   return (hue * 60 + 360) % 360;
 }
 
-function buildPalette(accentColor: string, theme: 'light' | 'dark'): string[] {
+function buildPalette(accentColor: string, theme: Theme): string[] {
   const match = /^#?([\da-f]{6})$/i.exec(accentColor.trim());
   const hex = match?.[1] ?? '0ea5e9';
   const red = parseInt(hex.slice(0, 2), 16) / 255;
   const green = parseInt(hex.slice(2, 4), 16) / 255;
   const blue = parseInt(hex.slice(4, 6), 16) / 255;
   const baseHue = rgbToHue(red, green, blue);
-  const lightness = theme === 'dark' ? [58, 63, 67, 61] : [50, 55, 59, 53];
+  const lightness = theme === 'cream' ? [52, 57, 61, 55] : [50, 55, 59, 53];
 
   return TILE_HUE_OFFSETS.map(
     (offset, index) => `hsl(${Math.round((baseHue + offset + 360) % 360)} 72% ${lightness[index]}%)`,
@@ -97,7 +97,7 @@ export default function OpeningAnimation() {
   return (
     <motion.div
       aria-hidden="true"
-      className="fixed inset-0 z-[2000] flex cursor-pointer select-none items-center justify-center overflow-hidden bg-background-light dark:bg-background-dark"
+      className="fixed inset-0 z-[2000] flex cursor-pointer select-none items-center justify-center overflow-hidden bg-background-light cream:bg-background-cream"
       initial={{ opacity: 1 }}
       animate={{ opacity: isExiting ? 0 : 1 }}
       transition={{ duration: EXIT_DURATION_S, ease: [0.4, 0, 0.2, 1] }}

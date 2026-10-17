@@ -7,7 +7,7 @@ import { AutoTransition } from '@/components/ui';
 /**
  * 简洁清新的动态背景 (Clean Minimal Canvas)
  * 移除强烈的模糊光晕与光斑，采用极简天光微渐变
- * 浅色模式通透澄澈，深色模式深邃纯净，无光晕干扰
+ * 浅色模式通透澄澈，米白模式温润舒适，无光晕干扰
  */
 export default function GradientBackground() {
   const { getActiveTimer, activeTimerId } = useTimers();
@@ -33,8 +33,8 @@ export default function GradientBackground() {
             exit={{ opacity: 0 }}
             transition={{ duration: 1.2, ease: 'easeOut' }}
             style={{
-              background: theme === 'dark'
-                ? `linear-gradient(175deg, #0B0F17 0%, color-mix(in srgb, ${color} 3.5%, #0F172A) 50%, #090D14 100%)`
+              background: theme === 'cream'
+                ? `linear-gradient(175deg, #FAF7F0 0%, color-mix(in srgb, ${color} 4%, #F4EFE6) 55%, #EDE7DC 100%)`
                 : `linear-gradient(175deg, #FAFBFD 0%, color-mix(in srgb, ${color} 4.5%, #F1F5F9) 55%, #EDF2F7 100%)`,
             }}
           />

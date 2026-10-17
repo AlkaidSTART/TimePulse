@@ -3,8 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafbfd" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0f17" />
+    <meta name="theme-color" content="#f7f4eb" />
     <meta name="description" content="TimePulse - 一个现代化的倒计时网页应用" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -33,13 +32,12 @@
         document.addEventListener('DOMContentLoaded', markPlatform, { once: true });
 
         const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-          document.documentElement.classList.add('dark');
-          document.documentElement.style.colorScheme = 'dark';
-        } else {
-          document.documentElement.style.colorScheme = 'light';
+        const theme = savedTheme === 'light' ? 'light' : 'cream';
+        if (theme === 'cream') {
+          document.documentElement.classList.add('cream');
         }
+        document.documentElement.classList.remove('dark');
+        document.documentElement.style.colorScheme = 'light';
       } catch (_) {
         document.documentElement.style.colorScheme = 'light';
       }

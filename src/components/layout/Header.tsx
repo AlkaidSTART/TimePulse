@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
-import { FiMenu, FiX, FiSettings, FiMoon, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal } from 'react-icons/fi';
+import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal } from 'react-icons/fi';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
@@ -356,13 +356,13 @@ export default function Header({ onHeightChange }: HeaderProps) {
           {/* Theme Toggle */}
           <button
             type="button"
-            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 text-gray-700 cursor-pointer transition-colors"
             onClick={toggleTheme}
-            title={theme === 'dark' ? '切换浅色模式' : '切换深色模式'}
+            title={theme === 'cream' ? '切换浅色模式' : '切换米白色模式'}
             data-insightflare-event="theme_toggle"
-            data-insightflare-event-to={theme === 'dark' ? 'light' : 'dark'}
+            data-insightflare-event-to={theme === 'cream' ? 'light' : 'cream'}
           >
-            {theme === 'dark' ? <FiSun className="size-4.5" /> : <FiMoon className="size-4.5" />}
+            {theme === 'cream' ? <FiSun className="size-4.5" /> : <FiCoffee className="size-4.5" />}
           </button>
 
           {/* Fullscreen Toggle */}

@@ -137,7 +137,7 @@ export default function Footer() {
                 <li>{t('footer.feature2', '支持多个计时器')}</li>
                 <li>{t('footer.feature3', '数据本地存储')}</li>
                 <li>{t('footer.feature4', '数据分享与同步')}</li>
-                <li>{t('footer.feature5', '暗色/亮色主题')}</li>
+                <li>{t('footer.feature5', '米白/浅色主题')}</li>
                 <li>{t('footer.feature6', '全屏模式')}</li>
                 <li>{t('footer.feature7', '响应式设计')}</li>
               </ul>

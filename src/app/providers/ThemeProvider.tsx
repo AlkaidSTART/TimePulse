@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useTimers } from './TimerProvider';
 
-type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'cream';
 
 type ThemeContextValue = {
   theme: Theme;
@@ -13,14 +13,19 @@ type ThemeContextValue = {
 function readInitialTheme(): Theme {
   try {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
-    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
+    if (savedTheme === 'light' || savedTheme === 'cream') return savedTheme;
+    if (savedTheme === 'dark') {
+      try {
+        localStorage.setItem('theme', 'cream');
+      } catch {
+        // Ignore storage errors
+      }
+      return 'cream';
     }
   } catch {
-    // Keep the light theme when storage or matchMedia is unavailable.
+    // Keep the default theme when storage is unavailable.
   }
-  return 'light';
+  return 'cream';
 }
 
 function readInitialAccentColor(): string {
@@ -46,8 +51,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [accentColor, setAccentColor] = useState(() => readInitialAccentColor());
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-    document.documentElement.style.colorScheme = theme;
+    document.documentElement.classList.toggle('cream', theme === 'cream');
+    document.documentElement.classList.remove('dark');
+    document.documentElement.style.colorScheme = 'light';
   }, [theme]);
 
   useEffect(() => {
@@ -56,7 +62,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const toggleTheme = useCallback(() => {
     setTheme((currentTheme) => {
-      const nextTheme: Theme = currentTheme === 'light' ? 'dark' : 'light';
+      const nextTheme: Theme = currentTheme === 'light' ? 'cream' : 'light';
       try {
         localStorage.setItem('theme', nextTheme);
       } catch {

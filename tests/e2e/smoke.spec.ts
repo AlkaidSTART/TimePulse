@@ -108,13 +108,18 @@ test('animates theme changes and switches to the footer card with discrete wheel
   await expectPageScrollLocked();
 
   const themeToggle = page.locator('[data-insightflare-event="theme_toggle"]').first();
-  await themeToggle.click();
-  await expect(page.locator('html')).toHaveClass(/dark/);
-  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(18, 18, 18)');
+  await expect(page.locator('html')).toHaveClass(/cream/);
+  await expect(page.locator('html')).not.toHaveClass(/dark/);
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(247, 244, 235)');
 
   await themeToggle.click();
+  await expect(page.locator('html')).not.toHaveClass(/cream/);
   await expect(page.locator('html')).not.toHaveClass(/dark/);
-  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(255, 255, 255)');
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(250, 251, 253)');
+
+  await themeToggle.click();
+  await expect(page.locator('html')).toHaveClass(/cream/);
+  await expect(page.locator('html')).not.toHaveClass(/dark/);
   await expectPageScrollLocked();
 
   const viewport = page.viewportSize();

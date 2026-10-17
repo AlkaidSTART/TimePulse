@@ -11,7 +11,7 @@ import {
   FiEdit,
   FiSave,
   FiSun,
-  FiMoon,
+  FiCoffee,
   FiMaximize,
   FiMinimize,
   FiGlobe,
@@ -36,7 +36,7 @@ interface MobileTabBarProps {
   onOpenBackground: () => void;
   onOpenFullscreenSettings?: () => void;
   onOpenShare: () => void;
-  theme: 'light' | 'dark';
+  theme: 'light' | 'cream';
   toggleTheme: () => void;
   isFullscreen: boolean;
   toggleFullscreen: () => void;
@@ -380,7 +380,7 @@ export default function MobileTabBar({
                         className="absolute inset-1 rounded-full pointer-events-none overflow-hidden"
                         style={{
                           backgroundColor: `color-mix(in srgb, ${accentColor || '#0ea5e9'} 22%, ${
-                            theme === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.06)'
+                            theme === 'cream' ? 'rgba(180,120,60,0.12)' : 'rgba(0,0,0,0.06)'
                           })`,
                           boxShadow: `0 2px 10px color-mix(in srgb, ${accentColor || '#0ea5e9'} 35%, transparent), inset 0 1px 1px rgba(255,255,255,0.45)`,
                         }}
@@ -707,13 +707,13 @@ export default function MobileTabBar({
                     {/* Theme Toggle */}
                     <div className="flex items-center justify-between p-3.5">
                       <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-xl bg-amber-500/10 text-amber-500 dark:bg-amber-400/15 dark:text-amber-400 flex items-center justify-center">
-                          {theme === 'dark' ? <FiMoon className="size-5" /> : <FiSun className="size-5" />}
+                        <div className="size-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                          {theme === 'cream' ? <FiCoffee className="size-5" /> : <FiSun className="size-5" />}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">深色模式</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {theme === 'dark' ? '已开启深色主题' : '当前为浅色主题'}
+                          <p className="text-sm font-medium text-gray-900">米白色模式</p>
+                          <p className="text-xs text-gray-500">
+                            {theme === 'cream' ? '已开启温润米白模式' : '当前为浅白模式'}
                           </p>
                         </div>
                       </div>
@@ -721,14 +721,14 @@ export default function MobileTabBar({
                         type="button"
                         onClick={toggleTheme}
                         className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors cursor-pointer ${
-                          theme === 'dark' ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-700'
+                          theme === 'cream' ? 'bg-amber-600/80' : 'bg-gray-300'
                         }`}
                       >
                         <motion.span
                           layout
                           transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                           className={`inline-block size-5.5 rounded-full bg-white shadow-md ${
-                            theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                            theme === 'cream' ? 'translate-x-6' : 'translate-x-1'
                           }`}
                         />
                       </button>

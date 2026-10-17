@@ -3,6 +3,7 @@
 @import "tailwindcss";
 @import "overlayscrollbars/styles/overlayscrollbars.css";
 @source "../src";
+@custom-variant cream (&:where(.cream, .cream *));
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Keep every Tailwind ring inside its control so overflow/animation wrappers cannot clip it. */
@@ -35,7 +36,7 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
   --color-primary-800: rgba(var(--color-primary), 0.7);
   --color-primary-900: rgba(var(--color-primary), 0.6);
   --color-background-light: #fafbfd;
-  --color-background-dark: #0b0f17;
+  --color-background-cream: #f7f4eb;
   --font-sans: Inter, ui-sans-serif, system-ui;
   --font-display: Poppins, sans-serif;
   --font-mono: Consolas, monospace;
@@ -182,9 +183,9 @@ select,
     --tw-bg-opacity: 1 !important;
   }
 
-  .dark .modal-content {
-    background: rgba(0, 0, 0, 0.35) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  .cream .modal-content {
+    background: rgba(255, 252, 245, 0.75) !important;
+    border: 1px solid rgba(220, 212, 198, 0.6) !important;
   }
 
   /* 覆盖所有可能的glass-card相关样式 */
@@ -194,8 +195,9 @@ select,
     -webkit-backdrop-filter: blur(20px) !important;
   }
 
-  .dark .modal-content.glass-card {
-    background: rgba(0, 0, 0, 0.35) !important;
+  .cream .modal-content.glass-card {
+    background: rgba(255, 252, 245, 0.75) !important;
+    border: 1px solid rgba(220, 212, 198, 0.6) !important;
   }
 
   /* Firefox中禁用某些可能导致闪烁的效果 */
@@ -229,20 +231,19 @@ select,
     -webkit-backdrop-filter: blur(18px) !important;
   }
 
-  .dark .glass-effect,
-  .dark .glass-card {
-    background: rgba(0, 0, 0, 0.35) !important;
+  .cream .glass-effect,
+  .cream .glass-card {
+    background: rgba(255, 252, 245, 0.72) !important;
+    border: 1px solid rgba(220, 212, 198, 0.6) !important;
   }
 
   /* 强制覆盖Tailwind的背景透明度设置 */
-  .bg-white\/70,
-  .dark\:bg-black\/30 {
+  .bg-white\/70 {
     background: rgba(255, 255, 255, 0.55) !important;
   }
 
-  .dark .bg-white\/70,
-  .dark .dark\:bg-black\/30 {
-    background: rgba(0, 0, 0, 0.35) !important;
+  .cream .bg-white\/70 {
+    background: rgba(255, 252, 245, 0.75) !important;
   }
 
   /* Firefox专用：强制禁用所有可能导致闪烁的动画属性 */
@@ -330,11 +331,10 @@ select,
   }
 }
 
-.dark {
-  --color-background: 11, 15, 23;
-  --color-foreground: 248, 250, 252;
-  --color-primary: 56, 189, 248;
-  --color-accent: 129, 140, 248;
+.cream {
+  --color-background: 247, 244, 235;
+  --color-foreground: 44, 40, 37;
+  --color-accent: 168, 110, 68;
 }
 
 @layer base {
@@ -343,9 +343,15 @@ select,
   }
 
   body {
-    @apply bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 transition-colors duration-300;
+    @apply bg-background-light text-slate-800 transition-colors duration-300;
     font-family: "Inter", sans-serif;
     overflow-x: hidden;
+  }
+
+  html.cream body,
+  .cream body {
+    background-color: #f7f4eb;
+    color: #2c2825;
   }
 
   html {
@@ -430,10 +436,10 @@ select,
     color: rgba(0, 0, 0, 0.8);
   }
 
-  .dark .btn-glass-secondary {
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.9);
+  .cream .btn-glass-secondary {
+    background: rgba(245, 240, 230, 0.65);
+    border: 1px solid rgba(215, 205, 190, 0.55);
+    color: #38332e;
   }
 
   /* 触屏没有真正的悬停：统一包进 (hover: hover)，避免点击后样式粘住 */
@@ -443,9 +449,9 @@ select,
       border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
-    .dark .btn-glass-secondary:hover {
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+    .cream .btn-glass-secondary:hover {
+      background: rgba(238, 231, 218, 0.85);
+      border: 1px solid rgba(205, 194, 176, 0.65);
     }
   }
 
@@ -481,8 +487,8 @@ select,
     backdrop-filter: blur(8px);
   }
 
-  .dark .btn-glass-hover {
-    background: rgba(0, 0, 0, 0.16);
+  .cream .btn-glass-hover {
+    background: rgba(240, 233, 220, 0.45);
   }
 
   @media (hover: hover) {
@@ -492,8 +498,8 @@ select,
       backdrop-filter: blur(8px);
     }
 
-    .dark .btn-glass-hover:hover {
-      background: rgba(var(--color-primary), 0.3);
+    .cream .btn-glass-hover:hover {
+      background: rgba(var(--color-primary), 0.15);
     }
   }
 
@@ -508,8 +514,8 @@ select,
       background: rgba(var(--color-primary), 0.08);
     }
 
-    .dark .btn-ghost:hover {
-      background: rgba(var(--color-primary), 0.16);
+    .cream .btn-ghost:hover {
+      background: rgba(var(--color-primary), 0.12);
     }
   }
 
@@ -715,9 +721,9 @@ select,
     border-color: rgba(var(--color-primary), 0.25) !important;
   }
 
-  .dark .hover-glass-theme:hover {
-    background: rgba(var(--color-primary), 0.2) !important;
-    border-color: rgba(var(--color-primary), 0.3) !important;
+  .cream .hover-glass-theme:hover {
+    background: rgba(var(--color-primary), 0.18) !important;
+    border-color: rgba(var(--color-primary), 0.28) !important;
   }
 }
 .digit {
@@ -749,23 +755,23 @@ select,
     background-color: rgba(255, 255, 255, 0.9);
   }
 
-  .dark .glass-effect {
-    background-color: rgba(17, 25, 40, 0.9);
+  .cream .glass-effect {
+    background-color: rgba(255, 252, 245, 0.95);
   }
 
   .glass-card {
     background-color: rgba(255, 255, 255, 0.9) !important;
   }
 
-  .dark .glass-card {
-    background-color: rgba(0, 0, 0, 0.7) !important;
+  .cream .glass-card {
+    background-color: rgba(255, 252, 245, 0.95) !important;
   }
 }
 
-.dark .glass-effect {
-  background-color: rgba(17, 25, 40, 0.75); /* 增加不透明度 */
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.9); /* 确保文字颜色 */
+.cream .glass-effect {
+  background-color: rgba(255, 252, 245, 0.78);
+  border: 1px solid rgba(220, 212, 198, 0.6);
+  color: #2c2825;
 }
 
 /* 添加更多过渡动画类 */
@@ -877,16 +883,16 @@ html[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-thumb:hover {
   background: rgba(var(--color-primary, 14, 165, 233), 0.6);
 }
 
-html.dark[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-track {
-  background: rgba(var(--color-primary, 56, 189, 248), 0.15);
+html.cream[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-track {
+  background: rgba(var(--color-primary, 14, 165, 233), 0.08);
 }
 
-html.dark[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-thumb {
-  background: rgba(var(--color-primary, 56, 189, 248), 0.5);
+html.cream[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-primary, 14, 165, 233), 0.35);
 }
 
-html.dark[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-thumb:hover {
-  background: rgba(var(--color-primary, 56, 189, 248), 0.7);
+html.cream[data-native-scrollbars="true"] *:not(body)::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-primary, 14, 165, 233), 0.55);
 }
 
 html[data-native-scrollbars="true"] .scrollbar-hide,
@@ -1068,8 +1074,8 @@ body {
     background: rgba(255, 255, 255, 0.55) !important;
   }
 
-  .dark .modal-content[class*="bg-"] {
-    background: rgba(0, 0, 0, 0.35) !important;
+  .cream .modal-content[class*="bg-"] {
+    background: rgba(255, 252, 245, 0.75) !important;
   }
 
   /* 使用transform代替opacity变化 */
@@ -1084,8 +1090,8 @@ body {
     -webkit-backdrop-filter: blur(18px) !important;
   }
 
-  .dark .glass-card[class*="bg-"] {
-    background: rgba(0, 0, 0, 0.35) !important;
+  .cream .glass-card[class*="bg-"] {
+    background: rgba(255, 252, 245, 0.75) !important;
   }
 
   /* 禁用所有可能的opacity相关动画 */
@@ -1101,4 +1107,21 @@ body {
   .modal-exit {
     animation-name: firefoxFadeOut !important;
   }
+}
+
+/* 米白色模式细节优化 */
+html.cream .app-header nav {
+  background: rgba(255, 252, 245, 0.82);
+  border: 1px solid rgba(220, 212, 198, 0.65);
+  box-shadow: 0 4px 24px -4px rgba(140, 120, 95, 0.12);
+}
+
+html.cream .glass-card {
+  box-shadow: 0 8px 30px -4px rgba(140, 120, 95, 0.08);
+}
+
+html.cream input,
+html.cream select,
+html.cream textarea {
+  color: #2c2825;
 }
