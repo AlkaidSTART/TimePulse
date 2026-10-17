@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AutoResizer, AutoTransition } from '@/components/ui';
 import Layout from '@/components/layout/Layout';
@@ -26,6 +26,44 @@ export default function Home() {
   const [isBackgroundSettingsOpen, setIsBackgroundSettingsOpen] = useState(false);
   const [isFullscreenSettingsOpen, setIsFullscreenSettingsOpen] = useState(false);
   const [log, setLog] = useState<string[]>([]);
+
+  // Mobile horizontal swipe gestures to switch timers
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isFullscreen || timers.length <= 1) return;
+    touchStartXRef.current = e.touches[0].clientX;
+    touchStartYRef.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null || timers.length <= 1) {
+      touchStartXRef.current = null;
+      touchStartYRef.current = null;
+      return;
+    }
+    const deltaX = e.changedTouches[0].clientX - touchStartXRef.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartYRef.current;
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+
+    // Detect distinct horizontal swipe
+    if (Math.abs(deltaX) > 55 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+      const currentIndex = timers.findIndex((t) => t.id === activeTimerId);
+      if (currentIndex !== -1) {
+        if (deltaX < 0) {
+          // Swipe left -> next timer
+          const nextIndex = (currentIndex + 1) % timers.length;
+          setActiveTimerId(timers[nextIndex].id);
+        } else {
+          // Swipe right -> prev timer
+          const prevIndex = (currentIndex - 1 + timers.length) % timers.length;
+          setActiveTimerId(timers[prevIndex].id);
+        }
+      }
+    }
+  };
 
   // 添加日志
   const addLog = (message: string) => {
@@ -111,10 +149,14 @@ export default function Home() {
               className="absolute inset-0 z-10"
             >
               <motion.main
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
                 initial={false}
                 animate={{ y: isFullscreen && !isHeaderVisible ? 0 : headerHeight / 2 }}
                 transition={{ y: { duration: 0.45, ease: 'easeInOut' } }}
-                className={`relative flex h-full min-h-0 flex-col items-center justify-center ${isFullscreen ? '' : 'py-12'}`}
+                className={`relative flex h-full min-h-0 flex-col items-center justify-center ${
+                  isFullscreen ? '' : 'py-6 md:py-12 pb-24 md:pb-12'
+                }`}
                 data-page-view="main"
               >
                 <AutoResizer className="flex w-full items-center justify-center" initial={false} overflow="visible">

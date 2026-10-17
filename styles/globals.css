@@ -34,8 +34,8 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
   --color-primary-700: rgba(var(--color-primary), 0.8);
   --color-primary-800: rgba(var(--color-primary), 0.7);
   --color-primary-900: rgba(var(--color-primary), 0.6);
-  --color-background-light: #ffffff;
-  --color-background-dark: #121212;
+  --color-background-light: #fafbfd;
+  --color-background-dark: #0b0f17;
   --font-sans: Inter, ui-sans-serif, system-ui;
   --font-display: Poppins, sans-serif;
   --font-mono: Consolas, monospace;
@@ -46,13 +46,62 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
 }
 
 :root {
-  --color-background: 255, 255, 255;
-  --color-foreground: 17, 24, 39;
+  --color-background: 250, 251, 253;
+  --color-foreground: 15, 23, 42;
   --color-primary: 14, 165, 233;
-  --color-accent: 79, 70, 229;
-  --transition-duration: 300ms;
+  --color-accent: 99, 102, 241;
+  --transition-duration: 250ms;
   --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
-  --text-color-transition-duration: 500ms;
+  --text-color-transition-duration: 350ms;
+}
+
+/* 安全区（Android 边到边 / iOS 刘海屏）。
+   Tauri 2.8 起 Android 模板默认 enableEdgeToEdge()，WebView 会绘制到状态栏与手势条之下；
+   只有 Chromium WebView 136+ 才上报真实的 env(safe-area-inset-*)，
+   更老的 WebView 一律返回 0，所以 Android App 里用 max() 兜一个最小内边距。 */
+:root {
+  --tp-safe-top: env(safe-area-inset-top, 0px);
+  --tp-safe-right: env(safe-area-inset-right, 0px);
+  --tp-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --tp-safe-left: env(safe-area-inset-left, 0px);
+}
+
+html[data-android-app='true'] {
+  --tp-safe-top: max(env(safe-area-inset-top, 0px), 24px);
+  --tp-safe-bottom: max(env(safe-area-inset-bottom, 0px), 24px);
+}
+
+/* 主内容让出系统栏。桌面浏览器 env() 恒为 0，这里等同于无变化。 */
+#root {
+  padding-top: var(--tp-safe-top);
+  padding-right: var(--tp-safe-right);
+  padding-bottom: var(--tp-safe-bottom);
+  padding-left: var(--tp-safe-left);
+}
+
+/* 顶栏是 fixed 定位，不会继承 #root 的内边距；
+   用自身内边距避让状态栏/挖孔，同时保证隐藏动画（translateY(-100%)）仍能完全移出屏幕。 */
+.app-header {
+  padding-top: var(--tp-safe-top);
+  padding-left: var(--tp-safe-left);
+  padding-right: var(--tp-safe-right);
+}
+
+/* Toast 视口（窄屏贴顶、sm 以上贴底），上下都要避让 */
+.app-toast-viewport {
+  padding-top: calc(1rem + var(--tp-safe-top));
+  padding-right: calc(1rem + var(--tp-safe-right));
+  padding-bottom: calc(1rem + var(--tp-safe-bottom));
+  padding-left: calc(1rem + var(--tp-safe-left));
+}
+
+/* 全屏弹窗遮罩统一为 fixed inset-0 bg-black/50 …（20 处），
+   这里只补充内边距，保证弹窗内容不落到系统栏下面。 */
+[class~='fixed'][class~='inset-0'][class~='bg-black/50'] {
+  padding-top: calc(1rem + var(--tp-safe-top));
+  padding-right: calc(1rem + var(--tp-safe-right));
+  padding-bottom: calc(1rem + var(--tp-safe-bottom));
+  padding-left: calc(1rem + var(--tp-safe-left));
 }
 
 /* 替换为所有元素的过渡效果，改为更具体的选择器，减少对性能的影响 */
@@ -282,10 +331,10 @@ select,
 }
 
 .dark {
-  --color-background: 18, 18, 18;
-  --color-foreground: 255, 255, 255;
+  --color-background: 11, 15, 23;
+  --color-foreground: 248, 250, 252;
   --color-primary: 56, 189, 248;
-  --color-accent: 124, 58, 237;
+  --color-accent: 129, 140, 248;
 }
 
 @layer base {
@@ -294,9 +343,30 @@ select,
   }
 
   body {
-    @apply bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 transition-colors duration-300;
+    @apply bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 transition-colors duration-300;
     font-family: "Inter", sans-serif;
     overflow-x: hidden;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* 触屏基础优化：取消双击缩放的等待，去掉 WebView 的点击高亮与长按选中 */
+  button,
+  a,
+  [role='button'] {
+    touch-action: manipulation;
+  }
+
+  html[data-android-app='true'] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html[data-android-app='true'] :where(button, [role='button']) {
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   :where(body *, body *::before, body *::after) {
@@ -322,13 +392,13 @@ select,
 
   /* 确保半透明卡片上的文字在浅色模式下可读 */
   .glass-card {
-    @apply text-gray-800 dark:text-gray-100;
+    @apply text-slate-800 dark:text-slate-100;
   }
 }
 
 @layer components {
   .glass-card {
-    @apply bg-white/70 dark:bg-black/30 backdrop-blur-lg border border-gray-200 dark:border-white/10 rounded-2xl shadow-lg text-gray-800 dark:text-gray-100;
+    @apply bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-sm text-slate-800 dark:text-slate-100;
     /* 添加硬件加速，避免Safari中的抖动问题 */
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
@@ -343,11 +413,11 @@ select,
   }
 
   .btn-primary {
-    @apply px-4 py-2 rounded-full font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer bg-primary-500 hover:bg-primary-600 text-white;
+    @apply px-4 py-2 rounded-full font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer bg-primary-500 hover:bg-primary-600 text-white shadow-sm;
   }
 
   .btn-ghost {
-    @apply px-4 py-2 rounded-full font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800;
+    @apply px-4 py-2 rounded-full font-medium transition duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800;
   }
 
   /* 玻璃态操作按钮样式 - 用于取消、上一步等操作 */
@@ -366,14 +436,17 @@ select,
     color: rgba(255, 255, 255, 0.9);
   }
 
-  .btn-glass-secondary:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-  }
+  /* 触屏没有真正的悬停：统一包进 (hover: hover)，避免点击后样式粘住 */
+  @media (hover: hover) {
+    .btn-glass-secondary:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
 
-  .dark .btn-glass-secondary:hover {
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    .dark .btn-glass-secondary:hover {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
   }
 
   /* 玻璃态主要操作按钮样式 - 用于确认、下一步、创建等操作 */
@@ -387,10 +460,12 @@ select,
     font-weight: 600;
   }
 
-  .btn-glass-primary:hover {
-    background: rgba(var(--color-primary), 0.4);
-    border: 1px solid rgba(var(--color-primary), 0.5);
-    color: rgba(var(--color-primary), 0.9);
+  @media (hover: hover) {
+    .btn-glass-primary:hover {
+      background: rgba(var(--color-primary), 0.4);
+      border: 1px solid rgba(var(--color-primary), 0.5);
+      color: rgba(var(--color-primary), 0.9);
+    }
   }
 
   .btn-glass-primary:disabled {
@@ -410,14 +485,16 @@ select,
     background: rgba(0, 0, 0, 0.16);
   }
 
-  .btn-glass-hover:hover {
-    background: rgba(var(--color-primary), 0.1);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-  }
+  @media (hover: hover) {
+    .btn-glass-hover:hover {
+      background: rgba(var(--color-primary), 0.1);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+    }
 
-  .dark .btn-glass-hover:hover {
-    background: rgba(var(--color-primary), 0.3);
+    .dark .btn-glass-hover:hover {
+      background: rgba(var(--color-primary), 0.3);
+    }
   }
 
   .btn-ghost {
@@ -426,12 +503,14 @@ select,
     transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  .btn-ghost:hover {
-    background: rgba(var(--color-primary), 0.08);
-  }
+  @media (hover: hover) {
+    .btn-ghost:hover {
+      background: rgba(var(--color-primary), 0.08);
+    }
 
-  .dark .btn-ghost:hover {
-    background: rgba(var(--color-primary), 0.16);
+    .dark .btn-ghost:hover {
+      background: rgba(var(--color-primary), 0.16);
+    }
   }
 
   .digit-column {
@@ -452,8 +531,10 @@ select,
     transition: color var(--transition-duration) ease;
   }
 
-  .btn-theme:hover {
-    color: rgba(var(--color-primary), 0.8);
+  @media (hover: hover) {
+    .btn-theme:hover {
+      color: rgba(var(--color-primary), 0.8);
+    }
   }
 
   /* 弹窗内容滚动优化 - 添加Firefox闪烁修复 */
@@ -467,7 +548,7 @@ select,
   }
 
   .modal-content {
-    @apply w-full m-4 p-4 sm:p-6 rounded-2xl max-h-[90vh] overflow-y-auto bg-white/70 dark:bg-black/30 backdrop-blur-lg border border-gray-200 dark:border-white/10 shadow-lg text-gray-800 dark:text-gray-100;
+    @apply w-full m-4 p-4 sm:p-6 rounded-2xl max-h-[90vh] overflow-y-auto bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 shadow-xl text-slate-800 dark:text-slate-100;
     /* Firefox优化：防止动画闪烁 */
     animation-fill-mode: both;
     backface-visibility: hidden;
@@ -626,16 +707,18 @@ select,
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.hover-glass-theme:hover {
-  background: rgba(var(--color-primary), 0.15) !important;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border-color: rgba(var(--color-primary), 0.25) !important;
-}
+@media (hover: hover) {
+  .hover-glass-theme:hover {
+    background: rgba(var(--color-primary), 0.15) !important;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border-color: rgba(var(--color-primary), 0.25) !important;
+  }
 
-.dark .hover-glass-theme:hover {
-  background: rgba(var(--color-primary), 0.2) !important;
-  border-color: rgba(var(--color-primary), 0.3) !important;
+  .dark .hover-glass-theme:hover {
+    background: rgba(var(--color-primary), 0.2) !important;
+    border-color: rgba(var(--color-primary), 0.3) !important;
+  }
 }
 .digit {
   position: absolute;

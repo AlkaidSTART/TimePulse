@@ -98,7 +98,7 @@ export default function Layout({ children, onHeaderHeightChange }: LayoutProps) 
           transitionKey={!isAbout && !isFullscreen && !scrollHintDismissed ? 'page-hint-visible' : 'page-hint-hidden'}
           initial={false}
           type="slideUp"
-          className="pointer-events-none fixed bottom-24 left-0 right-0 z-20 mx-auto w-full text-center text-sm text-gray-400"
+          className="pointer-events-none fixed bottom-24 md:bottom-20 mb-3 md:mb-0 left-0 right-0 z-20 mx-auto w-full text-center text-sm text-gray-400"
         >
           {!isAbout && !isFullscreen && !scrollHintDismissed ? (
             <motion.div

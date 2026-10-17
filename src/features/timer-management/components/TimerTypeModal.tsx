@@ -27,21 +27,21 @@ export default function TimerTypeModal({ onClose, onSelectType, embedded = false
       name: t('timer.countdown', '倒计时'),
       description: t('timer.countdownDesc', '设置目标时间，倒数到零'),
       icon: FiClock,
-      color: '#FF4D4F',
+      color: '#F43F5E',
     },
     {
       id: 'stopwatch',
       name: t('timer.stopwatch', '正计时'),
       description: t('timer.stopwatchDesc', '从零开始计时，记录经过时间'),
       icon: FiPlayCircle,
-      color: '#52C41A',
+      color: '#10B981',
     },
     {
       id: 'worldclock',
       name: t('timer.worldClock', '世界时间'),
       description: t('timer.worldClockDesc', '显示不同时区的当前时间'),
       icon: FiGlobe,
-      color: '#1890FF',
+      color: '#0EA5E9',
     },
   ];
 

@@ -412,7 +412,7 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
                     tabIndex={hidden ? -1 : 0}
                     title={timer.name}
                     data-timer-island-pill="timer"
-                    className={`relative isolate max-w-[60px] truncate rounded-full px-2 py-1 text-sm font-medium whitespace-nowrap outline-none transition-[background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-sky-500 min-[900px]:max-w-24 min-[900px]:px-3 xl:max-w-40 ${selected ? 'text-white shadow-md hover:shadow-lg' : 'text-gray-800 shadow-sm backdrop-blur-sm hover:brightness-110 dark:text-white'}`}
+                    className={`relative isolate max-w-[60px] truncate rounded-full px-2 py-1 text-sm font-medium whitespace-nowrap outline-none transition-[background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-sky-500 min-[900px]:max-w-24 min-[900px]:px-3 xl:max-w-40 ${selected ? 'text-white shadow-sm' : 'text-gray-800 shadow-sm backdrop-blur-sm hover:brightness-105 dark:text-white'}`}
                     style={{
                       ...pillMotionStyle,
                       backgroundColor: `color-mix(in srgb, ${showDetailColors ? timer.color || '#0ea5e9' : headerColor} 25%, transparent)`,
@@ -427,18 +427,6 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
                         layoutId="timer-island-active"
                         transition={reducedMotion || handoff ? { duration: 0 } : pillSpring}
                         className="pointer-events-none absolute inset-0 rounded-full"
-                        style={{
-                          backgroundColor: showDetailColors ? timer.color || '#0ea5e9' : headerColor,
-                          transition: reducedMotion ? 'none' : `background-color ${isExpanded ? (isClosing ? 420 : 500) : 200}ms ease`,
-                        }}
-                        aria-hidden="true"
-                      />
-                    )}
-                    {selected && !reducedMotion && (
-                      <motion.span
-                        layoutId="timer-island-glow"
-                        transition={handoff ? { duration: 0 } : islandSpring}
-                        className="pointer-events-none absolute -inset-1 -z-10 rounded-full opacity-30 blur-md"
                         style={{
                           backgroundColor: showDetailColors ? timer.color || '#0ea5e9' : headerColor,
                           transition: reducedMotion ? 'none' : `background-color ${isExpanded ? (isClosing ? 420 : 500) : 200}ms ease`,
@@ -544,7 +532,7 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
                 aria-checked={selected}
                 title={timer.name}
                 data-timer-island-pill="timer"
-                className={`pointer-events-auto relative isolate max-w-44 truncate rounded-full px-3 py-1 text-sm font-medium whitespace-nowrap outline-none transition-[background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-sky-500 ${selected ? 'text-white shadow-md hover:shadow-lg' : 'text-gray-800 shadow-sm backdrop-blur-sm hover:brightness-110 dark:text-white'}`}
+                className={`pointer-events-auto relative isolate max-w-44 truncate rounded-full px-3 py-1 text-sm font-medium whitespace-nowrap outline-none transition-[background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-sky-500 ${selected ? 'text-white shadow-sm' : 'text-gray-800 shadow-sm backdrop-blur-sm hover:brightness-105 dark:text-white'}`}
                 style={{
                   backgroundColor: isClosing && closingTarget?.activeId === timer.id && closingVisibleIds.has(timer.id)
                     ? headerColor

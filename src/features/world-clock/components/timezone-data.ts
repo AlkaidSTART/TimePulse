@@ -13,26 +13,26 @@ export type WorldClockPreset = {
 };
 
 export const popularWorldClocks: WorldClockPreset[] = [
-  { id: 'beijing', name: '北京', timezone: 'Asia/Shanghai', country: '中国', color: '#FF0000' },
-  { id: 'tokyo', name: '东京', timezone: 'Asia/Tokyo', country: '日本', color: '#FF6B6B' },
-  { id: 'seoul', name: '首尔', timezone: 'Asia/Seoul', country: '韩国', color: '#4ECDC4' },
-  { id: 'singapore', name: '新加坡', timezone: 'Asia/Singapore', country: '新加坡', color: '#FF4757' },
-  { id: 'bangkok', name: '曼谷', timezone: 'Asia/Bangkok', country: '泰国', color: '#FFD700' },
-  { id: 'mumbai', name: '孟买', timezone: 'Asia/Kolkata', country: '印度', color: '#FF9500' },
-  { id: 'dubai', name: '迪拜', timezone: 'Asia/Dubai', country: '阿联酋', color: '#00B894' },
-  { id: 'moscow', name: '莫斯科', timezone: 'Europe/Moscow', country: '俄罗斯', color: '#0984E3' },
-  { id: 'london', name: '伦敦', timezone: 'Europe/London', country: '英国', color: '#8B4513' },
-  { id: 'paris', name: '巴黎', timezone: 'Europe/Paris', country: '法国', color: '#6C5CE7' },
-  { id: 'berlin', name: '柏林', timezone: 'Europe/Berlin', country: '德国', color: '#FD79A8' },
-  { id: 'rome', name: '罗马', timezone: 'Europe/Rome', country: '意大利', color: '#00B894' },
-  { id: 'newyork', name: '纽约', timezone: 'America/New_York', country: '美国', color: '#0984E3' },
-  { id: 'losangeles', name: '洛杉矶', timezone: 'America/Los_Angeles', country: '美国', color: '#FDCB6E' },
-  { id: 'chicago', name: '芝加哥', timezone: 'America/Chicago', country: '美国', color: '#E17055' },
-  { id: 'toronto', name: '多伦多', timezone: 'America/Toronto', country: '加拿大', color: '#FF0000' },
-  { id: 'vancouver', name: '温哥华', timezone: 'America/Vancouver', country: '加拿大', color: '#00B894' },
-  { id: 'sydney', name: '悉尼', timezone: 'Australia/Sydney', country: '澳大利亚', color: '#0984E3' },
-  { id: 'melbourne', name: '墨尔本', timezone: 'Australia/Melbourne', country: '澳大利亚', color: '#6C5CE7' },
-  { id: 'auckland', name: '奥克兰', timezone: 'Pacific/Auckland', country: '新西兰', color: '#00CEC9' },
+  { id: 'beijing', name: '北京', timezone: 'Asia/Shanghai', country: '中国', color: '#E11D48' },
+  { id: 'tokyo', name: '东京', timezone: 'Asia/Tokyo', country: '日本', color: '#FB7185' },
+  { id: 'seoul', name: '首尔', timezone: 'Asia/Seoul', country: '韩国', color: '#14B8A6' },
+  { id: 'singapore', name: '新加坡', timezone: 'Asia/Singapore', country: '新加坡', color: '#F43F5E' },
+  { id: 'bangkok', name: '曼谷', timezone: 'Asia/Bangkok', country: '泰国', color: '#F59E0B' },
+  { id: 'mumbai', name: '孟买', timezone: 'Asia/Kolkata', country: '印度', color: '#FB923C' },
+  { id: 'dubai', name: '迪拜', timezone: 'Asia/Dubai', country: '阿联酋', color: '#10B981' },
+  { id: 'moscow', name: '莫斯科', timezone: 'Europe/Moscow', country: '俄罗斯', color: '#0EA5E9' },
+  { id: 'london', name: '伦敦', timezone: 'Europe/London', country: '英国', color: '#64748B' },
+  { id: 'paris', name: '巴黎', timezone: 'Europe/Paris', country: '法国', color: '#6366F1' },
+  { id: 'berlin', name: '柏林', timezone: 'Europe/Berlin', country: '德国', color: '#EC4899' },
+  { id: 'rome', name: '罗马', timezone: 'Europe/Rome', country: '意大利', color: '#10B981' },
+  { id: 'newyork', name: '纽约', timezone: 'America/New_York', country: '美国', color: '#0EA5E9' },
+  { id: 'losangeles', name: '洛杉矶', timezone: 'America/Los_Angeles', country: '美国', color: '#F59E0B' },
+  { id: 'chicago', name: '芝加哥', timezone: 'America/Chicago', country: '美国', color: '#F97316' },
+  { id: 'toronto', name: '多伦多', timezone: 'America/Toronto', country: '加拿大', color: '#E11D48' },
+  { id: 'vancouver', name: '温哥华', timezone: 'America/Vancouver', country: '加拿大', color: '#10B981' },
+  { id: 'sydney', name: '悉尼', timezone: 'Australia/Sydney', country: '澳大利亚', color: '#3B82F6' },
+  { id: 'melbourne', name: '墨尔本', timezone: 'Australia/Melbourne', country: '澳大利亚', color: '#8B5CF6' },
+  { id: 'auckland', name: '奥克兰', timezone: 'Pacific/Auckland', country: '新西兰', color: '#06B6D4' },
 ];
 
 export const allTimezones: TimezoneOption[] = [
@@ -100,8 +100,8 @@ export const allTimezones: TimezoneOption[] = [
 ];
 
 export const timezoneAccentPalette = [
-  '#1890FF', '#52C41A', '#722ED1', '#13C2C2',
-  '#FA8C16', '#FAAD14', '#F759AB', '#FF7A45',
+  '#0EA5E9', '#10B981', '#8B5CF6', '#14B8A6',
+  '#F59E0B', '#FB923C', '#EC4899', '#F43F5E',
 ] as const;
 
 const popularTimezoneColors = new Map(

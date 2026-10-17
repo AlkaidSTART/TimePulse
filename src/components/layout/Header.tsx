@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls } from 'framer-motion';
-import { FiMenu, FiX, FiSettings, FiMoon, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage } from 'react-icons/fi';
+import { FiMenu, FiX, FiSettings, FiMoon, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal } from 'react-icons/fi';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
@@ -12,8 +12,10 @@ import { ShareModal } from '@/features/sharing';
 import TimerCreationFlow from '@/features/timer-management/components/TimerCreationFlow';
 import TimerTabs from '@/features/timer-management/components/TimerTabs';
 import { HexColorPicker } from 'react-colorful';
+import { PRESET_COLORS } from '@/constants/colors';
 import { AutoResizer, AutoTransition } from '@/components/ui';
 import { LinearDialogTransition } from '@/components/composed';
+import MobileTabBar, { type MobileTab } from './MobileTabBar';
 
 type TimerUpdate = {
   name: string;
@@ -106,9 +108,10 @@ type HeaderProps = {
 export default function Header({ onHeightChange }: HeaderProps) {
   const { timers, activeTimerId, setActiveTimerId, reorderTimers, deleteTimer, updateTimer } = useTimers();
   const { theme, toggleTheme, accentColor } = useTheme();
-  const { isFullscreen, isHeaderVisible, headerHideDelay, showHeader, hideHeader } = useFullscreen();
+  const { isFullscreen, isHeaderVisible, headerHideDelay, showHeader, hideHeader, toggleFullscreen } = useFullscreen();
   const { t, changeLanguage } = useTranslation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState<MobileTab>('timer');
   const [isManageOpen, setIsManageOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [editingTimer, setEditingTimer] = useState<TimerEditState | null>(null);
@@ -119,14 +122,34 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const [timerOrder, setTimerOrder] = useState(() => timers.map((timer) => timer.id));
   const timerOrderRef = useRef(timerOrder);
   const navRef = useRef<HTMLElement>(null);
+  const toolsRef = useRef<HTMLDivElement>(null);
+
+  // Close tools dropdown on outside click
+  useEffect(() => {
+    if (!isToolsOpen) return;
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (toolsRef.current && !toolsRef.current.contains(e.target as Node)) {
+        setIsToolsOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', handleClickOutside);
+    return () => document.removeEventListener('pointerdown', handleClickOutside);
+  }, [isToolsOpen]);
 
   useLayoutEffect(() => {
     const nav = navRef.current;
     if (!nav || !onHeightChange) return;
 
     const updateHeight = () => {
-      const marginTop = Number.parseFloat(window.getComputedStyle(nav).marginTop) || 0;
-      onHeightChange(nav.offsetHeight + marginTop);
+      // On mobile screens, do not push the main timer clock down
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        onHeightChange(0);
+        return;
+      }
+      const styles = window.getComputedStyle(nav);
+      const marginTop = Number.parseFloat(styles.marginTop) || 0;
+      const headerPaddingTop = Number.parseFloat(window.getComputedStyle(nav.parentElement ?? nav).paddingTop) || 0;
+      onHeightChange(nav.offsetHeight + marginTop + headerPaddingTop);
     };
     updateHeight();
 
@@ -174,17 +197,6 @@ export default function Header({ onHeightChange }: HeaderProps) {
     ...timerOrder.filter((id) => timersById.has(id)),
     ...timers.map((timer) => timer.id).filter((id) => !timerOrder.includes(id)),
   ];
-  // 处理全屏切换
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(err => {
-        console.error(`错误: 无法进入全屏模式: ${err.message}`);
-      });
-    } else {
-      document.exitFullscreen();
-    }
-    // 不需要手动设置 isFullscreen，Fullscreen API 会自动触发 fullscreenchange 事件更新状态
-  };
 
   // 处理语言切换
   const switchLanguage = (lang: Language) => {
@@ -240,7 +252,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
     setShowColorPicker(false);
   };
 
-  // 全屏模式下监听鼠标移动，自动显示/隐藏顶部栏
+  // 全屏模式下监听鼠标移动 / 触摸，自动显示/隐藏顶部栏
   useEffect(() => {
     // 只在全屏模式下启用
     if (!isFullscreen) {
@@ -249,8 +261,8 @@ export default function Header({ onHeightChange }: HeaderProps) {
 
     let hideTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const handleMouseMove = () => {
-      // 鼠标移动时立即显示 Header
+    const handleActivity = () => {
+      // 有交互时立即显示 Header
       showHeader();
 
       // 清除之前的隐藏定时器
@@ -264,10 +276,16 @@ export default function Header({ onHeightChange }: HeaderProps) {
       }, headerHideDelay);
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mousemove', handleActivity);
+    // 触屏设备没有 mousemove，用 pointerdown 作为“唤出顶栏”的手势
+    document.addEventListener('pointerdown', handleActivity);
+
+    // 进入全屏后先显示顶栏，再按同样的延时自动隐藏
+    handleActivity();
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mousemove', handleActivity);
+      document.removeEventListener('pointerdown', handleActivity);
       if (hideTimer) {
         clearTimeout(hideTimer);
       }
@@ -278,8 +296,9 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const activeTimer = timers.find(timer => timer.id === activeTimerId) || null;
 
   return (
-    <motion.header
-      className="fixed top-0 left-0 right-0 z-40"
+    <>
+      <motion.header
+        className="app-header fixed top-0 left-0 right-0 z-40"
       initial={{ y: 0 }}
       animate={{
         y: isFullscreen && !isHeaderVisible ? '-100%' : 0,
@@ -287,315 +306,192 @@ export default function Header({ onHeightChange }: HeaderProps) {
       }}
       transition={{ duration: 0.3 }}
     >
-      <nav ref={navRef} className="glass-card mx-4 mt-4 px-6 py-4 flex items-center justify-between relative">
-        {/* Logo - 增强渐变效果，使用较深的相似色 */}
+      {/* Desktop Header: Sleek, lightweight, floating glass capsule */}
+      <nav
+        ref={navRef}
+        className="hidden md:flex mx-auto mt-3 max-w-5xl px-5 py-2.5 rounded-full bg-white/70 dark:bg-black/50 backdrop-blur-2xl border border-white/30 dark:border-white/10 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_4px_24px_-4px_rgba(0,0,0,0.5)] items-center justify-between relative"
+      >
+        {/* Logo */}
         <motion.div 
-          className="flex items-center justify-start z-10"
-          initial={{ opacity: 0, x: -20 }}
+          className="flex items-center justify-start z-10 shrink-0"
+          initial={{ opacity: 0, x: -15 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
         >
           <h1 
-            className="logo-gradient text-xl md:text-2xl font-bold font-display bg-clip-text text-transparent"
+            className="logo-gradient text-xl font-bold font-display bg-clip-text text-transparent select-none"
             style={{ '--logo-accent': accentColor } as CSSProperties}
           >
             <a href="https://time-pulse-two.vercel.app/">TimePulse</a>
           </h1>
         </motion.div>
 
+        {/* Center: Dynamic Island Capsule Switcher */}
         <TimerTabs
           timers={timers}
           activeTimerId={activeTimerId}
           setActiveTimerId={setActiveTimerId}
         />
-        {/* 右侧按钮组 */}
-        <div className="flex items-center justify-end z-10">
-          {/* 桌面端所有按钮 */}
-          <div className="hidden md:flex items-center">
-            {/* 添加计时器按钮 */}
+
+        {/* Right Controls: Streamlined, clean, cohesive */}
+        <div className="flex items-center justify-end z-10 gap-1.5 shrink-0">
+          {/* Quick Add Timer */}
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-500/10 text-primary-600 hover:bg-primary-500/20 dark:bg-primary-500/15 dark:text-primary-300 font-medium text-xs cursor-pointer transition-colors"
+            onClick={() => {
+              setIsTimerCreationOpen(true);
+              if (window.location.hash !== '#add') window.location.hash = 'add';
+            }}
+            title="新建计时器"
+            data-insightflare-event="timer_create_open"
+            data-insightflare-event-from="desktop"
+          >
+            <FiPlus className="size-3.5 stroke-[2.5]" />
+            <span>新建</span>
+          </button>
+
+          <div className="h-4 w-px bg-gray-300/50 dark:bg-white/10 mx-0.5" />
+
+          {/* Theme Toggle */}
+          <button
+            type="button"
+            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? '切换浅色模式' : '切换深色模式'}
+            data-insightflare-event="theme_toggle"
+            data-insightflare-event-to={theme === 'dark' ? 'light' : 'dark'}
+          >
+            {theme === 'dark' ? <FiSun className="size-4.5" /> : <FiMoon className="size-4.5" />}
+          </button>
+
+          {/* Fullscreen Toggle */}
+          <button
+            type="button"
+            className="size-8.5 rounded-full inline-flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 cursor-pointer transition-colors"
+            onClick={toggleFullscreen}
+            title={isFullscreen ? '退出全屏' : '全屏显示'}
+            data-insightflare-event="fullscreen_toggle"
+            data-insightflare-event-to={isFullscreen ? 'off' : 'on'}
+          >
+            {isFullscreen ? <FiMinimize className="size-4.5" /> : <FiMaximize className="size-4.5" />}
+          </button>
+
+          {/* More Tools Popover Menu */}
+          <div className="relative" ref={toolsRef}>
             <button
-              className="p-2 ml-1 rounded-full btn-ghost text-gray-700 dark:text-gray-300 cursor-pointer"
-              onClick={() => {
-                setIsTimerCreationOpen(true);
-                if (window.location.hash !== '#add') {
-                  window.location.hash = 'add';
-                }
-              }}
-              data-insightflare-event="timer_create_open"
-              data-insightflare-event-from="desktop"
+              type="button"
+              className={`size-8.5 rounded-full inline-flex items-center justify-center transition-colors cursor-pointer ${
+                isToolsOpen
+                  ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400'
+                  : 'hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300'
+              }`}
+              onClick={() => setIsToolsOpen(!isToolsOpen)}
+              title="更多功能与设置"
             >
-              <FiPlus className="text-xl" />
+              <FiMoreHorizontal className="size-4.5" />
             </button>
 
-            {/* 背景设置按钮 */}
-            <button
-              className="p-2 ml-1 rounded-full btn-ghost text-gray-700 dark:text-gray-300 cursor-pointer"
-              onClick={() => {
-                if (window.location.hash !== '#background') {
-                  window.location.hash = 'background';
-                }
-              }}
-              data-insightflare-event="background_open"
-            >
-              <FiImage className="text-xl" />
-            </button>
+            {/* Floating Tools Dropdown */}
+            <AnimatePresence>
+              {isToolsOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.92, y: -4 }}
+                  transition={{ duration: 0.18, ease: 'easeOut' }}
+                  className="absolute right-0 top-full mt-2 w-48 rounded-2xl border border-white/20 bg-white/85 p-1.5 shadow-xl backdrop-blur-2xl dark:border-white/10 dark:bg-neutral-900/90 z-50 text-xs"
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      if (window.location.hash !== '#background') window.location.hash = 'background';
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <FiImage className="size-4 text-purple-500" />
+                    <span>背景设置</span>
+                  </button>
 
-            {/* 分享按钮 */}
-            <button
-              className="p-2 ml-1 rounded-full btn-ghost text-gray-700 dark:text-gray-300 cursor-pointer"
-              onClick={() => {
-                setIsShareOpen(true);
-                if (window.location.hash !== '#share') {
-                  window.location.hash = 'share';
-                }
-              }}
-              data-insightflare-event="share_open"
-              data-insightflare-event-from="desktop"
-            >
-              <FiShare2 className="text-xl" />
-            </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      setIsShareOpen(true);
+                      if (window.location.hash !== '#share') window.location.hash = 'share';
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <FiShare2 className="size-4 text-blue-500" />
+                    <span>分享当前计时器</span>
+                  </button>
 
-            {/* 全屏按钮 */}
-            <button
-              className="p-2 ml-1 rounded-full btn-ghost text-gray-700 dark:text-gray-300 cursor-pointer"
-              onClick={toggleFullscreen}
-              data-insightflare-event="fullscreen_toggle"
-              data-insightflare-event-to={isFullscreen ? 'off' : 'on'}
-            >
-              {isFullscreen ? <FiMinimize className="text-xl" /> : <FiMaximize className="text-xl" />}
-            </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      setIsLanguageOpen(true);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <FiGlobe className="size-4 text-teal-500" />
+                    <span>切换语言 ({t('header.language')})</span>
+                  </button>
 
-            {/* 主题切换 */}
-            <button
-              className="p-2 ml-1 rounded-full btn-ghost text-gray-700 dark:text-gray-300 cursor-pointer"
-              onClick={toggleTheme}
-              data-insightflare-event="theme_toggle"
-              data-insightflare-event-to={theme === 'dark' ? 'light' : 'dark'}
-            >
-              {theme === 'dark' ? <FiSun className="text-xl" /> : <FiMoon className="text-xl" />}
-            </button>
+                  <div className="h-px bg-gray-200/60 dark:bg-white/10 my-1" />
 
-            {/* 语言切换 */}
-            <button
-              className="p-2 ml-1 rounded-full btn-ghost text-gray-700 dark:text-gray-300 cursor-pointer"
-              onClick={() => setIsLanguageOpen(true)}
-              data-insightflare-event="language_picker_open"
-              data-insightflare-event-from="desktop"
-            >
-              <FiGlobe className="text-xl" />
-            </button>
-
-            {/* 设置按钮 */}
-            <button
-              className="p-2 ml-1 rounded-full btn-ghost text-gray-700 dark:text-gray-300 cursor-pointer"
-              onClick={() => {
-                setIsManageOpen(true);
-                if (window.location.hash !== '#manage') {
-                  window.location.hash = 'manage';
-                }
-              }}
-              data-insightflare-event="manage_open"
-              data-insightflare-event-from="desktop"
-            >
-              <FiSettings className="text-xl" />
-            </button>
-          </div>
-
-          {/* 移动端只显示创建计时器和菜单按钮 */}
-          <div className="flex items-center md:hidden">
-            {/* 移动端创建计时器按钮 */}
-            <button
-              className="p-2 rounded-full btn-ghost text-gray-700 dark:text-gray-300 cursor-pointer"
-              onClick={() => {
-                setIsTimerCreationOpen(true);
-                if (window.location.hash !== '#add') {
-                  window.location.hash = 'add';
-                }
-              }}
-              data-insightflare-event="timer_create_open"
-              data-insightflare-event-from="mobile"
-            >
-              <FiPlus className="text-xl" />
-            </button>
-
-            {/* 移动端菜单按钮 */}
-            <button
-              className="p-2 ml-1 rounded-full btn-ghost text-gray-700 dark:text-gray-300 cursor-pointer"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              data-insightflare-event="mobile_menu_toggle"
-            >
-              {isMenuOpen ? <FiX className="text-xl" /> : <FiMenu className="text-xl" />}
-            </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      setIsManageOpen(true);
+                      if (window.location.hash !== '#manage') window.location.hash = 'manage';
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <FiSettings className="size-4 text-gray-500" />
+                    <span>管理全部计时器</span>
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </nav>
 
-      {/* 移动端下拉菜单 - 同样使用计时器的颜色和动画效果 */}
-      <AnimatePresence>
-        {isMenuOpen ? (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="glass-card mx-4 mt-2 p-4 md:hidden max-h-[70vh] overflow-y-auto"
+      {/* Mobile Top Bar: Ultra-clean, non-bloated, spacious */}
+      <div className="md:hidden flex items-center justify-between px-5 pt-3 pb-1 w-full pointer-events-auto">
+        {/* Minimal Brand Logo */}
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex items-center"
+        >
+          <h1
+            className="logo-gradient text-lg font-bold font-display bg-clip-text text-transparent select-none"
+            style={{ '--logo-accent': accentColor } as CSSProperties}
           >
-            {/* 功能按钮区域 - 分两行，每行两个，放在上面 */}
-            <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">{t('header.functions')}</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {/* 第一行 */}
-                <button
-                  className="flex items-center justify-between p-3 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-gray-200/60 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-black/20 cursor-pointer transition-colors"
-                  onClick={() => {
-                    toggleFullscreen();
-                    setIsMenuOpen(false);
-                  }}
-                  data-insightflare-event="fullscreen_toggle"
-                  data-insightflare-event-to={isFullscreen ? 'off' : 'on'}
-                >
-                  {isFullscreen ? <FiMinimize className="text-xl" /> : <FiMaximize className="text-xl" />}
-                  <span className="text-xs ml-2 flex-1 text-right">{isFullscreen ? t('header.exitFullscreen') : t('header.fullscreen')}</span>
-                </button>
+            <a href="https://time-pulse-two.vercel.app/">TimePulse</a>
+          </h1>
+        </motion.div>
 
-                <button
-                  className="flex items-center justify-between p-3 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-gray-200/60 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-black/20 cursor-pointer transition-colors"
-                  onClick={() => {
-                    toggleTheme();
-                    setIsMenuOpen(false);
-                  }}
-                  data-insightflare-event="theme_toggle"
-                  data-insightflare-event-to={theme === 'dark' ? 'light' : 'dark'}
-                >
-                  {theme === 'dark' ? <FiSun className="text-xl" /> : <FiMoon className="text-xl" />}
-                  <span className="text-xs ml-2 flex-1 text-right">{t('header.themeToggle')}</span>
-                </button>
-
-                {/* 第二行 */}
-                <button
-                  className="flex items-center justify-between p-3 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-gray-200/60 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-black/20 cursor-pointer transition-colors"
-                  onClick={() => {
-                    setIsLanguageOpen(true);
-                    setIsMenuOpen(false);
-                  }}
-                  data-insightflare-event="language_picker_open"
-                  data-insightflare-event-from="mobile"
-                >
-                  <FiGlobe className="text-xl" />
-                  <span className="text-xs ml-2 flex-1 text-right">{t('header.language')}</span>
-                </button>
-
-                <button
-                  className="flex items-center justify-between p-3 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-gray-200/60 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-black/20 cursor-pointer transition-colors"
-                  onClick={() => {
-                    setIsManageOpen(true);
-                    setIsMenuOpen(false);
-                    if (window.location.hash !== '#manage') {
-                      window.location.hash = 'manage';
-                    }
-                  }}
-                  data-insightflare-event="manage_open"
-                  data-insightflare-event-from="mobile"
-                >
-                  <FiSettings className="text-xl" />
-                  <span className="text-xs ml-2 flex-1 text-right">{t('header.settings')}</span>
-                </button>
-                
-                {/* 添加"分享"按钮 */}
-                <button
-                  className="flex items-center justify-between p-3 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-gray-200/60 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-black/20 cursor-pointer transition-colors"
-                  onClick={() => {
-                    setIsShareOpen(true);
-                    setIsMenuOpen(false);
-                    if (window.location.hash !== '#share') {
-                      window.location.hash = 'share';
-                    }
-                  }}
-                  data-insightflare-event="share_open"
-                  data-insightflare-event-from="mobile"
-                >
-                  <FiShare2 className="text-xl" />
-                  <span className="text-xs ml-2 flex-1 text-right">{t('timer.share')}</span>
-                </button>
-
-                {/* 背景设置按钮 */}
-                <button
-                  className="flex items-center justify-between p-3 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-gray-200/60 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-black/20 cursor-pointer transition-colors"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    if (window.location.hash !== '#background') {
-                      window.location.hash = 'background';
-                    }
-                  }}
-                  data-insightflare-event="background_open"
-                >
-                  <FiImage className="text-xl" />
-                  <span className="text-xs ml-2 flex-1 text-right">背景设置</span>
-                </button>
-
-                {/* 全屏设置按钮 */}
-                <button
-                  className="flex items-center justify-between p-3 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-gray-200/60 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-black/20 cursor-pointer transition-colors"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    if (window.location.hash !== '#fullscreen-settings') {
-                      window.location.hash = 'fullscreen-settings';
-                    }
-                  }}
-                  data-insightflare-event="fullscreen_settings_open"
-                >
-                  <FiMaximize className="text-xl" />
-                  <span className="text-xs ml-2 flex-1 text-right">全屏设置</span>
-                </button>
-              </div>
-            </div>
-
-            {/* 计时器选择区域 - 只有有滚动条时才显示，放在下面 */}
-            <div>
-              {timers.length > 0 && (
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                  <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">{t('header.timers')}</h3>
-                  <div className="max-h-48 overflow-y-auto">
-                    <div className="flex flex-col gap-2">
-                      {timers.map(timer => (
-                        <motion.button
-                          key={timer.id}
-                          layout
-                          initial={{ opacity: 0, y: -5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className={`px-4 py-2 rounded-lg border border-white/15 backdrop-blur-sm text-left dark:border-white/10 ${
-                            activeTimerId === timer.id
-                              ? 'text-gray-900 dark:text-white'
-                              : 'bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-gray-200/60 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-black/20'
-                          }`}
-                          style={
-                            activeTimerId === timer.id
-                              ? {
-                                  backgroundColor: `color-mix(in srgb, ${timer.color || '#0ea5e9'} 32%, transparent)`,
-                                  borderColor: `color-mix(in srgb, ${timer.color || '#0ea5e9'} 55%, transparent)`,
-                                  backdropFilter: 'blur(10px)',
-                                  WebkitBackdropFilter: 'blur(10px)',
-                                }
-                              : {}
-                          }
-                          onClick={() => {
-                            setActiveTimerId(timer.id);
-                            setIsMenuOpen(false);
-                          }}
-                          data-insightflare-event="timer_switch"
-                          data-insightflare-event-from="mobile_menu"
-                        >
-                          {timer.name}
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+        {/* Minimal Quick Action */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/25 dark:border-white/10 text-xs font-medium text-gray-700 dark:text-gray-200 shadow-xs cursor-pointer active:scale-95 transition-transform"
+            onClick={() => {
+              setIsTimerCreationOpen(true);
+              if (window.location.hash !== '#add') window.location.hash = 'add';
+            }}
+          >
+            <FiPlus className="size-3.5 stroke-[2.5]" />
+            <span>新建</span>
+          </button>
+        </div>
+      </div>
 
       {/* 管理计时器弹窗 */}
       <AutoTransition portal transitionKey={isManageOpen ? 'manage-open' : 'manage-closed'} initial={false} type="fade">
@@ -687,12 +583,23 @@ export default function Header({ onHeightChange }: HeaderProps) {
                       onClick={() => setShowColorPicker(!showColorPicker)}
                     ></div>
                     {showColorPicker && (
-                      <div className="pt-2">
+                      <div className="pt-2 space-y-3">
                         <HexColorPicker 
                           color={editingTimer.color} 
                           onChange={(color) => setEditingTimer({...editingTimer, color})} 
                           className="w-full"
                         />
+                        <div className="grid grid-cols-5 gap-2 pt-1">
+                          {PRESET_COLORS.map(color => (
+                            <button
+                              key={color}
+                              type="button"
+                              className={`w-full aspect-square rounded-full border border-white/60 dark:border-white/20 transition-transform hover:scale-105 ${editingTimer.color === color ? 'ring-2 ring-primary-500' : ''}`}
+                              style={{ backgroundColor: color }}
+                              onClick={() => setEditingTimer({ ...editingTimer, color })}
+                            />
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -856,5 +763,38 @@ export default function Header({ onHeightChange }: HeaderProps) {
         ) : null}
       </AutoTransition>
     </motion.header>
+
+    {/* Mobile Bottom TabBar with iOS Liquid Droplet Capsule Animation */}
+    <MobileTabBar
+      activeTab={mobileTab}
+      onTabChange={setMobileTab}
+      timers={timers}
+      activeTimerId={activeTimerId}
+      setActiveTimerId={setActiveTimerId}
+      onOpenAdd={() => {
+        setIsTimerCreationOpen(true);
+        if (window.location.hash !== '#add') window.location.hash = 'add';
+      }}
+      onOpenBackground={() => {
+        if (window.location.hash !== '#background') window.location.hash = 'background';
+      }}
+      onOpenFullscreenSettings={() => {
+        if (window.location.hash !== '#fullscreen-settings') window.location.hash = 'fullscreen-settings';
+      }}
+      onOpenShare={() => {
+        setIsShareOpen(true);
+        if (window.location.hash !== '#share') window.location.hash = 'share';
+      }}
+      theme={theme}
+      toggleTheme={toggleTheme}
+      isFullscreen={isFullscreen}
+      toggleFullscreen={toggleFullscreen}
+      accentColor={accentColor}
+      isVisible={!isFullscreen || isHeaderVisible}
+      deleteTimer={deleteTimer}
+      updateTimer={updateTimer}
+      reorderTimers={reorderTimers}
+    />
+  </>
   );
 }

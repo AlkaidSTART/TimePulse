@@ -2,8 +2,9 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <meta name="theme-color" content="#121212" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafbfd" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0f17" />
     <meta name="description" content="TimePulse - 一个现代化的倒计时网页应用" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -18,6 +19,18 @@
         const isApplePlatform = /Mac|iPhone|iPad|iPod/i.test(platform) || /iPhone|iPad|iPod/i.test(userAgent);
         const isSafari = /Safari/i.test(userAgent) && /Apple/i.test(vendor) && !/Android|Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Opera/i.test(userAgent);
         if (isApplePlatform || isSafari) document.documentElement.dataset.nativeScrollbars = 'true';
+
+        // 标记运行环境：Android App（Tauri）需要额外避让系统状态栏与手势条。
+        // __TAURI_INTERNALS__ 由 wry 在文档开始前注入；isTauri 可能稍后才就绪，故监听一次 DOMContentLoaded 兜底。
+        const markPlatform = () => {
+          const isTauri = window.isTauri === true || '__TAURI_INTERNALS__' in window;
+          const isAndroid = /Android/i.test(userAgent);
+          if (isTauri) document.documentElement.dataset.tauri = 'true';
+          if (isAndroid) document.documentElement.dataset.platform = 'android';
+          if (isTauri && isAndroid) document.documentElement.dataset.androidApp = 'true';
+        };
+        markPlatform();
+        document.addEventListener('DOMContentLoaded', markPlatform, { once: true });
 
         const savedTheme = localStorage.getItem('theme');
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;

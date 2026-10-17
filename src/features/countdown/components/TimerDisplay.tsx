@@ -259,7 +259,7 @@ function CalendarTimeRows({
 }
 
 export default function TimerDisplay() {
-  const { getActiveTimer, updateTimer, checkAndUpdateDefaultTimer } = useTimers();
+  const { getActiveTimer, updateTimer } = useTimers();
   const { isFullscreen, timerFontSize: rawTimerFontSize, labelFontSize: rawLabelFontSize } = useFullscreen();
   const { t, currentLang } = useTranslation();
   const timerFontSize = (rawTimerFontSize || 'medium') as FontSize;
@@ -341,11 +341,6 @@ export default function TimerDisplay() {
             duration_bucket: totalMs !== null ? bucketDurationMs(totalMs) : 'unknown',
           });
         } catch (e) {}
-        
-        // 检查并更新过期的默认计时器
-        if (checkAndUpdateDefaultTimer) {
-          checkAndUpdateDefaultTimer();
-        }
         
         // 当倒计时结束时发送通知
         try {
@@ -499,7 +494,7 @@ export default function TimerDisplay() {
       clearScheduledUpdate();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [getActiveTimer, isFinished, checkAndUpdateDefaultTimer, isRunning]);
+  }, [getActiveTimer, isFinished, isRunning]);
   
   // 正计时控制函数
   const handleStopwatchControl = (action: StopwatchAction) => {

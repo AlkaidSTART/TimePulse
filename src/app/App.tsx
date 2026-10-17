@@ -7,6 +7,7 @@ import { testNotification } from '@/services/notifications';
 import notificationManager from '@/services/notificationManager';
 import { PageTransitionProvider } from '@/hooks/usePageTransition';
 import GlobalScrollbars from '@/components/layout/GlobalScrollbars';
+import OpeningAnimation from '@/components/layout/OpeningAnimation';
 
 declare global {
   interface Window {
@@ -45,6 +46,7 @@ export default function App() {
 
   return (
     <ThemeProvider>
+      <OpeningAnimation />
       <BackgroundProvider>
         <FullscreenProvider>
           <PageTransitionProvider>

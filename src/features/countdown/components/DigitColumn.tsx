@@ -70,19 +70,17 @@ function DigitColumn({
       className="flex flex-col items-center"
     >
       <motion.div
-        className={`${widthClass} h-24 sm:h-32 md:h-36 rounded-xl glass-card flex items-center justify-center relative overflow-hidden`}
+        className={`${widthClass} h-24 sm:h-32 md:h-36 rounded-2xl glass-card flex items-center justify-center relative overflow-hidden`}
         style={{
-          boxShadow: `0 0 30px ${color}20`,
-          transition: 'width 0.24s ease-out, box-shadow 0.5s var(--transition-timing)',
+          transition: 'width 0.24s ease-out, border-color 0.3s ease, background-color 0.3s ease',
           transform: 'translateZ(0)',
           WebkitTransform: 'translateZ(0)',
           willChange: 'transform',
         }}
         whileHover={{
-          boxShadow: `0 0 40px ${color}40`,
-          scale: 1.02,
+          scale: 1.015,
         }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.2 }}
       >
         <NumberFlow
           value={isValueVisible ? value : 0}
