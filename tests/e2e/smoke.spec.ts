@@ -63,13 +63,14 @@ test('opens the migrated background and sharing flows', async ({ page }) => {
   })).toContain('bg-black/50');
 
   await page.goto('/', { waitUntil: 'commit' });
+  await expect(page.getByRole('heading', { name: 'TimePulse', exact: true })).toBeVisible({ timeout: 25_000 });
   await page.locator('[data-insightflare-event="share_open"]').first().click();
-  await expect(page.getByRole('heading', { name: '分享计时器' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /分享/ })).toBeVisible();
 
   expect(runtimeErrors).toEqual([]);
 });
 
-test('animates theme changes and switches to the footer card with discrete wheel navigation', async ({ page, browserName }) => {
+test('animates theme changes and keeps page scroll locked with discrete wheel navigation', async ({ page, browserName }) => {
   test.skip(browserName !== 'chromium', 'Discrete wheel navigation is covered by the Chromium mouse input path.');
 
   await page.goto('/', { waitUntil: 'commit' });
@@ -108,21 +109,25 @@ test('animates theme changes and switches to the footer card with discrete wheel
   await expectPageScrollLocked();
 
   const themeToggle = page.locator('[data-insightflare-event="theme_toggle"]').first();
-  await themeToggle.click();
-  await expect(page.locator('html')).toHaveClass(/dark/);
-  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(18, 18, 18)');
+  await expect(page.locator('html')).toHaveClass(/cream/);
+  await expect(page.locator('html')).not.toHaveClass(/dark/);
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(247, 244, 235)');
 
   await themeToggle.click();
+  await expect(page.locator('html')).not.toHaveClass(/cream/);
   await expect(page.locator('html')).not.toHaveClass(/dark/);
-  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(255, 255, 255)');
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(250, 251, 253)');
+
+  await themeToggle.click();
+  await expect(page.locator('html')).toHaveClass(/cream/);
+  await expect(page.locator('html')).not.toHaveClass(/dark/);
   await expectPageScrollLocked();
 
   const viewport = page.viewportSize();
   expect(viewport).not.toBeNull();
   await page.mouse.move(5, viewport!.height / 2);
 
-  // Keep the first wheel event below the transition threshold so the page
-  // switch is driven by accumulated input rather than continuous scrolling.
+  // Discrete wheel input should keep scroll locked and hash unchanged
   const wheelStep = 40;
   const wheelThresholdCrossing = 50;
   await page.mouse.wheel(0, wheelStep);
@@ -134,26 +139,7 @@ test('animates theme changes and switches to the footer card with discrete wheel
 
   await page.mouse.wheel(0, wheelThresholdCrossing);
   await expectPageScrollLocked();
-
-  await expect(page).toHaveURL(/#footer$/);
-  const about = page.getByText('关于 TimePulse', { exact: true });
-  await expect(about).toBeVisible();
-  await expect(page.getByText('使用 Vite 和 Framer Motion 构建')).toBeVisible();
-  await page.waitForTimeout(500);
-  await expect(about).toBeVisible();
-
-  await page.mouse.wheel(0, -wheelStep);
-  await page.waitForTimeout(50);
-  const afterFirstUpWheel = await pageScrollState();
-  expect(afterFirstUpWheel.hash).toBe('#footer');
-  expect(afterFirstUpWheel.scrollTop).toBe(0);
-  expect(afterFirstUpWheel.documentHeight <= afterFirstUpWheel.viewportHeight || !afterFirstUpWheel.rootCanScroll).toBe(true);
-
-  await page.mouse.wheel(0, -wheelThresholdCrossing);
-  await expectPageScrollLocked();
-
-  await page.waitForTimeout(650);
-  await expect(page).toHaveURL(/\/$/);
+  expect((await pageScrollState()).hash).toBe('');
 });
 
 test('does not leave notification or modal backdrops mounted while closed', async ({ page }) => {

@@ -8,6 +8,11 @@ TimePulse 是一个具有现代化 UI 和交互的计时器网页应用，支持
 
 在线体验: [TimePulse](https://time-pulse-two.vercel.app/)
 
+<div align="center">
+  <img src="public/website-qr.png" alt="TimePulse 网站访问二维码" width="160" />
+  <p><em>手机扫码即可直接访问 TimePulse 在线网页</em></p>
+</div>
+
 ![image](https://raw.ravelloh.top/20250323/image.2obow0upmh.webp)
 ![image](https://raw.ravelloh.top/20250323/image.7zqlgqhqss.webp)
 ![image](https://raw.ravelloh.top/20250323/image.26ln7ftxqc.webp)
@@ -36,7 +41,7 @@ TimePulse 是一个具有现代化 UI 和交互的计时器网页应用，支持
 ### 视觉和交互
 - 精美的玻璃态设计和流畅动效
 - 自适应模糊渐变背景，随主题色变化
-- 暗色/亮色主题自动切换
+- 米白/浅色主题自由切换
 - 完全响应式设计，适配各种设备
 
 ## 技术栈

@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { cn } from '../ui/utils';
+import { FiCheck } from 'react-icons/fi';
 
 export interface ColorSwatchProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   color: string;
@@ -34,7 +35,7 @@ const ColorSwatch = React.forwardRef<HTMLButtonElement, ColorSwatchProps>(
       {...props}
     >
       {children}
-      {selected ? <span aria-hidden className="text-xs font-semibold text-white drop-shadow">✓</span> : null}
+      {selected ? <FiCheck aria-hidden="true" className="size-3.5 text-white drop-shadow stroke-[3]" /> : null}
     </button>
   ),
 );

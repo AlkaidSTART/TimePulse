@@ -2,8 +2,8 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <meta name="theme-color" content="#121212" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f4eb" />
     <meta name="description" content="TimePulse - 一个现代化的倒计时网页应用" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -19,14 +19,28 @@
         const isSafari = /Safari/i.test(userAgent) && /Apple/i.test(vendor) && !/Android|Chrome|Chromium|CriOS|FxiOS|Edg|OPR|Opera/i.test(userAgent);
         if (isApplePlatform || isSafari) document.documentElement.dataset.nativeScrollbars = 'true';
 
+        // 标记运行环境：Android App（Tauri）需要额外避让系统状态栏与手势条。
+        // __TAURI_INTERNALS__ 由 wry 在文档开始前注入；isTauri 可能稍后才就绪，故监听一次 DOMContentLoaded 兜底。
+        const markPlatform = () => {
+          const isTauri = window.isTauri === true || '__TAURI_INTERNALS__' in window;
+          const isAndroid = /Android/i.test(userAgent);
+          if (isTauri) document.documentElement.dataset.tauri = 'true';
+          if (isAndroid) document.documentElement.dataset.platform = 'android';
+          if (isTauri && isAndroid) document.documentElement.dataset.androidApp = 'true';
+        };
+        markPlatform();
+        document.addEventListener('DOMContentLoaded', markPlatform, { once: true });
+
         const savedTheme = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-          document.documentElement.classList.add('dark');
-          document.documentElement.style.colorScheme = 'dark';
+        const theme = savedTheme === 'light' ? 'light' : 'cream';
+        if (theme === 'cream') {
+          document.documentElement.classList.add('cream');
         } else {
-          document.documentElement.style.colorScheme = 'light';
+          const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+          if (metaThemeColor) metaThemeColor.setAttribute('content', '#ffffff');
         }
+        document.documentElement.classList.remove('dark');
+        document.documentElement.style.colorScheme = 'light';
       } catch (_) {
         document.documentElement.style.colorScheme = 'light';
       }

@@ -29,6 +29,6 @@ export default function OfflineNotification() {
     };
   }, []);
   
-  // 离线状态数据传递给Footer处理，这个组件不显示任何内容
+  // 离线状态监听，当前静默处理
   return null;
 }

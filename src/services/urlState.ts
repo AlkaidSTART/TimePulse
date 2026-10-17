@@ -4,7 +4,6 @@ export const SUPPORTED_HASHES = [
   'manage',
   'background',
   'fullscreen-settings',
-  'footer',
 ] as const;
 
 export type SupportedHash = (typeof SUPPORTED_HASHES)[number];

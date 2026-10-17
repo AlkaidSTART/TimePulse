@@ -14,8 +14,6 @@ interface TimerTabsProps {
 
 type CapsuleRect = Pick<DOMRect, 'left' | 'top' | 'width' | 'height'>;
 
-const idleDelay = 5000;
-const islandSpring = { type: 'spring', stiffness: 420, damping: 35, mass: 0.8 } as const;
 const pillSpring = { type: 'spring', stiffness: 250, damping: 27, mass: 0.95 } as const;
 const itemKey = (item: CompactTimerItem) => item.kind === 'timer' ? `timer-${item.timer.id}` : `overflow-${item.side}`;
 
@@ -36,12 +34,7 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
   const [handoffKeys, setHandoffKeys] = useState<Set<string>>(() => new Set());
   const [presenceEpoch, setPresenceEpoch] = useState(0);
   const [closingAccentColor, setClosingAccentColor] = useState<string | null>(null);
-  const [isPointerIdle, setIsPointerIdle] = useState(true);
-  const [pillOffsets, setPillOffsets] = useState<Map<string, number>>(new Map());
-  const [activeOffset, setActiveOffset] = useState(0);
-  const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
   const compactRowRef = useRef<HTMLDivElement>(null);
-  const compactWrapperRefs = useRef(new Map<string, HTMLDivElement>());
   const compactButtonRefs = useRef(new Map<string, HTMLButtonElement>());
   const timerButtonRefs = useRef(new Map<string, HTMLButtonElement>());
   const expandedSlotRefs = useRef(new Map<string, HTMLElement>());
@@ -56,7 +49,6 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
   const menuId = useId();
   const activeIndex = Math.max(0, timers.findIndex((timer) => timer.id === activeTimerId));
   const activeTimer = timers[activeIndex];
-  const solo = isPointerIdle && !isExpanded;
   const showDetailColors = isExpanded && !isClosing;
   const headerColor = closingAccentColor ?? accentColor;
   const layoutActiveId = expandedOrigin?.activeId ?? activeTimerId;
@@ -89,45 +81,7 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
     setIsExpanded(true);
   };
 
-  useLayoutEffect(() => {
-    const measure = () => {
-      const row = compactRowRef.current;
-      const activeWrapper = compactWrapperRefs.current.get(`timer-${layoutActiveId}`);
-      if (!row || !activeWrapper) return;
-      const activeCenter = activeWrapper.offsetLeft + activeWrapper.offsetWidth / 2;
-      const next = new Map<string, number>();
-      for (const [key, wrapper] of compactWrapperRefs.current) {
-        next.set(key, wrapper.offsetLeft + wrapper.offsetWidth / 2 - activeCenter);
-      }
-      setPillOffsets(next);
-      setActiveOffset(activeCenter - row.offsetWidth / 2);
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    if (compactRowRef.current) observer.observe(compactRowRef.current);
-    window.addEventListener('resize', measure);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', measure);
-    };
-  }, [layoutActiveId, compactItemKeys]);
 
-  useEffect(() => {
-    let idleTimer: ReturnType<typeof setTimeout> | null = null;
-    const handleMouseMove = (event: MouseEvent) => {
-      const previous = lastPointerRef.current;
-      if (previous?.x === event.clientX && previous.y === event.clientY) return;
-      lastPointerRef.current = { x: event.clientX, y: event.clientY };
-      setIsPointerIdle(false);
-      if (idleTimer) clearTimeout(idleTimer);
-      idleTimer = setTimeout(() => setIsPointerIdle(true), idleDelay);
-    };
-    document.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      if (idleTimer) clearTimeout(idleTimer);
-    };
-  }, []);
 
   useLayoutEffect(() => {
     if (!isExpanded || closingRef.current) return;
@@ -316,11 +270,9 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
       }}
     >
       <div
-        className={`pointer-events-auto absolute top-0 z-10 ${solo ? 'left-1/2' : 'left-[calc(50%-4.75rem)] min-[900px]:left-[calc(50%-5.5rem)] xl:left-1/2'}`}
+        className="pointer-events-auto absolute top-0 left-1/2 z-10 -translate-x-1/2"
         style={{
-          transform: `translateX(calc(-50% - ${solo ? activeOffset : 0}px))`,
           pointerEvents: isExpanded ? 'none' : 'auto',
-          transition: reducedMotion ? 'none' : 'left 360ms cubic-bezier(.2,.8,.2,1), transform 420ms cubic-bezier(.2,.8,.2,1)',
         }}
       >
         <div ref={compactRowRef} role="group" aria-label="计时器" className="relative flex items-center justify-center gap-1 min-[900px]:gap-1.5">
@@ -329,27 +281,18 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
               const key = itemKey(item);
               const handoff = handoffKeys.has(key);
               const selected = item.kind === 'timer' && item.timer.id === activeTimerId;
-              const hidden = solo && !selected;
-              const offset = pillOffsets.get(key) ?? 0;
               const pillMotionStyle = {
-                transform: hidden ? `translateX(${-offset}px) scale(0.55)` : 'translateX(0) scale(1)',
-                opacity: hidden ? 0 : 1,
-                filter: hidden ? 'blur(3px)' : undefined,
-                pointerEvents: hidden || isClosing ? 'none' : 'auto',
-                transition: reducedMotion || handoff ? 'none' : `transform 420ms cubic-bezier(.2,.8,.2,1), opacity 300ms ease, filter 360ms ease, background-color ${isExpanded ? (isClosing ? 420 : 500) : 200}ms ease, box-shadow 200ms ease, color 180ms ease`,
+                pointerEvents: isClosing ? 'none' : 'auto',
+                transition: reducedMotion || handoff ? 'none' : `background-color ${isExpanded ? (isClosing ? 420 : 500) : 200}ms ease, box-shadow 200ms ease, color 180ms ease`,
               } as const;
               if (item.kind === 'overflow') {
                 return (
                   <motion.div
                     key={key}
-                    ref={(node) => {
-                      if (node) compactWrapperRefs.current.set(key, node);
-                      else compactWrapperRefs.current.delete(key);
-                    }}
                     layout={handoff ? false : 'position'}
                     initial={reducedMotion || handoff ? false : { opacity: 0, scale: 0.64 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={handoff ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, scale: 0.64, x: -offset }}
+                    exit={handoff ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, scale: 0.64 }}
                     transition={reducedMotion || handoff ? { duration: 0 } : pillSpring}
                   >
                     <button
@@ -358,8 +301,8 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
                         else compactButtonRefs.current.delete(key);
                       }}
                       type="button"
-                      tabIndex={hidden || isExpanded ? -1 : 0}
-                      aria-hidden={hidden || isExpanded}
+                      tabIndex={isExpanded ? -1 : 0}
+                      aria-hidden={isExpanded}
                       className="relative rounded-full px-2 py-1 text-sm font-medium text-gray-800 shadow-sm backdrop-blur-sm outline-none hover:brightness-110 focus-visible:ring-2 focus-visible:ring-sky-500 min-[900px]:px-2.5 dark:text-white"
                       aria-label={`${item.side === 'left' ? '左侧' : '右侧'}还有 ${item.count} 个计时器，展开全部`}
                       aria-haspopup="menu"
@@ -368,8 +311,8 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
                       onClick={openExpanded}
                       style={{
                         ...pillMotionStyle,
-                        opacity: isExpanded ? 0 : pillMotionStyle.opacity,
-                        pointerEvents: hidden || isExpanded ? 'none' : 'auto',
+                        opacity: isExpanded ? 0 : 1,
+                        pointerEvents: isExpanded ? 'none' : 'auto',
                         backgroundColor: `color-mix(in srgb, ${headerColor} 25%, transparent)`,
                       }}
                       data-insightflare-event="timer_list_expand"
@@ -384,14 +327,10 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
               return (
                 <motion.div
                   key={key}
-                  ref={(node) => {
-                    if (node) compactWrapperRefs.current.set(key, node);
-                    else compactWrapperRefs.current.delete(key);
-                  }}
                   layout={handoff ? false : 'position'}
                   initial={reducedMotion || handoff ? false : { opacity: 0, scale: 0.64 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={handoff ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, scale: 0.64, x: -offset }}
+                  exit={handoff ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, scale: 0.64 }}
                   transition={reducedMotion || handoff ? { duration: 0 } : pillSpring}
                 >
                   <button
@@ -408,11 +347,10 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
                     role={isExpanded ? 'menuitemradio' : undefined}
                     aria-checked={isExpanded ? selected : undefined}
                     aria-current={selected ? 'true' : undefined}
-                    aria-hidden={hidden}
-                    tabIndex={hidden ? -1 : 0}
+                    tabIndex={0}
                     title={timer.name}
                     data-timer-island-pill="timer"
-                    className={`relative isolate max-w-[60px] truncate rounded-full px-2 py-1 text-sm font-medium whitespace-nowrap outline-none transition-[background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-sky-500 min-[900px]:max-w-24 min-[900px]:px-3 xl:max-w-40 ${selected ? 'text-white shadow-md hover:shadow-lg' : 'text-gray-800 shadow-sm backdrop-blur-sm hover:brightness-110 dark:text-white'}`}
+                    className={`relative isolate max-w-[60px] truncate rounded-full px-2 py-1 text-sm font-medium whitespace-nowrap outline-none transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-sky-500 min-[900px]:max-w-24 min-[900px]:px-3 xl:max-w-40 ${selected ? 'text-white shadow-sm' : 'text-gray-800 shadow-sm backdrop-blur-sm hover:brightness-110 hover:shadow-md dark:text-white'}`}
                     style={{
                       ...pillMotionStyle,
                       backgroundColor: `color-mix(in srgb, ${showDetailColors ? timer.color || '#0ea5e9' : headerColor} 25%, transparent)`,
@@ -434,18 +372,6 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
                         aria-hidden="true"
                       />
                     )}
-                    {selected && !reducedMotion && (
-                      <motion.span
-                        layoutId="timer-island-glow"
-                        transition={handoff ? { duration: 0 } : islandSpring}
-                        className="pointer-events-none absolute -inset-1 -z-10 rounded-full opacity-30 blur-md"
-                        style={{
-                          backgroundColor: showDetailColors ? timer.color || '#0ea5e9' : headerColor,
-                          transition: reducedMotion ? 'none' : `background-color ${isExpanded ? (isClosing ? 420 : 500) : 200}ms ease`,
-                        }}
-                        aria-hidden="true"
-                      />
-                    )}
                     <span className="relative z-10">{timer.name}</span>
                   </button>
                 </motion.div>
@@ -458,7 +384,7 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
       {closingTarget && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute top-0 left-[calc(50%-4.75rem)] flex -translate-x-1/2 items-center justify-center gap-1 min-[900px]:left-[calc(50%-5.5rem)] min-[900px]:gap-1.5 xl:left-1/2"
+          className="pointer-events-none absolute top-0 left-1/2 flex -translate-x-1/2 items-center justify-center gap-1 min-[900px]:gap-1.5"
         >
           {closingTarget.items.map((item) => {
             const key = itemKey(item);
@@ -544,7 +470,7 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId }: T
                 aria-checked={selected}
                 title={timer.name}
                 data-timer-island-pill="timer"
-                className={`pointer-events-auto relative isolate max-w-44 truncate rounded-full px-3 py-1 text-sm font-medium whitespace-nowrap outline-none transition-[background-color,box-shadow] duration-200 focus-visible:ring-2 focus-visible:ring-sky-500 ${selected ? 'text-white shadow-md hover:shadow-lg' : 'text-gray-800 shadow-sm backdrop-blur-sm hover:brightness-110 dark:text-white'}`}
+                className={`pointer-events-auto relative isolate max-w-44 truncate rounded-full px-3 py-1 text-sm font-medium whitespace-nowrap outline-none transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-sky-500 ${selected ? 'text-white shadow-sm' : 'text-gray-800 shadow-sm backdrop-blur-sm hover:brightness-110 hover:shadow-md dark:text-white'}`}
                 style={{
                   backgroundColor: isClosing && closingTarget?.activeId === timer.id && closingVisibleIds.has(timer.id)
                     ? headerColor

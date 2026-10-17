@@ -15,7 +15,7 @@ async function loadLanguageFile(language: Language): Promise<TranslationTree | n
     const response = await fetch(`/locales/${locale}/common.json`);
     if (!response.ok) throw new Error(`Failed to load ${locale} translations`);
     const value: unknown = await response.json();
-    return typeof value === 'object' && value !== null ? value as TranslationTree : null;
+    return typeof value === 'object' && value !== null ? (value as TranslationTree) : null;
   } catch (error) {
     console.error('Failed to load language file:', error);
     return null;
@@ -36,7 +36,7 @@ export function useTranslation(): {
   isLoading: boolean;
 } {
   const [translations, setTranslations] = useState<TranslationTree>({});
-  const [currentLang, setCurrentLang] = useState<Language>('zh-CN');
+  const [currentLang, setCurrentLang] = useState<Language>(() => getLanguage());
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -50,14 +50,18 @@ export function useTranslation(): {
       if (!cancelled) setIsLoading(false);
     };
     void initializeTranslations();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const t = useCallback<TranslationFunction>((key, defaultValue = '') => {
-    if (isLoading) return defaultValue;
     const value = getNestedValue(translations, key);
-    return typeof value === 'string' || typeof value === 'number' ? String(value) : (defaultValue || key);
-  }, [isLoading, translations]);
+    if (typeof value === 'string' || typeof value === 'number') {
+      return String(value);
+    }
+    return defaultValue || key;
+  }, [translations]);
 
   const changeLanguage = (language: Language) => {
     const url = new URL(window.location.href);

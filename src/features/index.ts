@@ -2,3 +2,4 @@ export { formatTimeUnit as formatCountdownUnit, splitCountdown } from './countdo
 export { formatTimeUnit as formatStopwatchUnit, getStopwatchElapsed } from './stopwatch/calculations';
 export * from './world-clock/timezone';
 export * from './timer-management/reducer';
+export * from './version';

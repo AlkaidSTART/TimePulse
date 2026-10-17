@@ -12,22 +12,22 @@ function createUtcDate(year: number, monthIndex: number, day: number): string {
 
 export function generateFixedHolidays(year: number): Holiday[] {
   return [
-    { name: `${year}年元旦`, date: createUtcDate(year, 0, 1), color: '#1890FF' },
-    { name: `${year}年情人节`, date: createUtcDate(year, 1, 14), color: '#EB2F96' },
-    { name: `${year}年妇女节`, date: createUtcDate(year, 2, 8), color: '#C71585' },
-    { name: `${year}年植树节`, date: createUtcDate(year, 2, 12), color: '#52C41A' },
-    { name: `${year}年愚人节`, date: createUtcDate(year, 3, 1), color: '#722ED1' },
-    { name: `${year}年青年节`, date: createUtcDate(year, 4, 4), color: '#722ED1' },
-    { name: `${year}年劳动节`, date: createUtcDate(year, 4, 1), color: '#FA8C16' },
-    { name: `${year}年清明节`, date: getQingmingDate(year).toISOString(), color: '#228B22' },
-    { name: `${year}年儿童节`, date: createUtcDate(year, 5, 1), color: '#13C2C2' },
-    { name: `${year}年建党节`, date: createUtcDate(year, 6, 1), color: '#FF0000' },
-    { name: `${year}年建军节`, date: createUtcDate(year, 7, 1), color: '#CF1322' },
-    { name: `${year}年教师节`, date: createUtcDate(year, 8, 10), color: '#096DD9' },
-    { name: `${year}年国庆节`, date: createUtcDate(year, 9, 1), color: '#FF4D4F' },
-    { name: `${year}年万圣节`, date: createUtcDate(year, 9, 31), color: '#FF7A45' },
-    { name: `${year}年平安夜`, date: createUtcDate(year, 11, 24), color: '#36CFC9' },
-    { name: `${year}年圣诞节`, date: createUtcDate(year, 11, 25), color: '#F759AB' },
+    { name: `${year}年元旦`, date: createUtcDate(year, 0, 1), color: '#0EA5E9' },
+    { name: `${year}年情人节`, date: createUtcDate(year, 1, 14), color: '#F43F5E' },
+    { name: `${year}年妇女节`, date: createUtcDate(year, 2, 8), color: '#EC4899' },
+    { name: `${year}年植树节`, date: createUtcDate(year, 2, 12), color: '#10B981' },
+    { name: `${year}年愚人节`, date: createUtcDate(year, 3, 1), color: '#8B5CF6' },
+    { name: `${year}年青年节`, date: createUtcDate(year, 4, 4), color: '#6366F1' },
+    { name: `${year}年劳动节`, date: createUtcDate(year, 4, 1), color: '#F59E0B' },
+    { name: `${year}年清明节`, date: getQingmingDate(year).toISOString(), color: '#059669' },
+    { name: `${year}年儿童节`, date: createUtcDate(year, 5, 1), color: '#06B6D4' },
+    { name: `${year}年建党节`, date: createUtcDate(year, 6, 1), color: '#E11D48' },
+    { name: `${year}年建军节`, date: createUtcDate(year, 7, 1), color: '#BE123C' },
+    { name: `${year}年教师节`, date: createUtcDate(year, 8, 10), color: '#3B82F6' },
+    { name: `${year}年国庆节`, date: createUtcDate(year, 9, 1), color: '#E11D48' },
+    { name: `${year}年万圣节`, date: createUtcDate(year, 9, 31), color: '#FB923C' },
+    { name: `${year}年平安夜`, date: createUtcDate(year, 11, 24), color: '#14B8A6' },
+    { name: `${year}年圣诞节`, date: createUtcDate(year, 11, 25), color: '#059669' },
   ];
 }
 
@@ -43,31 +43,31 @@ export function calculateDynamicHolidays(year: number): Holiday[] {
     {
       name: `${year}年母亲节`,
       date: createUtcDate(year, 4, 1 + daysUntilSecondSunday),
-      color: '#F759AB',
+      color: '#FB7185',
     },
     {
       name: `${year}年父亲节`,
       date: createUtcDate(year, 5, 1 + daysUntilThirdSunday),
-      color: '#1890FF',
+      color: '#0EA5E9',
     },
     {
       name: `${year}年感恩节`,
       date: createUtcDate(year, 10, 1 + daysToThursday + 21),
-      color: '#FAAD14',
+      color: '#F59E0B',
     },
   ];
 }
 
 export function getChineseFestivals(year: number): Holiday[] {
   const mappings = [
-    { name: `${year}年春节`, lunarMonth: 1, lunarDay: 1, color: '#FF0000' },
-    { name: `${year}年元宵节`, lunarMonth: 1, lunarDay: 15, color: '#FF6347' },
-    { name: `${year}年端午节`, lunarMonth: 5, lunarDay: 5, color: '#32CD32' },
-    { name: `${year}年七夕节`, lunarMonth: 7, lunarDay: 7, color: '#FF1493' },
-    { name: `${year}年中元节`, lunarMonth: 7, lunarDay: 15, color: '#708090' },
-    { name: `${year}年中秋节`, lunarMonth: 8, lunarDay: 15, color: '#FFA500' },
-    { name: `${year}年重阳节`, lunarMonth: 9, lunarDay: 9, color: '#800080' },
-    { name: `${year}年腊八节`, lunarMonth: 12, lunarDay: 8, color: '#8B4513' },
+    { name: `${year}年春节`, lunarMonth: 1, lunarDay: 1, color: '#E11D48' },
+    { name: `${year}年元宵节`, lunarMonth: 1, lunarDay: 15, color: '#F97316' },
+    { name: `${year}年端午节`, lunarMonth: 5, lunarDay: 5, color: '#16A34A' },
+    { name: `${year}年七夕节`, lunarMonth: 7, lunarDay: 7, color: '#EC4899' },
+    { name: `${year}年中元节`, lunarMonth: 7, lunarDay: 15, color: '#64748B' },
+    { name: `${year}年中秋节`, lunarMonth: 8, lunarDay: 15, color: '#F59E0B' },
+    { name: `${year}年重阳节`, lunarMonth: 9, lunarDay: 9, color: '#8B5CF6' },
+    { name: `${year}年腊八节`, lunarMonth: 12, lunarDay: 8, color: '#B45309' },
   ];
 
   return mappings.flatMap((holiday) => {
@@ -102,6 +102,6 @@ export function findNextHoliday(now = new Date()): Holiday {
   return getHolidaysList(now)[0] ?? {
     name: `${now.getFullYear() + 1}年元旦`,
     date: createUtcDate(now.getFullYear() + 1, 0, 1),
-    color: '#1890FF',
+    color: '#0EA5E9',
   };
 }

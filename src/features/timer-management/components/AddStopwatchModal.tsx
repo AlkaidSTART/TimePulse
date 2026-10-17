@@ -8,29 +8,9 @@ import { useTranslation } from '@/i18n/useTranslation';
 import { AutoResizer, AutoTransition } from '@/components/ui';
 import { LinearDialogTransition } from '@/components/composed';
 
-// 正计时专用预设颜色
-const stopwatchColors = [
-  '#52C41A', // 绿色主题
-  '#1890FF', // 蓝色
-  '#722ED1', // 紫色
-  '#13C2C2', // 青色
-  '#FA8C16', // 橙色
-  '#FAAD14', // 黄色
-  '#F759AB', // 玫红
-  '#FF7A45', // 珊瑚红
-  '#95DE64', // 浅绿
-  '#69C0FF', // 浅蓝
-  '#B37FEB', // 浅紫
-  '#5CDBD3', // 蓝绿
-  '#FFC069', // 浅橙黄
-  '#85A5FF', // 浅蓝紫
-  '#FF9C6E', // 浅橙
-  '#FF85C0', // 浅粉
-  '#36CFC9', // 明青
-  '#FFC53D', // 金黄
-  '#BFBFBF', // 灰色
-  '#2F54EB'  // 深蓝
-];
+import { STOPWATCH_COLORS } from '@/constants/colors';
+
+const stopwatchColors = STOPWATCH_COLORS;
 
 type AddStopwatchModalProps = {
   onClose: () => void;

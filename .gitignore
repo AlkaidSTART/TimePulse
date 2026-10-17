@@ -1,7 +1,74 @@
-node_modules
-.next
-dist
-out
-.vscode
-test-results
-playwright-report
+# Node dependencies
+node_modules/
+.pnpm-store/
+
+# Build and export outputs
+dist/
+dist-ssr/
+out/
+.next/
+
+# Tauri & Rust build artifacts
+target/
+src-tauri/target/
+src-tauri/gen/
+**/*.rs.bk
+
+# Temporary root images, screenshots, and generation scratchpad
+/app-icon.png
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
+
+# Test, coverage & Playwright artifacts
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Environment and sensitive credential files
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# IDEs, editors & system tooling
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.sublime-project
+*.sublime-workspace
+.zed/
+
+# Operating system artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+ehthumbs_vista.db
+Thumbs.db
+Thumbs.db:encryptable
+desktop.ini
+
+# Logs & build caches
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+vite.config.ts.timestamp-*
+vitest.config.ts.timestamp-*

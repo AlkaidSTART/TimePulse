@@ -26,29 +26,9 @@ type CountdownFormData = {
   color: string;
 };
 
-// 丰富的预设颜色选择
-const presetColors = [
-  '#FF4D4F', // 红色
-  '#FA8C16', // 橙色
-  '#FAAD14', // 黄色
-  '#52C41A', // 绿色
-  '#13C2C2', // 青色
-  '#1890FF', // 蓝色
-  '#722ED1', // 紫色
-  '#EB2F96', // 粉色
-  '#F759AB', // 玫红
-  '#FF7A45', // 珊瑚红
-  '#FFC53D', // 金黄
-  '#BFBFBF', // 灰色
-  '#69C0FF', // 浅蓝
-  '#95DE64', // 浅绿
-  '#FF9C6E', // 浅橙
-  '#B37FEB', // 浅紫
-  '#5CDBD3', // 蓝绿
-  '#FF85C0', // 浅粉
-  '#FFC069', // 浅橙黄
-  '#85A5FF'  // 浅蓝紫
-];
+import { PRESET_COLORS } from '@/constants/colors';
+
+const presetColors = PRESET_COLORS;
 
 export default function AddTimerModal({ onClose, onBack, embedded = false }: AddTimerModalProps) {
   const { addTimer, holidaysList: rawHolidaysList } = useTimers();
