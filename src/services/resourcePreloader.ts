@@ -47,26 +47,33 @@ async function preloadCustomBackground(): Promise<void> {
  * Preload critical dynamic components into browser module cache
  */
 function preloadLazyComponents(): void {
-  // Use requestIdleCallback or setTimeout to yield to the main thread during animations
-  const idle = typeof window !== 'undefined' && 'requestIdleCallback' in window
-    ? window.requestIdleCallback
-    : (cb: () => void) => setTimeout(cb, 100);
+  if (typeof window === 'undefined') return;
 
-  idle(() => {
-    // Preload timer creation modals
+  const runIdle = (task: () => void, delayMs: number) => {
+    window.setTimeout(() => {
+      const winWithIdle = window as Window & {
+        requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => void;
+      };
+      if (typeof winWithIdle.requestIdleCallback === 'function') {
+        winWithIdle.requestIdleCallback(task, { timeout: 3000 });
+      } else {
+        window.setTimeout(task, 100);
+      }
+    }, delayMs);
+  };
+
+  // Stagger preloading to begin after splash animation finishes (~1.8s)
+  // Step 1: Preload the most frequent user action flow (Timer creation & Todo)
+  runIdle(() => {
     void import('@/features/timer-management/components/TimerCreationFlow');
-    // Preload sharing modal
-    void import('@/features/sharing/components/ShareModal');
-    // Preload background modal
-    void import('@/features/background/components/BackgroundSettingsModal');
-    // Preload fullscreen settings modal
-    void import('@/features/fullscreen/components/FullscreenSettingsModal');
-    // Preload todo components
     void import('@/features/todo/components/TodoPage');
+  }, 2200);
+
+  // Step 2: Preload secondary modals gradually
+  runIdle(() => {
     void import('@/features/todo/components/TodoListWidget');
-    // Preload version modal
-    void import('@/features/version/components/AboutVersionModal');
-  });
+    void import('@/features/background/components/BackgroundSettingsModal');
+  }, 3800);
 }
 
 /**

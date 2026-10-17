@@ -113,10 +113,12 @@ export default function PersonalSettingsPage() {
   return (
     <div
       data-page-view="settings"
-      className="relative flex h-full w-full flex-col overflow-y-auto px-4 py-6 md:px-8 lg:py-10 select-none pb-28 lg:pb-24"
+      className="relative flex h-full w-full flex-col overflow-y-auto px-4 py-6 md:px-8 lg:py-10 select-none pb-28 lg:pb-24 landscape:pb-16"
       style={{
-        paddingTop: 'max(4.25rem, calc(3.5rem + env(safe-area-inset-top, 0px)))',
-        paddingBottom: 'max(6.5rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)))',
+        paddingTop: isLandscape ? 'max(2.5rem, calc(1.75rem + env(safe-area-inset-top, 0px)))' : 'max(4.25rem, calc(3.5rem + env(safe-area-inset-top, 0px)))',
+        paddingBottom: isLandscape ? 'max(4.25rem, calc(3.25rem + env(safe-area-inset-bottom, 0px)))' : 'max(6.5rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)))',
+        paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
+        paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
       }}
     >
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">

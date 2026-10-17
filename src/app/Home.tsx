@@ -42,7 +42,6 @@ export default function Home() {
   const [isFullscreenSettingsOpen, setIsFullscreenSettingsOpen] = useState(false);
   const [isWidgetEnabled, setIsWidgetEnabled] = useState(() => readTodoWidgetVisible());
   const [isTodoWidgetOpen, setIsTodoWidgetOpen] = useState(false);
-  const [log, setLog] = useState<string[]>([]);
 
   // Mobile horizontal swipe gestures to switch timers
   const touchStartXRef = useRef<number | null>(null);
@@ -82,11 +81,6 @@ export default function Home() {
     }
   };
 
-  // 添加日志
-  const addLog = (message: string) => {
-    setLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
-  };
-
   // 监听URL参数以同步数据
   useEffect(() => {
     const share = new URLSearchParams(window.location.search).get('share');
@@ -98,20 +92,12 @@ export default function Home() {
             addTimer(timer);
           });
           setActiveTimerId(sharedData.timers[0].id);
-          addLog('已从分享链接导入计时器数据');
         }
       } catch (error) {
-        addLog(`解析分享数据错误: ${error instanceof Error ? error.message : String(error)}`);
+        console.warn(`解析分享数据错误: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
   }, [addTimer, setActiveTimerId]);
-
-  // 初始化日志
-  useEffect(() => {
-    addLog('TimePulse 初始化完成');
-    addLog(`当前主题: ${theme}`);
-    addLog(`加载了 ${timers.length} 个计时器`);
-  }, [theme, timers.length]);
 
   // 监听挂件可见性设置的更新
   useEffect(() => {

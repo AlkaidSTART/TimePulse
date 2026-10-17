@@ -182,10 +182,12 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
   return (
     <div
       data-page-view="todo"
-      className={`relative flex h-full min-h-0 w-full flex-col overflow-y-auto px-4 pt-16 pb-28 lg:pt-20 lg:pb-12 ${className}`}
+      className={`relative flex h-full min-h-0 w-full flex-col overflow-y-auto px-4 pt-16 pb-28 landscape:pt-10 landscape:pb-16 lg:pt-20 lg:pb-12 ${className}`}
       style={{
-        paddingTop: 'max(4.25rem, calc(3.5rem + env(safe-area-inset-top, 0px)))',
-        paddingBottom: 'max(6.5rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)))',
+        paddingTop: 'max(2.75rem, calc(2rem + env(safe-area-inset-top, 0px)))',
+        paddingBottom: 'max(4.5rem, calc(3.5rem + env(safe-area-inset-bottom, 0px)))',
+        paddingLeft: 'max(1rem, env(safe-area-inset-left, 0px))',
+        paddingRight: 'max(1rem, env(safe-area-inset-right, 0px))',
       }}
     >
       <div className="mx-auto w-full max-w-2xl flex flex-col gap-5">

@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { getHolidaysList } from '@/domain/holidays';
@@ -259,7 +260,7 @@ export function useTimers() {
   const deleteStopwatchLap = useTimerStore((s) => s.deleteStopwatchLap);
   const getActiveTimer = useTimerStore((s) => s.getActiveTimer);
 
-  return {
+  return useMemo(() => ({
     timers,
     activeTimerId,
     setActiveTimerId,
@@ -271,5 +272,17 @@ export function useTimers() {
     deleteStopwatchLap,
     getActiveTimer,
     holidaysList,
-  };
+  }), [
+    timers,
+    activeTimerId,
+    setActiveTimerId,
+    reorderTimers,
+    addTimer,
+    deleteTimer,
+    updateTimer,
+    renameStopwatchLap,
+    deleteStopwatchLap,
+    getActiveTimer,
+    holidaysList,
+  ]);
 }

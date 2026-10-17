@@ -44,7 +44,9 @@ export default function WebDock({
   const { view, transitionTo } = usePageTransition();
   const { isFullscreen, isHeaderVisible, toggleFullscreen } = useFullscreen();
   const { theme, toggleTheme, accentColor } = useTheme();
-  const { currentVersion, hasUpdate, openAboutModal } = useVersionStore();
+  const currentVersion = useVersionStore((s) => s.currentVersion);
+  const hasUpdate = useVersionStore((s) => s.hasUpdate);
+  const openAboutModal = useVersionStore((s) => s.openAboutModal);
   const { t } = useTranslation();
 
   const [pendingTodoCount, setPendingTodoCount] = useState(0);

@@ -79,6 +79,7 @@ export default function CheerPage() {
     return { hours, minutes, seconds };
   }, [currentTime]);
 
+  const dateKey = `${currentTime.getFullYear()}-${currentTime.getMonth() + 1}-${currentTime.getDate()}`;
   const dateInfo = useMemo(() => {
     const year = currentTime.getFullYear();
     const month = currentTime.getMonth() + 1;
@@ -102,7 +103,8 @@ export default function CheerPage() {
       dayOfWeek,
       lunarText,
     };
-  }, [currentTime]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateKey]);
 
   const currentQuote = INSPIRATIONAL_QUOTES[quoteIndex] || INSPIRATIONAL_QUOTES[0];
 
@@ -133,8 +135,8 @@ export default function CheerPage() {
   }, [currentQuote]);
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center justify-center overflow-y-auto px-4 py-8 md:py-12 select-none">
-      <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-5 sm:gap-6">
+    <div className="relative flex h-full w-full flex-col items-center justify-start sm:justify-center overflow-y-auto px-4 py-6 landscape:py-3 landscape:pb-20 md:py-12 select-none">
+      <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-4 sm:gap-6 my-auto">
         
         {/* 顶部：极简雅致的时间与日期 */}
         <motion.div

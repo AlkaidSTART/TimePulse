@@ -34,6 +34,7 @@ describe('Header component timezone display', () => {
       ],
       activeTimerId: 'test-shanghai',
       isLoaded: true,
+      initTimers: vi.fn() as any,
     });
 
     render(
@@ -112,7 +113,7 @@ describe('Header component timezone display', () => {
     );
 
     const listBtn = screen.getByRole('button', { name: '列表' });
-    const settingsBtn = screen.getByLabelText('个人设置', { exact: true });
+    const settingsBtn = document.querySelector('button[aria-label="个人设置"]') as HTMLButtonElement;
     expect(listBtn).toBeDefined();
     expect(settingsBtn).toBeDefined();
 

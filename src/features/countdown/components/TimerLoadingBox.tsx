@@ -1,6 +1,5 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
-import { animate } from 'motion';
-import { useReducedMotion } from 'framer-motion';
+import { animate, useReducedMotion } from 'framer-motion';
 
 export interface TimerLoadingBoxProps {
   color?: string;

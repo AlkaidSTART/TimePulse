@@ -24,9 +24,8 @@ import { useOrientation } from '@/hooks/useOrientation';
 import { useTodoStore, useVersionStore } from '@/stores';
 import { FiList } from 'react-icons/fi';
 import { throttle, debounce } from '@/utils/performance';
-import ThemeLibraryModal from '@/components/composed/ThemeLibraryModal';
 
-
+const ThemeLibraryModal = lazy(() => import('@/components/composed/ThemeLibraryModal'));
 const ShareModal = lazy(() => import('@/features/sharing/components/ShareModal'));
 const TimerCreationFlow = lazy(() => import('@/features/timer-management/components/TimerCreationFlow'));
 const HexColorPicker = lazy(() => import('react-colorful').then((m) => ({ default: m.HexColorPicker })));
@@ -1309,10 +1308,14 @@ export default function Header({ onHeightChange }: HeaderProps) {
     )}
 
     {/* Theme Color Palette Library Modal */}
-    <ThemeLibraryModal
-      isOpen={isThemeLibraryOpen}
-      onClose={() => setIsThemeLibraryOpen(false)}
-    />
+    {isThemeLibraryOpen && (
+      <Suspense fallback={null}>
+        <ThemeLibraryModal
+          isOpen={isThemeLibraryOpen}
+          onClose={() => setIsThemeLibraryOpen(false)}
+        />
+      </Suspense>
+    )}
   </>
   );
 }

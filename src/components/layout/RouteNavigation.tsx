@@ -26,7 +26,8 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
   const shouldReduceMotion = useReducedMotion();
   const { view, transitionTo } = usePageTransition();
   const { timers, activeTimerId } = useTimers();
-  const { cheerCount, nickname } = usePersonalSettingsStore();
+  const cheerCount = usePersonalSettingsStore((s) => s.cheerCount);
+  const nickname = usePersonalSettingsStore((s) => s.nickname);
   const { t } = useTranslation();
   const [hoveredRoute, setHoveredRoute] = useState<PageView | null>(null);
   const [pendingTodoCount, setPendingTodoCount] = useState(0);

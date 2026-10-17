@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useRef, lazy, Suspense, type ReactNode } from 'react';
+import { Fragment, useState, useEffect, useRef, useMemo, memo, lazy, Suspense, type ReactNode } from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
@@ -88,7 +88,7 @@ type CalendarTimeRowsProps = {
   labels: { years: string; months: string; days: string; hours: string; minutes: string; seconds: string };
 };
 
-function CalendarTimeRows({
+const CalendarTimeRows = memo(function CalendarTimeRows({
   timeValue,
   showYears,
   showDays,
@@ -265,12 +265,20 @@ function CalendarTimeRows({
       ])}
     </motion.div>
   );
-}
+});
 
 export default function TimerDisplay() {
   const { getActiveTimer, updateTimer } = useTimers();
   const { isFullscreen, timerFontSize: rawTimerFontSize, labelFontSize: rawLabelFontSize } = useFullscreen();
   const { t, currentLang } = useTranslation();
+  const timeLabels = useMemo(() => ({
+    years: t('time.years'),
+    months: t('time.months'),
+    days: t('time.days'),
+    hours: t('time.hours'),
+    minutes: t('time.minutes'),
+    seconds: t('time.seconds'),
+  }), [t]);
   const timerFontSize = (rawTimerFontSize || 'medium') as FontSize;
   const labelFontSize = (rawLabelFontSize || 'medium') as FontSize;
   const [timeValue, setTimeValue] = useState<DisplayTime>({ years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -750,14 +758,7 @@ export default function TimerDisplay() {
           fontSize={timerFontSize}
           labelFontSize={labelFontSize}
           separatorClassName={separatorClassName}
-          labels={{
-            years: t('time.years'),
-            months: t('time.months'),
-            days: t('time.days'),
-            hours: t('time.hours'),
-            minutes: t('time.minutes'),
-            seconds: t('time.seconds'),
-          }}
+          labels={timeLabels}
         />
       </AutoResizer>
       </LayoutGroup>
