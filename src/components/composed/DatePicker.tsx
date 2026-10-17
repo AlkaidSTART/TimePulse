@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useMemo, useState, type ComponentType, type HTMLAttributes } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type HTMLAttributes } from 'react';
 import {
   format,
   parseISO,
@@ -19,15 +19,15 @@ import {
   setMonth as setDateFnsMonth,
   setYear as setDateFnsYear,
 } from 'date-fns';
+import { AnimatePresence, motion } from 'framer-motion';
 import { FiCalendar, FiChevronDown, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import { cn } from '@/components/ui/utils';
 
 export type DatePickerChangeEvent = {
   target: {
-    name?: string;
+    name: string;
     value: string;
   };
 };
@@ -82,6 +82,7 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(function DatePick
   },
   ref,
 ) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const { accentColor } = useTheme();
   const { t, currentLang } = useTranslation();
   const isZh = currentLang?.startsWith('zh') ?? true;
@@ -98,14 +99,44 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(function DatePick
   // Calendar current view date
   const [viewDate, setViewDate] = useState<Date>(() => selectedDate || new Date());
 
-  // When popover opens, sync viewDate with selectedDate (or today)
-  const handleOpenChange = useCallback((open: boolean) => {
-    setIsOpen(open);
-    if (open) {
-      setViewDate(selectedDate || new Date());
-      setViewMode('days');
-    }
-  }, [selectedDate]);
+  // Click outside and escape key handling
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  const toggleOpen = useCallback(() => {
+    if (disabled) return;
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setViewDate(selectedDate || new Date());
+        setViewMode('days');
+      }
+      return next;
+    });
+  }, [disabled, selectedDate]);
 
   const emitChange = useCallback(
     (newValue: string) => {
@@ -209,172 +240,239 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(function DatePick
   const defaultPlaceholder = placeholder || (isZh ? '选择日期' : 'Select date');
 
   return (
-    <div ref={ref} className={cn('relative inline-block w-full', className)} {...props}>
-      <Popover open={isOpen} onOpenChange={handleOpenChange}>
-        <PopoverTrigger asChild disabled={disabled}>
-          <button
-            type="button"
-            id={id}
-            data-testid="datepicker-trigger"
-            aria-haspopup="dialog"
-            aria-expanded={isOpen}
-            disabled={disabled}
+    <div
+      ref={(node) => {
+        containerRef.current = node;
+        if (typeof ref === 'function') ref(node);
+        else if (ref) ref.current = node;
+      }}
+      className={cn('relative w-full', className)}
+      {...props}
+    >
+      {/* Trigger Button */}
+      <button
+        type="button"
+        id={id}
+        data-testid="datepicker-trigger"
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        disabled={disabled}
+        onClick={toggleOpen}
+        className={cn(
+          'group flex h-10 w-full items-center justify-between rounded-xl px-3.5 py-2 text-sm text-left transition-all duration-200 outline-none select-none',
+          'bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10',
+          'hover:bg-white/20 dark:hover:bg-black/20 hover:border-white/30 dark:hover:border-white/20',
+          'focus-visible:ring-2 focus-visible:ring-offset-0',
+          disabled && 'opacity-50 cursor-not-allowed pointer-events-none',
+          triggerClassName,
+        )}
+        style={{
+          boxShadow: isOpen ? `0 0 0 2px ${accentColor}40` : undefined,
+        }}
+      >
+        <div className="flex items-center space-x-2.5 truncate">
+          {Icon && <Icon className="text-gray-400 dark:text-gray-400 size-4 flex-shrink-0" />}
+          <span
             className={cn(
-              'group flex h-10 w-full items-center justify-between rounded-xl px-3.5 py-2 text-sm text-left transition-all duration-200 outline-none select-none',
-              'bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10',
-              'hover:bg-white/20 dark:hover:bg-black/20 hover:border-white/30 dark:hover:border-white/20',
-              'focus-visible:ring-2 focus-visible:ring-offset-0',
-              disabled && 'opacity-50 cursor-not-allowed pointer-events-none',
-              triggerClassName,
+              'truncate',
+              actualValue
+                ? 'font-medium text-gray-900 dark:text-gray-100'
+                : 'text-gray-400 dark:text-gray-500',
             )}
-            style={{
-              boxShadow: isOpen ? `0 0 0 2px ${accentColor}40` : undefined,
-            }}
           >
-            <div className="flex items-center space-x-2.5 truncate">
-              {Icon && <Icon className="text-gray-400 dark:text-gray-400 size-4 flex-shrink-0" />}
-              <span
-                className={cn(
-                  'truncate',
-                  actualValue
-                    ? 'font-medium text-gray-900 dark:text-gray-100'
-                    : 'text-gray-400 dark:text-gray-500',
-                )}
-              >
-                {actualValue || defaultPlaceholder}
-              </span>
-            </div>
+            {actualValue || defaultPlaceholder}
+          </span>
+        </div>
 
-            <div className="flex items-center space-x-1 flex-shrink-0 text-gray-400">
-              {clearable && actualValue && !disabled && (
-                <span
-                  role="button"
-                  tabIndex={0}
-                  aria-label={t('common.clearInput', '清空')}
-                  className="rounded-full p-1 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-                  onClick={handleClear}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleClear(e as unknown as React.MouseEvent);
-                    }
-                  }}
-                >
-                  <FiX className="size-3.5" />
-                </span>
-              )}
-              <FiChevronDown
-                className={cn(
-                  'size-4 transition-transform duration-200',
-                  isOpen && 'transform rotate-180',
-                )}
-                style={{ color: isOpen ? accentColor : undefined }}
-              />
-            </div>
-          </button>
-        </PopoverTrigger>
-
-        <PopoverContent
-          align={align}
-          sideOffset={8}
-          className={cn(
-            'w-[304px] max-w-[calc(100vw-32px)] p-3.5 rounded-3xl backdrop-blur-2xl transition-all shadow-2xl',
-            'bg-white/92 dark:bg-[#16171d]/92 cream:bg-[#faf6ee]/95',
-            'border border-black/8 dark:border-white/10 cream:border-[#e2d8c3]',
-            'shadow-[0_20px_45px_-10px_rgba(0,0,0,0.18),0_0_0_1px_rgba(255,255,255,0.4)_inset]',
-            'dark:shadow-[0_24px_50px_-10px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)_inset]',
-          )}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-black/5 dark:border-white/5">
-            <button
-              type="button"
-              onClick={() => {
-                if (viewMode === 'days') setViewMode('months');
-                else if (viewMode === 'months') setViewMode('years');
-                else setViewMode('days');
+        <div className="flex items-center space-x-1 flex-shrink-0 text-gray-400">
+          {clearable && actualValue && !disabled && (
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label={t('common.clearInput', '清空')}
+              className="rounded-full p-1 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              onClick={handleClear}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleClear(e as unknown as React.MouseEvent);
+                }
               }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold text-gray-800 dark:text-gray-100 cream:text-stone-800 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all select-none"
             >
-              <span>{headerTitle}</span>
-              <FiChevronDown
-                className={cn(
-                  'size-3.5 text-gray-400 transition-transform duration-200',
-                  viewMode !== 'days' && 'rotate-180',
-                )}
-              />
-            </button>
+              <FiX className="size-3.5" />
+            </span>
+          )}
+          <FiChevronDown
+            className={cn(
+              'size-4 transition-transform duration-200',
+              isOpen && 'transform rotate-180',
+            )}
+            style={{ color: isOpen ? accentColor : undefined }}
+          />
+        </div>
+      </button>
 
-            <div className="flex items-center space-x-1">
+      {/* Expandable Calendar Area */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="pt-2 pb-1">
+          <div
+            className={cn(
+              'w-full max-w-[340px] mx-auto p-3.5 rounded-3xl backdrop-blur-2xl transition-all shadow-xl',
+              'bg-white/95 dark:bg-[#16171d]/95 cream:bg-[#faf6ee]/98',
+              'border border-black/8 dark:border-white/10 cream:border-[#e2d8c3]',
+              'shadow-[0_16px_36px_-10px_rgba(0,0,0,0.12),0_0_0_1px_rgba(255,255,255,0.4)_inset]',
+              'dark:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06)_inset]',
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-black/5 dark:border-white/5">
               <button
                 type="button"
                 onClick={() => {
-                  if (viewMode === 'days') handlePrevMonth();
-                  else if (viewMode === 'months') setViewDate((prev) => subYears(prev, 1));
-                  else setViewDate((prev) => subYears(prev, 12));
+                  if (viewMode === 'days') setViewMode('months');
+                  else if (viewMode === 'months') setViewMode('years');
+                  else setViewMode('days');
                 }}
-                aria-label={t('common.prev', '上一页')}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 transition-all"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold text-gray-800 dark:text-gray-100 cream:text-stone-800 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all select-none"
               >
-                <FiChevronLeft className="size-4" />
+                <span>{headerTitle}</span>
+                <FiChevronDown
+                  className={cn(
+                    'size-3.5 text-gray-400 transition-transform duration-200',
+                    viewMode !== 'days' && 'rotate-180',
+                  )}
+                />
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (viewMode === 'days') handleNextMonth();
-                  else if (viewMode === 'months') setViewDate((prev) => addYears(prev, 1));
-                  else setViewDate((prev) => addYears(prev, 12));
-                }}
-                aria-label={t('common.next', '下一页')}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 transition-all"
-              >
-                <FiChevronRight className="size-4" />
-              </button>
-            </div>
-          </div>
 
-          {/* Days View */}
-          {viewMode === 'days' && (
-            <div>
-              {/* Weekday Row */}
-              <div className="grid grid-cols-7 gap-1 text-center mb-1">
-                {weekdays.map((day, idx) => (
-                  <div
-                    key={idx}
-                    className="h-7 flex items-center justify-center text-xs font-medium text-gray-400 dark:text-gray-500 select-none"
-                  >
-                    {day}
-                  </div>
-                ))}
+              <div className="flex items-center space-x-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (viewMode === 'days') handlePrevMonth();
+                    else if (viewMode === 'months') setViewDate((prev) => subYears(prev, 1));
+                    else setViewDate((prev) => subYears(prev, 12));
+                  }}
+                  aria-label={t('common.prev', '上一页')}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 transition-all"
+                >
+                  <FiChevronLeft className="size-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (viewMode === 'days') handleNextMonth();
+                    else if (viewMode === 'months') setViewDate((prev) => addYears(prev, 1));
+                    else setViewDate((prev) => addYears(prev, 12));
+                  }}
+                  aria-label={t('common.next', '下一页')}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 transition-all"
+                >
+                  <FiChevronRight className="size-4" />
+                </button>
               </div>
+            </div>
 
-              {/* Days Grid */}
-              <div className="grid grid-cols-7 gap-1">
-                {calendarDays.map((day, idx) => {
-                  const inCurrentMonth = isSameMonth(day, viewDate);
-                  const isDaySelected = selectedDate ? isSameDay(day, selectedDate) : false;
-                  const isDayToday = isToday(day);
+            {/* Days View */}
+            {viewMode === 'days' && (
+              <div>
+                {/* Weekday Row */}
+                <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                  {weekdays.map((day, idx) => (
+                    <div
+                      key={idx}
+                      className="h-7 flex items-center justify-center text-xs font-medium text-gray-400 dark:text-gray-500 select-none"
+                    >
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Days Grid */}
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarDays.map((day, idx) => {
+                    const inCurrentMonth = isSameMonth(day, viewDate);
+                    const isDaySelected = selectedDate ? isSameDay(day, selectedDate) : false;
+                    const isDayToday = isToday(day);
+
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectDate(day)}
+                        className={cn(
+                          'w-9 h-9 rounded-full flex flex-col items-center justify-center text-xs sm:text-sm font-medium transition-all duration-150 relative select-none cursor-pointer',
+                          !inCurrentMonth && 'text-gray-300 dark:text-gray-600 font-normal',
+                          inCurrentMonth && !isDaySelected && 'text-gray-800 dark:text-gray-100 hover:bg-black/5 dark:hover:bg-white/10 active:scale-90',
+                          isDaySelected && 'text-white font-bold shadow-md active:scale-95',
+                          isDayToday && !isDaySelected && 'font-bold border-2',
+                        )}
+                        style={
+                          isDaySelected
+                            ? {
+                                backgroundColor: accentColor,
+                                boxShadow: `0 4px 12px ${accentColor}44`,
+                              }
+                            : isDayToday
+                              ? {
+                                  borderColor: accentColor,
+                                  color: accentColor,
+                                }
+                              : undefined
+                        }
+                      >
+                        <span>{day.getDate()}</span>
+                        {isDayToday && !isDaySelected && (
+                          <span
+                            className="absolute bottom-1 w-1 h-1 rounded-full"
+                            style={{ backgroundColor: accentColor }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Months View */}
+            {viewMode === 'months' && (
+              <div className="grid grid-cols-3 gap-2 py-2">
+                {monthNames.map((monthName, idx) => {
+                  const isSelectedMonth =
+                    selectedDate &&
+                    selectedDate.getFullYear() === yearNumber &&
+                    selectedDate.getMonth() === idx;
+                  const isCurrentMonth =
+                    new Date().getFullYear() === yearNumber && new Date().getMonth() === idx;
 
                   return (
                     <button
                       key={idx}
                       type="button"
-                      onClick={() => handleSelectDate(day)}
+                      onClick={() => handleSelectMonth(idx)}
                       className={cn(
-                        'w-9 h-9 rounded-full flex flex-col items-center justify-center text-xs sm:text-sm font-medium transition-all duration-150 relative select-none cursor-pointer',
-                        !inCurrentMonth && 'text-gray-300 dark:text-gray-600 font-normal',
-                        inCurrentMonth && !isDaySelected && 'text-gray-800 dark:text-gray-100 hover:bg-black/5 dark:hover:bg-white/10 active:scale-90',
-                        isDaySelected && 'text-white font-bold shadow-md active:scale-95',
-                        isDayToday && !isDaySelected && 'font-bold border-2',
+                        'py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-medium transition-all duration-150 select-none active:scale-95',
+                        !isSelectedMonth &&
+                          'text-gray-800 dark:text-gray-100 hover:bg-black/5 dark:hover:bg-white/10',
+                        isSelectedMonth && 'text-white font-bold shadow-md',
+                        isCurrentMonth && !isSelectedMonth && 'border-2',
                       )}
                       style={
-                        isDaySelected
+                        isSelectedMonth
                           ? {
                               backgroundColor: accentColor,
                               boxShadow: `0 4px 12px ${accentColor}44`,
                             }
-                          : isDayToday
+                          : isCurrentMonth
                             ? {
                                 borderColor: accentColor,
                                 color: accentColor,
@@ -382,128 +480,80 @@ const DatePicker = forwardRef<HTMLDivElement, DatePickerProps>(function DatePick
                             : undefined
                       }
                     >
-                      <span>{day.getDate()}</span>
-                      {isDayToday && !isDaySelected && (
-                        <span
-                          className="absolute bottom-1 w-1 h-1 rounded-full"
-                          style={{ backgroundColor: accentColor }}
-                        />
-                      )}
+                      {monthName}
                     </button>
                   );
                 })}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Months View */}
-          {viewMode === 'months' && (
-            <div className="grid grid-cols-3 gap-2 py-2">
-              {monthNames.map((monthName, idx) => {
-                const isSelectedMonth =
-                  selectedDate &&
-                  selectedDate.getFullYear() === yearNumber &&
-                  selectedDate.getMonth() === idx;
-                const isCurrentMonth =
-                  new Date().getFullYear() === yearNumber && new Date().getMonth() === idx;
+            {/* Years View */}
+            {viewMode === 'years' && (
+              <div className="grid grid-cols-3 gap-2 py-2">
+                {yearsList.map((yearItem) => {
+                  const isSelectedYear = selectedDate && selectedDate.getFullYear() === yearItem;
+                  const isCurrentYear = new Date().getFullYear() === yearItem;
 
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => handleSelectMonth(idx)}
-                    className={cn(
-                      'py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-medium transition-all duration-150 select-none active:scale-95',
-                      !isSelectedMonth &&
-                        'text-gray-800 dark:text-gray-100 hover:bg-black/5 dark:hover:bg-white/10',
-                      isSelectedMonth && 'text-white font-bold shadow-md',
-                      isCurrentMonth && !isSelectedMonth && 'border-2',
-                    )}
-                    style={
-                      isSelectedMonth
-                        ? {
-                            backgroundColor: accentColor,
-                            boxShadow: `0 4px 12px ${accentColor}44`,
-                          }
-                        : isCurrentMonth
+                  return (
+                    <button
+                      key={yearItem}
+                      type="button"
+                      onClick={() => handleSelectYear(yearItem)}
+                      className={cn(
+                        'py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-medium transition-all duration-150 select-none active:scale-95',
+                        !isSelectedYear &&
+                          'text-gray-800 dark:text-gray-100 hover:bg-black/5 dark:hover:bg-white/10',
+                        isSelectedYear && 'text-white font-bold shadow-md',
+                        isCurrentYear && !isSelectedYear && 'border-2',
+                      )}
+                      style={
+                        isSelectedYear
                           ? {
+                              backgroundColor: accentColor,
+                              boxShadow: `0 4px 12px ${accentColor}44`,
+                            }
+                          : isCurrentYear
+                            ? {
                               borderColor: accentColor,
                               color: accentColor,
                             }
-                          : undefined
-                    }
-                  >
-                    {monthName}
-                  </button>
-                );
-              })}
+                            : undefined
+                      }
+                    >
+                      {yearItem}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Footer Actions */}
+            <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-black/5 dark:border-white/5 select-none">
+              <button
+                type="button"
+                onClick={handleClear}
+                className="px-3.5 py-1.5 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all"
+              >
+                {t('common.clear', '清除')}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleToday}
+                className="px-4 py-1.5 rounded-full text-xs font-semibold hover:opacity-90 active:scale-95 transition-all"
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${accentColor} 15%, transparent)`,
+                  color: accentColor,
+                }}
+              >
+                {t('common.today', '今天')}
+              </button>
             </div>
-          )}
-
-          {/* Years View */}
-          {viewMode === 'years' && (
-            <div className="grid grid-cols-3 gap-2 py-2">
-              {yearsList.map((yearItem) => {
-                const isSelectedYear = selectedDate && selectedDate.getFullYear() === yearItem;
-                const isCurrentYear = new Date().getFullYear() === yearItem;
-
-                return (
-                  <button
-                    key={yearItem}
-                    type="button"
-                    onClick={() => handleSelectYear(yearItem)}
-                    className={cn(
-                      'py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-medium transition-all duration-150 select-none active:scale-95',
-                      !isSelectedYear &&
-                        'text-gray-800 dark:text-gray-100 hover:bg-black/5 dark:hover:bg-white/10',
-                      isSelectedYear && 'text-white font-bold shadow-md',
-                      isCurrentYear && !isSelectedYear && 'border-2',
-                    )}
-                    style={
-                      isSelectedYear
-                        ? {
-                            backgroundColor: accentColor,
-                            boxShadow: `0 4px 12px ${accentColor}44`,
-                          }
-                        : isCurrentYear
-                          ? {
-                              borderColor: accentColor,
-                              color: accentColor,
-                            }
-                          : undefined
-                    }
-                  >
-                    {yearItem}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Footer Actions */}
-          <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-black/5 dark:border-white/5 select-none">
-            <button
-              type="button"
-              onClick={handleClear}
-              className="px-3.5 py-1.5 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all"
-            >
-              {t('common.clear', '清除')}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleToday}
-              className="px-4 py-1.5 rounded-full text-xs font-semibold hover:opacity-90 active:scale-95 transition-all"
-              style={{
-                backgroundColor: `color-mix(in srgb, ${accentColor} 15%, transparent)`,
-                color: accentColor,
-              }}
-            >
-              {t('common.today', '今天')}
-            </button>
           </div>
-        </PopoverContent>
-      </Popover>
+        </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Hidden input for form submission */}
       <input

@@ -524,7 +524,7 @@ export default function MobileTabBar({
                     </div>
 
                     {!editingTimer.isLimitedEdit && (
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="flex flex-col gap-3">
                         <div>
                           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             目标日期
