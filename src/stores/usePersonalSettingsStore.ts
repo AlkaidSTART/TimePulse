@@ -46,10 +46,10 @@ interface PersistedData {
 
 const DEFAULT_SETTINGS = {
   nickname: '阳光旅人',
-  avatar: '☀️',
+  avatar: '专注',
   customMotto: '心怀热爱，奔赴每一个灿烂的日子',
   cheerStyle: 'energetic' as CheerStyle,
-  defaultStartPage: 'cheer' as DefaultStartPage,
+  defaultStartPage: 'main' as DefaultStartPage,
   cheerCount: 0,
   lastCheerDate: '',
   cheerNotes: [] as CheerNote[],
@@ -146,7 +146,7 @@ export const usePersonalSettingsStore = create<PersonalSettingsState>((set, get)
       return { count: newCount, isFirstToday: isNewDay || current.cheerCount === 0 };
     },
 
-    addCheerNote: (content: string, moodEmoji = '✨') => {
+    addCheerNote: (content: string, moodEmoji = '') => {
       if (!content.trim()) return;
       const now = new Date();
       const newNote: CheerNote = {

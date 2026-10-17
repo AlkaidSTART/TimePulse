@@ -20,8 +20,10 @@ import type { Timer } from '../domain/timer';
 
 const BackgroundSettingsModal = lazy(() => import('@/features/background/components/BackgroundSettingsModal'));
 const FullscreenSettingsModal = lazy(() => import('@/features/fullscreen/components/FullscreenSettingsModal'));
+const CheerPage = lazy(() => import('@/features/cheer/components/CheerPage'));
 const TodoPage = lazy(() => import('@/features/todo/components/TodoPage'));
 const TodoListWidget = lazy(() => import('@/features/todo/components/TodoListWidget'));
+const PersonalSettingsPage = lazy(() => import('@/features/settings/components/PersonalSettingsPage'));
 
 export default function Home() {
   const shouldReduceMotion = useReducedMotion();
@@ -30,8 +32,10 @@ export default function Home() {
   const { isFullscreen, isHeaderVisible } = useFullscreen();
   const { view, direction, transitionTo } = usePageTransition();
   const { t } = useTranslation();
-  const showMainPage = view === 'main' || isFullscreen;
+  const showCheerPage = view === 'cheer' && !isFullscreen;
   const showTodoPage = view === 'todo' && !isFullscreen;
+  const showSettingsPage = view === 'settings' && !isFullscreen;
+  const showMainPage = (view === 'main' || isFullscreen) && !showCheerPage && !showTodoPage && !showSettingsPage;
   const [headerHeight, setHeaderHeight] = useState(0);
   
   const [isBackgroundSettingsOpen, setIsBackgroundSettingsOpen] = useState(false);
@@ -153,7 +157,39 @@ export default function Home() {
         <CustomBackground />
 
         <AnimatePresence initial={false} custom={direction}>
-          {showMainPage ? (
+          {showCheerPage ? (
+            <motion.div
+              key="cheer-page-visible"
+              custom={direction}
+              variants={{
+                initial: (value: unknown) => ({
+                  opacity: 0,
+                  y: shouldReduceMotion ? 0 : (value === 1 ? 56 : -56),
+                }),
+                animate: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    duration: shouldReduceMotion ? 0 : 0.36,
+                    ease: 'easeOut',
+                  },
+                },
+                exit: (value: unknown) => ({
+                  opacity: 0,
+                  y: shouldReduceMotion ? 0 : (value === 1 ? -56 : 56),
+                  transition: { duration: shouldReduceMotion ? 0 : 0.28, ease: 'easeIn' },
+                }),
+              }}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="absolute inset-0 z-10"
+            >
+              <Suspense fallback={null}>
+                <CheerPage />
+              </Suspense>
+            </motion.div>
+          ) : showMainPage ? (
             <motion.div
               key="timer-page-visible"
               custom={direction}
@@ -233,6 +269,38 @@ export default function Home() {
                     setIsTodoWidgetOpen(true);
                   }}
                 />
+              </Suspense>
+            </motion.div>
+          ) : showSettingsPage ? (
+            <motion.div
+              key="settings-page-visible"
+              custom={direction}
+              variants={{
+                initial: (value: unknown) => ({
+                  opacity: 0,
+                  y: shouldReduceMotion ? 0 : (value === 1 ? 56 : -56),
+                }),
+                animate: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    duration: shouldReduceMotion ? 0 : 0.36,
+                    ease: 'easeOut',
+                  },
+                },
+                exit: (value: unknown) => ({
+                  opacity: 0,
+                  y: shouldReduceMotion ? 0 : (value === 1 ? -56 : 56),
+                  transition: { duration: shouldReduceMotion ? 0 : 0.28, ease: 'easeIn' },
+                }),
+              }}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="absolute inset-0 z-10"
+            >
+              <Suspense fallback={null}>
+                <PersonalSettingsPage />
               </Suspense>
             </motion.div>
           ) : null}

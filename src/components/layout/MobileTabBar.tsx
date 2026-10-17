@@ -1,38 +1,24 @@
 import { useState, useRef, useEffect } from 'react';
-import type { ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
+import type { ChangeEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls, useReducedMotion } from 'framer-motion';
 import {
   FiClock,
-  FiList,
   FiPlus,
-  FiImage,
   FiSettings,
   FiX,
   FiEdit,
   FiSave,
-  FiSun,
-  FiCoffee,
-  FiMaximize,
-  FiMinimize,
-  FiGlobe,
-  FiShare2,
   FiCheck,
   FiCheckSquare,
-  FiInfo,
-  FiChevronRight,
 } from 'react-icons/fi';
-import { LuPalette } from 'react-icons/lu';
+import { LuSparkles } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTranslation } from '@/i18n/useTranslation';
-import type { Language } from '@/i18n/types';
 import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
-import { useTodoStore, useVersionStore } from '@/stores';
-import ThemeLibraryModal from '@/components/composed/ThemeLibraryModal';
 
-
-export type MobileTab = 'timer' | 'todo' | 'list' | 'background' | 'settings';
+export type MobileTab = 'cheer' | 'timer' | 'todo' | 'list' | 'background' | 'settings';
 
 interface MobileTabBarProps {
   activeTab: MobileTab;
@@ -182,19 +168,19 @@ export default function MobileTabBar({
   updateTimer,
   reorderTimers,
 }: MobileTabBarProps) {
-  const { t, changeLanguage, currentLang } = useTranslation();
+  const { t } = useTranslation();
   const [prevTab, setPrevTab] = useState<MobileTab>(activeTab);
   const [clickedTab, setClickedTab] = useState<string | null>(null);
   const [editingTimer, setEditingTimer] = useState<TimerEditState | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const [isThemeLibraryOpen, setIsThemeLibraryOpen] = useState(false);
   const [timerOrder, setTimerOrder] = useState(() => timers.map((t) => t.id));
   const timerOrderRef = useRef(timerOrder);
-  const isWidgetEnabled = useTodoStore((s) => s.isWidgetEnabled);
-  const setWidgetEnabled = useTodoStore((s) => s.setWidgetEnabled);
-  const currentVersion = useVersionStore((s) => s.currentVersion);
-  const hasUpdate = useVersionStore((s) => s.hasUpdate);
-  const openAboutModal = useVersionStore((s) => s.openAboutModal);
+
+  useEffect(() => {
+    if (activeTab === 'timer' || activeTab === 'todo' || activeTab === 'cheer' || activeTab === 'settings') {
+      setPrevTab(activeTab);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const availableIds = new Set(timers.map((timer) => timer.id));
@@ -239,7 +225,7 @@ export default function MobileTabBar({
   };
 
   const handleCloseSheet = () => {
-    onTabChange(prevTab === 'todo' ? 'todo' : 'timer');
+    onTabChange(prevTab);
   };
 
   const startEditTimer = (timer: Timer) => {
@@ -291,11 +277,11 @@ export default function MobileTabBar({
       };
 
   const tabsConfig = [
+    { id: 'cheer' as MobileTab, label: t('header.cheerShort', '打气'), icon: LuSparkles },
     { id: 'timer' as MobileTab, label: t('header.timersShort', '计时'), icon: FiClock },
-    { id: 'todo' as MobileTab, label: t('header.todoShort', '待办'), icon: FiCheckSquare },
     { id: 'add' as const, label: t('header.newTimer', '新建'), icon: FiPlus, isAction: true },
-    { id: 'list' as MobileTab, label: t('header.manageShort', '列表'), icon: FiList, badge: timers.length },
-    { id: 'settings' as MobileTab, label: t('header.settingsShort', '设置'), icon: FiSettings },
+    { id: 'todo' as MobileTab, label: t('header.todoShort', '待办'), icon: FiCheckSquare },
+    { id: 'settings' as MobileTab, label: t('header.settingsTab', '个人设置'), icon: FiSettings },
   ];
 
   const timersById = new Map(timers.map((t) => [t.id, t]));
@@ -316,7 +302,7 @@ export default function MobileTabBar({
           opacity: isVisible ? 1 : 0,
         }}
         transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed bottom-3 inset-x-3 z-40 lg:hidden max-w-[420px] sm:max-w-[460px] md:max-w-[500px] mx-auto pointer-events-auto"
+        className="fixed bottom-3 inset-x-3 z-40 lg:hidden max-w-[400px] sm:max-w-[440px] mx-auto pointer-events-auto"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="relative mx-auto flex h-[64px] w-full items-center justify-around rounded-full border border-black/[0.06] bg-white/80 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.08),0_4px_12px_-2px_rgba(0,0,0,0.04)] backdrop-blur-2xl cream:bg-[#faf7ee]/90 cream:border-stone-300/50 cream:shadow-[0_12px_36px_-6px_rgba(120,95,65,0.12),0_4px_12px_-2px_rgba(120,95,65,0.05)] dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)] overflow-hidden">
@@ -419,14 +405,6 @@ export default function MobileTabBar({
                             : 'stroke-[1.8] text-stone-500 hover:text-stone-700 dark:text-gray-400 dark:hover:text-gray-200'
                         }`}
                       />
-                      {/* Badge if present */}
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <span
-                          className="absolute -top-1.5 -right-2.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full text-[9px] font-bold text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 shadow-xs"
-                        >
-                          {item.badge}
-                        </span>
-                      )}
                     </div>
                     <span
                       className={`text-[10px] tracking-tight transition-colors duration-200 whitespace-nowrap ${
@@ -448,7 +426,7 @@ export default function MobileTabBar({
       {/* iOS-Style Bottom Sheet: 列表 (Timers List & Management) */}
       <AnimatePresence>
         {activeTab === 'list' && (
-          <div data-page-transition-ignore="true" className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
+          <div data-page-transition-ignore="true" className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -465,7 +443,7 @@ export default function MobileTabBar({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 360 }}
-              className="relative z-10 flex max-h-[90vh] flex-col rounded-t-[32px] border-t border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-3xl cream:bg-[#faf7ee]/95 cream:border-stone-300/50 dark:border-white/[0.08] dark:bg-[#141416]/95"
+              className="relative z-10 flex max-h-[90vh] flex-col rounded-t-[32px] md:rounded-[32px] md:max-w-xl md:w-full md:mx-auto md:mb-6 border-t md:border border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-3xl cream:bg-[#faf7ee]/95 cream:border-stone-300/50 dark:border-white/[0.08] dark:bg-[#141416]/95"
             >
               {/* Grab Bar */}
               <div className="mx-auto h-1 w-9 rounded-full bg-black/15 cream:bg-stone-400/30 dark:bg-white/20 mb-2.5" />
@@ -660,417 +638,6 @@ export default function MobileTabBar({
         )}
       </AnimatePresence>
 
-      {/* iOS-Style Bottom Sheet: 设置 (Settings & Functions) */}
-      <AnimatePresence>
-        {activeTab === 'settings' && (
-          <div data-page-transition-ignore="true" className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={handleCloseSheet}
-              className="absolute inset-0 bg-black/45 backdrop-blur-sm"
-            />
-
-            {/* Bottom Sheet */}
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 360 }}
-              className="relative z-10 flex max-h-[92vh] flex-col rounded-t-[32px] md:rounded-[32px] md:max-w-xl md:w-full md:mx-auto md:mb-6 border-t md:border border-black/[0.06] bg-white/92 px-4.5 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl backdrop-blur-3xl cream:bg-[#faf7ee]/95 cream:border-stone-300/50 dark:border-white/[0.08] dark:bg-[#141416]/95"
-            >
-              {/* Grab Bar */}
-              <div className="mx-auto h-1 w-9 rounded-full bg-black/15 cream:bg-stone-400/30 dark:bg-white/20 mb-2.5" />
-
-              {/* Sheet Header */}
-              <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.06] cream:border-stone-200/60 dark:border-white/[0.06]">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white font-display tracking-tight">
-                    {t('header.settingsAndTools', '设置与功能')}
-                  </h3>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/[0.04] cream:bg-amber-900/10 dark:bg-white/[0.08] text-gray-500 cream:text-amber-950/70 dark:text-gray-400">
-                    v{currentVersion}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCloseSheet}
-                  className="size-7.5 inline-flex items-center justify-center rounded-full bg-black/[0.04] cream:bg-stone-200/60 dark:bg-white/[0.08] text-gray-500 dark:text-gray-300 hover:bg-black/[0.08] dark:hover:bg-white/[0.14] cursor-pointer transition-colors"
-                  aria-label="关闭"
-                >
-                  <FiX className="size-4" />
-                </button>
-              </div>
-
-              {/* Grouped Controls - Apple-style grouped layout */}
-              <div className="mt-3 flex flex-col gap-3.5 overflow-y-auto">
-                {/* Section 1: 快捷开关 (2x2 Grid) */}
-                <div>
-                  <div className="text-[10px] font-semibold text-gray-400 cream:text-stone-500 dark:text-gray-500 uppercase tracking-wider mb-2 px-0.5">
-                    {t('mobile.quickControls', '快捷开关')}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {/* Theme Toggle */}
-                    <button
-                      type="button"
-                      onClick={toggleTheme}
-                      className={`flex items-center justify-between p-2.5 rounded-2xl border text-left cursor-pointer transition-all active:scale-[0.98] ${
-                        theme === 'cream'
-                          ? 'border-black/15 bg-white cream:border-stone-400/50 cream:bg-white/95 dark:border-white/20 dark:bg-white/[0.1] shadow-xs'
-                          : 'border-black/[0.06] bg-white/60 cream:border-stone-200/60 cream:bg-white/70 dark:border-white/[0.06] dark:bg-white/[0.03] hover:bg-white/80 dark:hover:bg-white/[0.06]'
-                      } backdrop-blur-md`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={`size-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                            theme === 'cream'
-                              ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                              : 'bg-black/[0.04] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300'
-                          }`}
-                        >
-                          {theme === 'cream' ? <FiCoffee className="size-4" /> : <FiSun className="size-4" />}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate tracking-tight">
-                            {t('mobile.creamMode', '米白模式')}
-                          </p>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                            {theme === 'cream' ? '已开启' : '浅白模式'}
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        className={`size-4.5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
-                          theme === 'cream'
-                            ? 'border-transparent text-white'
-                            : 'border-black/20 dark:border-white/20 bg-transparent'
-                        }`}
-                        style={theme === 'cream' ? { backgroundColor: accentColor || '#0ea5e9' } : undefined}
-                      >
-                        {theme === 'cream' && <FiCheck className="size-2.5 stroke-[3]" />}
-                      </div>
-                    </button>
-
-                    {/* Fullscreen Toggle */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        toggleFullscreen();
-                        onTabChange('timer');
-                      }}
-                      className={`flex items-center justify-between p-2.5 rounded-2xl border text-left cursor-pointer transition-all active:scale-[0.98] ${
-                        isFullscreen
-                          ? 'border-black/15 bg-white dark:border-white/20 dark:bg-white/[0.1] shadow-xs'
-                          : 'border-black/[0.06] bg-white/60 dark:border-white/[0.06] dark:bg-white/[0.03] hover:bg-white/80 dark:hover:bg-white/[0.06]'
-                      } backdrop-blur-md`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={`size-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                            isFullscreen
-                              ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400'
-                              : 'bg-black/[0.04] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300'
-                          }`}
-                        >
-                          {isFullscreen ? <FiMinimize className="size-4" /> : <FiMaximize className="size-4" />}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate tracking-tight">
-                            {isFullscreen ? t('header.exitFullscreen', '退出全屏') : t('header.fullscreen', '全屏显示')}
-                          </p>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                            {isFullscreen ? '沉浸中' : '窗口模式'}
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        className={`size-4.5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
-                          isFullscreen
-                            ? 'border-transparent text-white'
-                            : 'border-black/20 dark:border-white/20 bg-transparent'
-                        }`}
-                        style={isFullscreen ? { backgroundColor: accentColor || '#0ea5e9' } : undefined}
-                      >
-                        {isFullscreen && <FiCheck className="size-2.5 stroke-[3]" />}
-                      </div>
-                    </button>
-
-                    {/* Todo Floating Widget Toggle */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = !isWidgetEnabled;
-                        setWidgetEnabled(next);
-                        if (next) {
-                          window.location.hash = 'todo-widget';
-                          onTabChange('timer');
-                        }
-                      }}
-                      className={`flex items-center justify-between p-2.5 rounded-2xl border text-left cursor-pointer transition-all active:scale-[0.98] ${
-                        isWidgetEnabled
-                          ? 'border-black/15 bg-white dark:border-white/20 dark:bg-white/[0.1] shadow-xs'
-                          : 'border-black/[0.06] bg-white/60 dark:border-white/[0.06] dark:bg-white/[0.03] hover:bg-white/80 dark:hover:bg-white/[0.06]'
-                      } backdrop-blur-md`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div
-                          className={`size-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                            isWidgetEnabled
-                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                              : 'bg-black/[0.04] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300'
-                          }`}
-                        >
-                          <FiList className="size-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate tracking-tight">
-                            {t('mobile.todoWidgetTitle', '桌面挂件')}
-                          </p>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                            {isWidgetEnabled ? '显示中' : '已隐藏'}
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        className={`size-4.5 rounded-full flex items-center justify-center shrink-0 border transition-colors ${
-                          isWidgetEnabled
-                            ? 'border-transparent text-white'
-                            : 'border-black/20 dark:border-white/20 bg-transparent'
-                        }`}
-                        style={isWidgetEnabled ? { backgroundColor: accentColor || '#0ea5e9' } : undefined}
-                      >
-                        {isWidgetEnabled && <FiCheck className="size-2.5 stroke-[3]" />}
-                      </div>
-                    </button>
-
-                    {/* Language Switcher Card */}
-                    <div className="flex items-center justify-between p-2.5 rounded-2xl border border-black/[0.06] bg-white/60 dark:border-white/[0.06] dark:bg-white/[0.03] backdrop-blur-md">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="size-8 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300 flex items-center justify-center shrink-0">
-                          <FiGlobe className="size-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white truncate tracking-tight">
-                            {t('mobile.language', '语言')}
-                          </p>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                            {currentLang === 'zh-CN' ? '中文' : 'English'}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center p-0.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] text-[10px] font-semibold shrink-0 border border-black/[0.04] dark:border-white/[0.04]">
-                        <button
-                          type="button"
-                          onClick={() => currentLang !== 'zh-CN' && changeLanguage('zh-CN')}
-                          className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${
-                            currentLang === 'zh-CN'
-                              ? 'bg-white dark:bg-white/[0.16] text-gray-900 dark:text-white shadow-xs font-bold'
-                              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                          }`}
-                        >
-                          中
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => currentLang !== 'en-US' && changeLanguage('en-US')}
-                          className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer font-sans ${
-                            currentLang === 'en-US'
-                              ? 'bg-white dark:bg-white/[0.16] text-gray-900 dark:text-white shadow-xs font-bold'
-                              : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                          }`}
-                        >
-                          EN
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 2: 功能与服务 (Apple Grouped List Style) */}
-                <div>
-                  <div className="text-[10px] font-semibold text-gray-400 cream:text-stone-500 dark:text-gray-500 uppercase tracking-wider mb-2 px-0.5">
-                    {t('mobile.preferences', '功能与偏好')}
-                  </div>
-                  <div className="rounded-2xl border border-black/[0.06] bg-white/70 cream:bg-white/80 cream:border-stone-200/60 divide-y divide-black/[0.04] cream:divide-stone-200/50 dark:border-white/[0.06] dark:bg-white/[0.03] dark:divide-white/[0.04] backdrop-blur-xl overflow-hidden shadow-xs">
-                    {/* Theme Color Palette */}
-                    <button
-                      type="button"
-                      onClick={() => setIsThemeLibraryOpen(true)}
-                      className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div
-                          className="size-7.5 rounded-xl flex items-center justify-center shrink-0 shadow-xs text-white"
-                          style={{ backgroundColor: accentColor || '#0ea5e9' }}
-                        >
-                          <LuPalette className="size-4 stroke-[2.2]" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white tracking-tight truncate">
-                            {t('theme.title', '字体配色')}
-                          </p>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                            {t('theme.subtitle', '仅调整倒计时字体颜色')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 shrink-0 pl-2">
-                        <span
-                          className="size-4 rounded-full border border-black/10 dark:border-white/20 inline-block shadow-xs"
-                          style={{ backgroundColor: accentColor || '#0ea5e9' }}
-                        />
-                        <FiChevronRight className="size-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                    </button>
-
-                    {/* Background Settings */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onOpenBackground();
-                        onTabChange('timer');
-                      }}
-                      className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="size-7.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                          <FiImage className="size-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white tracking-tight truncate">
-                            {t('mobile.wallpaper', '背景壁纸')}
-                          </p>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                            {t('mobile.wallpaperDesc', '渐变配色、壁纸与毛玻璃模糊度')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 text-primary-600 dark:text-primary-400 text-xs shrink-0 pl-2">
-                        <span className="text-[11px] font-medium">{t('mobile.customize', '定制')}</span>
-                        <FiChevronRight className="size-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                    </button>
-
-                    {/* Todo Page */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        window.location.hash = 'todo';
-                        onTabChange('timer');
-                      }}
-                      className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="size-7.5 rounded-xl bg-teal-500/10 text-teal-600 dark:bg-teal-400/15 dark:text-teal-400 flex items-center justify-center shrink-0">
-                          <FiCheckSquare className="size-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white tracking-tight truncate">
-                            {t('mobile.todoPageTitle', '待办清单')}
-                          </p>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                            {t('mobile.todoPageDesc', '大屏全景待办、支持拖拽与振动反馈')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 text-primary-600 dark:text-primary-400 text-xs shrink-0 pl-2">
-                        <span className="text-[11px] font-medium">{t('mobile.enterPage', '进入')}</span>
-                        <FiChevronRight className="size-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                    </button>
-
-                    {/* Share & QR Code */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onOpenShare();
-                        onTabChange('timer');
-                      }}
-                      className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="size-7.5 rounded-xl bg-sky-500/10 text-sky-600 dark:bg-sky-400/15 dark:text-sky-400 flex items-center justify-center shrink-0">
-                          <FiShare2 className="size-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white tracking-tight truncate">
-                            {t('share.title', '分享与二维码')}
-                          </p>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                            {t('share.subtitle', '网站访问二维码与计时器分享')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 text-primary-600 dark:text-primary-400 text-xs shrink-0 pl-2">
-                        <span className="text-[11px] font-medium">查看</span>
-                        <FiChevronRight className="size-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                    </button>
-
-                    {/* Version & About */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onTabChange('timer');
-                        openAboutModal();
-                      }}
-                      className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="size-7.5 rounded-xl bg-neutral-500/10 text-neutral-600 dark:bg-white/10 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                          <FiInfo className="size-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white tracking-tight truncate">
-                            {t('version.title', '版本与更新')}
-                          </p>
-                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
-                            {hasUpdate
-                              ? t('version.hasNewVersion', '发现新版本可供升级')
-                              : t('version.upToDate', '当前已是最新版本')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0 pl-2">
-                        {hasUpdate && (
-                          <span className="size-2 rounded-full bg-amber-500 animate-pulse" />
-                        )}
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300">
-                          v{currentVersion}
-                        </span>
-                        <FiChevronRight className="size-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Footer branding */}
-                <div className="text-center pt-1 pb-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onTabChange('timer');
-                      openAboutModal();
-                    }}
-                    className="inline-flex items-center gap-1 text-[11px] text-gray-400 hover:text-primary-600 dark:text-gray-500 dark:hover:text-primary-400 transition-colors cursor-pointer"
-                  >
-                    <span>TimePulse · Designed for Focus & Flow</span>
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Theme Color Palette Library Modal */}
-      <ThemeLibraryModal
-        isOpen={isThemeLibraryOpen}
-        onClose={() => setIsThemeLibraryOpen(false)}
-      />
     </>
   );
 }

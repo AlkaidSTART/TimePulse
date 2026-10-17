@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import AboutVersionModal from './AboutVersionModal';
 import { useVersionStore } from '@/stores';
@@ -102,5 +102,56 @@ describe('AboutVersionModal component', () => {
 
     expect(useVersionStore.getState().isAboutModalOpen).toBe(false);
     expect(closeSpy).toHaveBeenCalled();
+  });
+
+  it('renders Buy Me a Coffee tab content when activeAboutTab is coffee', () => {
+    useVersionStore.setState({
+      isAboutModalOpen: true,
+      activeAboutTab: 'coffee',
+    });
+
+    render(<AboutVersionModal />);
+    expect(screen.getByText(/Buy Me a Coffee/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/赞赏码/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /保存赞赏码图片/i })).toBeInTheDocument();
+  });
+
+  it('renders Contact Author tab content when activeAboutTab is contact', () => {
+    useVersionStore.setState({
+      isAboutModalOpen: true,
+      activeAboutTab: 'contact',
+    });
+
+    render(<AboutVersionModal />);
+    expect(screen.getByText(/Contact Alkaid/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/WeChat QR Code/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /保存微信二维码/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /复制微信号/i })).toBeInTheDocument();
+  });
+
+  it('switches tabs smoothly when clicking tab buttons', async () => {
+    useVersionStore.setState({
+      isAboutModalOpen: true,
+      activeAboutTab: 'version',
+    });
+
+    render(<AboutVersionModal />);
+    expect(screen.getByText('当前版本')).toBeInTheDocument();
+
+    // Switch to coffee tab
+    const coffeeTabBtn = screen.getByRole('button', { name: /请喝咖啡/i });
+    fireEvent.click(coffeeTabBtn);
+    expect(useVersionStore.getState().activeAboutTab).toBe('coffee');
+    await waitFor(() => {
+      expect(screen.getByAltText(/赞赏码/i)).toBeInTheDocument();
+    });
+
+    // Switch to contact tab
+    const contactTabBtn = screen.getByRole('button', { name: /联系作者/i });
+    fireEvent.click(contactTabBtn);
+    expect(useVersionStore.getState().activeAboutTab).toBe('contact');
+    await waitFor(() => {
+      expect(screen.getByAltText(/WeChat QR Code/i)).toBeInTheDocument();
+    });
   });
 });

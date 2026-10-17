@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { FiClock, FiCheckSquare } from 'react-icons/fi';
+import { FiClock, FiCheckSquare, FiSettings } from 'react-icons/fi';
+import { LuSparkles } from 'react-icons/lu';
 import { usePageTransition, type PageView } from '@/hooks/usePageTransition';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import { readTodoItems, TODO_STORAGE_EVENT } from '@/features/todo/todoStorage';
+import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 
 type RouteNavigationProps = {
   compact?: boolean;
@@ -15,7 +17,7 @@ type RouteItem = {
   id: PageView;
   label: string;
   shortLabel: string;
-  icon: typeof FiClock;
+  icon: React.ComponentType<{ className?: string }>;
   title: string;
   description: string;
 };
@@ -24,6 +26,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
   const shouldReduceMotion = useReducedMotion();
   const { view, transitionTo } = usePageTransition();
   const { timers, activeTimerId } = useTimers();
+  const { cheerCount, nickname } = usePersonalSettingsStore();
   const { t } = useTranslation();
   const [hoveredRoute, setHoveredRoute] = useState<PageView | null>(null);
   const [pendingTodoCount, setPendingTodoCount] = useState(0);
@@ -54,11 +57,19 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
 
   const routes: RouteItem[] = [
     {
+      id: 'cheer',
+      label: t('header.cheerTab', '元气打气'),
+      shortLabel: '打气',
+      icon: LuSparkles,
+      title: '元气打气与时光问候',
+      description: '时间问候、元气充能与今日灵感',
+    },
+    {
       id: 'main',
-      label: t('header.timers', '计时器'),
-      shortLabel: '计时',
+      label: t('header.timers', '当前时间'),
+      shortLabel: '时钟',
       icon: FiClock,
-      title: '计时器与时钟',
+      title: '当前时间与计时器',
       description: '时钟、倒计时、正计时与世界时区',
     },
     {
@@ -68,6 +79,14 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
       icon: FiCheckSquare,
       title: '待办与核对清单',
       description: '每日待办事项与任务打卡清单',
+    },
+    {
+      id: 'settings',
+      label: t('header.settingsTab', '个人设置'),
+      shortLabel: '设置',
+      icon: FiSettings,
+      title: '个人设置中心',
+      description: '个性昵称、问候语气与界面偏好',
     },
   ];
 
@@ -106,13 +125,13 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               whileHover={{ y: -0.5 }}
               whileTap={{ scale: 0.94 }}
               className={`group relative flex items-center justify-center gap-1.5 rounded-full select-none cursor-pointer outline-none transition-all duration-200 ${
-                compact ? 'px-2.5 py-1 text-[11px]' : 'px-3 py-1.5 text-xs'
+                compact ? 'px-2 py-1 text-[11px]' : 'px-3 py-1.5 text-xs'
               } ${
                 isActive
                   ? 'text-gray-950 dark:text-white font-semibold'
                   : 'text-gray-700 hover:text-gray-950 dark:text-gray-200 dark:hover:text-white font-medium bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.08] dark:hover:bg-white/[0.12]'
               }`}
-              data-insightflare-event={route.id === 'todo' ? 'todo_route_toggle' : 'timer_route_toggle'}
+              data-insightflare-event={`${route.id}_route_toggle`}
             >
               {/* Hover Gliding Pill across routes */}
               {isHovered && !isActive && (
@@ -152,13 +171,12 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                 </motion.div>
               )}
 
-
               {/* Icon with animated spring bounce/tilt on hover */}
               <motion.span
                 className="relative z-10 flex shrink-0 items-center justify-center"
                 animate={
                   !shouldReduceMotion && isHovered && !isActive
-                    ? { scale: 1.18, rotate: route.id === 'todo' ? -6 : 6 }
+                    ? { scale: 1.18, rotate: route.id === 'todo' ? -6 : route.id === 'cheer' ? 8 : 6 }
                     : { scale: 1, rotate: 0 }
                 }
                 transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 18 }}
@@ -185,7 +203,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                 {labelText}
               </span>
 
-              {/* Todo Pending Badge if count > 0 */}
+              {/* Todo Pending Badge */}
               {route.id === 'todo' && pendingTodoCount > 0 && !compact && (
                 <span
                   className={`relative z-10 ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold transition-colors ${
@@ -198,12 +216,26 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                   {pendingTodoCount}
                 </span>
               )}
+
+              {/* Cheer Count Badge */}
+              {route.id === 'cheer' && cheerCount > 0 && !compact && (
+                <span
+                  className={`relative z-10 ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold transition-colors ${
+                    isActive
+                      ? 'bg-amber-500/20 text-amber-900 dark:text-amber-200'
+                      : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                  }`}
+                  title={`今日已打气 ${cheerCount} 次`}
+                >
+                  {cheerCount}
+                </span>
+              )}
             </motion.button>
           );
         })}
       </nav>
 
-      {/* Hover Floating Preview Card: 详细显示其他路由是什么东西及当前停留路由 */}
+      {/* Hover Floating Preview Card */}
       <AnimatePresence>
         {hoveredRoute && !compact && (
           <motion.div
@@ -213,7 +245,14 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
             transition={{ duration: 0.16, ease: 'easeOut' }}
             className="absolute top-full mt-2 w-72 rounded-2xl border border-white/40 bg-white/95 p-3 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-neutral-900/95 z-50 pointer-events-none text-left"
             style={{
-              left: hoveredRoute === 'main' ? '25%' : '75%',
+              left:
+                hoveredRoute === 'cheer'
+                  ? '15%'
+                  : hoveredRoute === 'main'
+                  ? '38%'
+                  : hoveredRoute === 'todo'
+                  ? '62%'
+                  : '85%',
               transform: 'translateX(-50%)',
             }}
           >
@@ -221,13 +260,26 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
             <div className="flex items-center justify-between gap-2 pb-2 border-b border-gray-200/50 dark:border-white/10">
               <div className="flex items-center gap-1.5">
                 <span className="p-1 rounded-lg bg-black/5 dark:bg-white/10 text-gray-800 dark:text-gray-200">
-                  {hoveredRoute === 'main' ? <FiClock className="size-3.5" /> : <FiCheckSquare className="size-3.5" />}
+                  {hoveredRoute === 'cheer' ? (
+                    <LuSparkles className="size-3.5 text-amber-500" />
+                  ) : hoveredRoute === 'main' ? (
+                    <FiClock className="size-3.5" />
+                  ) : hoveredRoute === 'todo' ? (
+                    <FiCheckSquare className="size-3.5" />
+                  ) : (
+                    <FiSettings className="size-3.5 text-primary-500" />
+                  )}
                 </span>
                 <span className="font-bold text-xs text-gray-900 dark:text-white">
-                  {hoveredRoute === 'main' ? '计时器路由' : '待办清单路由'}
+                  {hoveredRoute === 'cheer'
+                    ? '元气打气路由'
+                    : hoveredRoute === 'main'
+                    ? '当前时间与时钟'
+                    : hoveredRoute === 'todo'
+                    ? '待办清单路由'
+                    : '个人设置中心'}
                 </span>
               </div>
-              {/* Badge showing if currently staying on this route */}
               <span
                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                   view === hoveredRoute
@@ -239,9 +291,18 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               </span>
             </div>
 
-            {/* Body showing what is inside this route */}
+            {/* Body */}
             <div className="pt-2 text-[11px] space-y-1">
-              {hoveredRoute === 'main' ? (
+              {hoveredRoute === 'cheer' ? (
+                <>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">
+                    按当前时间送上温暖励志问候
+                  </p>
+                  <p className="text-gray-500 dark:text-gray-400 truncate">
+                    为今天打气充能，展示每日治愈灵感一言
+                  </p>
+                </>
+              ) : hoveredRoute === 'main' ? (
                 <>
                   <p className="font-medium text-gray-800 dark:text-gray-200">
                     时钟、倒计时、正计时与世界时区
@@ -251,7 +312,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                     <span className="ml-1 text-[10px] text-gray-400">（共 {timers.length} 个计时器）</span>
                   </p>
                 </>
-              ) : (
+              ) : hoveredRoute === 'todo' ? (
                 <>
                   <p className="font-medium text-gray-800 dark:text-gray-200">
                     今日待办清单与任务专注核对
@@ -265,6 +326,15 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                     ) : (
                       <span className="text-gray-600 dark:text-gray-300 font-medium">所有事项均已完成</span>
                     )}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">
+                    个人称呼、问候语气与显示偏好
+                  </p>
+                  <p className="text-gray-500 dark:text-gray-400 truncate">
+                    当前称呼: <span className="font-semibold text-gray-900 dark:text-white">{nickname || '阳光旅人'}</span>
                   </p>
                 </>
               )}

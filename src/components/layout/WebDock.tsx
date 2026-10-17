@@ -11,6 +11,8 @@ import {
   SunMoon,
   Maximize,
   Minimize,
+  Sparkles,
+  Settings,
 } from 'lucide-react';
 import { Dock, DockIcon, DockItem, DockLabel } from '@/components/core/dock';
 import { usePageTransition } from '@/hooks/usePageTransition';
@@ -105,11 +107,20 @@ export default function WebDock({
 
   const dockItems = [
     {
+      id: 'cheer',
+      title: t('header.cheerTab', '元气打气'),
+      icon: <Sparkles className="size-full text-neutral-700 dark:text-neutral-200" />,
+      onClick: () => {
+        if (view !== 'cheer') transitionTo('cheer');
+      },
+      isActive: view === 'cheer',
+    },
+    {
       id: 'home',
       title: t('header.timers', '主计时器'),
       icon: <HomeIcon className="size-full text-neutral-700 dark:text-neutral-200" />,
       onClick: () => {
-        if (view === 'todo') transitionTo('main');
+        if (view !== 'main') transitionTo('main');
       },
       isActive: view === 'main',
     },
@@ -176,6 +187,15 @@ export default function WebDock({
       title: `${t('theme.title', '切换主题')} (${theme === 'cream' ? '米白模式' : '浅白模式'})`,
       icon: <SunMoon className="size-full text-neutral-700 dark:text-neutral-200" />,
       onClick: toggleTheme,
+    },
+    {
+      id: 'settings',
+      title: t('header.settingsTab', '个人设置中心'),
+      icon: <Settings className="size-full text-neutral-700 dark:text-neutral-200" />,
+      onClick: () => {
+        if (view !== 'settings') transitionTo('settings');
+      },
+      isActive: view === 'settings',
     },
     {
       id: 'fullscreen',

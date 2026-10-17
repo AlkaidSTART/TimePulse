@@ -7,6 +7,8 @@ import {
   type VersionCheckResult,
 } from '@/services/version';
 
+export type AboutModalTab = 'version' | 'coffee' | 'contact';
+
 export interface VersionStoreState {
   currentVersion: string;
   latestVersion: string | null;
@@ -21,12 +23,15 @@ export interface VersionStoreState {
   isBannerVisible: boolean;
   // 关于 / 版本管理弹窗可见性
   isAboutModalOpen: boolean;
+  // 当前弹窗激活标签
+  activeAboutTab: AboutModalTab;
 
   // Actions
   checkUpdate: (options?: { manual?: boolean; timeoutMs?: number }) => Promise<VersionCheckResult>;
   dismissBanner: () => void;
-  openAboutModal: () => void;
+  openAboutModal: (tab?: AboutModalTab) => void;
   closeAboutModal: () => void;
+  setActiveAboutTab: (tab: AboutModalTab) => void;
 }
 
 export const useVersionStore = create<VersionStoreState>((set, get) => ({
@@ -40,6 +45,7 @@ export const useVersionStore = create<VersionStoreState>((set, get) => ({
   downloadUrl: GITHUB_RELEASES_URL,
   isBannerVisible: false,
   isAboutModalOpen: false,
+  activeAboutTab: 'version',
 
   checkUpdate: async (options) => {
     set({ isChecking: true, lastCheckError: null });
@@ -94,16 +100,34 @@ export const useVersionStore = create<VersionStoreState>((set, get) => ({
     set({ isBannerVisible: false });
   },
 
-  openAboutModal: () => {
-    set({ isAboutModalOpen: true });
-    if (typeof window !== 'undefined' && window.location.hash !== '#version' && window.location.hash !== '#about') {
-      window.location.hash = 'version';
+  openAboutModal: (tab: AboutModalTab = 'version') => {
+    set({ isAboutModalOpen: true, activeAboutTab: tab });
+    if (typeof window !== 'undefined') {
+      const targetHash = tab === 'coffee' ? 'coffee' : tab === 'contact' ? 'contact' : 'version';
+      if (window.location.hash !== `#${targetHash}`) {
+        window.location.hash = targetHash;
+      }
+    }
+  },
+
+  setActiveAboutTab: (tab: AboutModalTab) => {
+    set({ activeAboutTab: tab });
+    if (typeof window !== 'undefined') {
+      const targetHash = tab === 'coffee' ? 'coffee' : tab === 'contact' ? 'contact' : 'version';
+      if (window.location.hash !== `#${targetHash}`) {
+        window.location.hash = targetHash;
+      }
     }
   },
 
   closeAboutModal: () => {
     set({ isAboutModalOpen: false });
-    if (typeof window !== 'undefined' && (window.location.hash === '#version' || window.location.hash === '#about')) {
+    if (
+      typeof window !== 'undefined' &&
+      ['#version', '#about', '#coffee', '#buy-me-a-coffee', '#sponsor', '#contact', '#author'].includes(
+        window.location.hash
+      )
+    ) {
       window.location.hash = '';
     }
   },
@@ -114,7 +138,11 @@ if (typeof window !== 'undefined') {
   const handleHashChange = () => {
     const hash = window.location.hash.replace('#', '');
     if (hash === 'version' || hash === 'about') {
-      useVersionStore.getState().openAboutModal();
+      useVersionStore.getState().openAboutModal('version');
+    } else if (hash === 'coffee' || hash === 'buy-me-a-coffee' || hash === 'sponsor') {
+      useVersionStore.getState().openAboutModal('coffee');
+    } else if (hash === 'contact' || hash === 'author') {
+      useVersionStore.getState().openAboutModal('contact');
     }
   };
 

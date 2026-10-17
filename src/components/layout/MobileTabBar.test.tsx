@@ -43,17 +43,29 @@ describe('MobileTabBar component', () => {
     cleanup();
   });
 
-  it('renders all tab navigation items', () => {
+  it('renders tab navigation items and excludes list and settings from bottom bar', () => {
     render(
       <ThemeProvider>
         <MobileTabBar {...defaultProps} />
       </ThemeProvider>,
     );
 
-    expect(screen.getByText(/计时/i)).toBeDefined();
+    expect(screen.getByText(/时钟|计时/i)).toBeDefined();
     expect(screen.getByText(/待办/i)).toBeDefined();
-    expect(screen.getByText(/列表/i)).toBeDefined();
-    expect(screen.getByText(/设置/i)).toBeDefined();
+    expect(screen.getByLabelText('新建计时器')).toBeDefined();
+    expect(screen.queryByText(/^列表$/i)).toBeNull();
+    expect(screen.queryByText(/^设置$/i)).toBeNull();
+  });
+
+  it('renders all timers list sheet when activeTab is list', () => {
+    render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="list" />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByText('全部计时器')).toBeDefined();
+    expect(screen.getByText('工作倒计时')).toBeDefined();
   });
 
   it('renders transparent liquid water droplet capsule indicator for active route without blue', () => {

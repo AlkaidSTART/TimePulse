@@ -32,7 +32,7 @@ describe('WebDock component', () => {
   it('renders web dock items properly', () => {
     renderWithProviders();
 
-    expect(screen.getByRole('button', { name: /^(主计时器|计时器)$/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /^(主计时器|计时器|当前时间与时钟)$/i })).toBeDefined();
     expect(screen.getByRole('button', { name: /^待办清单$/i })).toBeDefined();
     expect(screen.getByRole('button', { name: /^(新建计时器|新建)$/i })).toBeDefined();
     expect(screen.getByRole('button', { name: /^(管理全部计时器|计时器列表)$/i })).toBeDefined();

@@ -82,4 +82,46 @@ describe('Header component timezone display', () => {
 
     expect(screen.queryByText(/Asia\/Shanghai/i)).not.toBeInTheDocument();
   });
+
+  it('renders list and settings buttons in the mobile top right header and opens sheets on click', async () => {
+    const { fireEvent } = await import('@testing-library/react');
+    useTimerStore.setState({
+      timers: [
+        {
+          id: 'test-1',
+          name: '专注计时',
+          type: 'countdown',
+          targetDate: new Date(Date.now() + 60000).toISOString(),
+          timezone: 'Asia/Shanghai',
+          color: '#0EA5E9',
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      activeTimerId: 'test-1',
+      isLoaded: true,
+    });
+
+    render(
+      <ThemeProvider>
+        <FullscreenProvider>
+          <TimerProvider>
+            <Header />
+          </TimerProvider>
+        </FullscreenProvider>
+      </ThemeProvider>,
+    );
+
+    const listBtn = screen.getByRole('button', { name: '列表' });
+    const settingsBtn = screen.getByRole('button', { name: '设置' });
+    expect(listBtn).toBeDefined();
+    expect(settingsBtn).toBeDefined();
+
+    // Click list button opens all timers sheet
+    fireEvent.click(listBtn);
+    expect(screen.getByText('全部计时器')).toBeDefined();
+
+    // Close sheet or click settings button opens settings sheet
+    fireEvent.click(settingsBtn);
+    expect(screen.getByText('设置与功能')).toBeDefined();
+  });
 });

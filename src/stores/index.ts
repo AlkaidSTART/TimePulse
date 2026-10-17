@@ -6,3 +6,4 @@ export * from './useTimerStore';
 export * from './useTodoStore';
 export * from './useUIStore';
 export * from './useVersionStore';
+export * from './usePersonalSettingsStore';

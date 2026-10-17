@@ -1,7 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls, useReducedMotion } from 'framer-motion';
-import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo } from 'react-icons/fi';
+import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo, FiUser } from 'react-icons/fi';
+import { SiWechat } from 'react-icons/si';
 import { LuPalette } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { Timer, TimerType } from '@/domain/timer';
@@ -417,13 +418,11 @@ export default function Header({ onHeightChange }: HeaderProps) {
               color="#f97316"
               size="lg"
               onClick={() => {
-                if (view === 'todo') transitionTo('main');
+                transitionTo('cheer');
               }}
               onLinkClick={(e) => {
-                if (view === 'todo') {
-                  e.preventDefault();
-                  transitionTo('main');
-                }
+                e.preventDefault();
+                transitionTo('cheer');
               }}
             />
           </motion.div>
@@ -694,7 +693,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     type="button"
                     onClick={() => {
                       setIsToolsOpen(false);
-                      openAboutModal();
+                      openAboutModal('version');
                     }}
                     className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
                   >
@@ -712,7 +711,53 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     </div>
                   </button>
 
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      openAboutModal('coffee');
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiCoffee className="size-4 text-amber-500" />
+                      <span>{t('version.buyMeACoffee', '请作者喝咖啡')}</span>
+                    </div>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                      Coffee
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      openAboutModal('contact');
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <SiWechat className="size-4 text-emerald-500" />
+                      <span>{t('version.contactAuthor', '联系作者')}</span>
+                    </div>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      WeChat
+                    </span>
+                  </button>
+
                   <div className="h-px bg-gray-200/60 dark:bg-white/10 my-1" />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      transitionTo('settings');
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <FiUser className="size-4 text-primary-500" />
+                    <span>{t('header.settingsTab', '个人设置中心')}</span>
+                  </button>
 
                   <button
                     type="button"
@@ -738,34 +783,50 @@ export default function Header({ onHeightChange }: HeaderProps) {
         className="lg:hidden flex items-center justify-between px-4 md:px-8 pt-3.5 pb-1 w-full pointer-events-auto bg-transparent"
         style={{ paddingTop: 'max(0.875rem, env(safe-area-inset-top, 0px))' }}
       >
-        {/* Brand Logo with subtle ambient highlight */}
-        <div className="flex items-center gap-2.5">
+        {/* Brand Logo with subtle ambient highlight & Quick Timer List Entry */}
+        <div className="flex items-center gap-2">
           <motion.div
             initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
             animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
             transition={{ duration: shouldReduceMotion ? 0 : 0.35, ease: 'easeOut' }}
             className="flex items-center shrink-0 cursor-pointer"
             onClick={() => {
-              if (view === 'todo') transitionTo('main');
+              if (view !== 'main') transitionTo('main');
             }}
           >
             <AnimatedLogo
               color={accentColor || '#f97316'}
               size="md"
               onClick={() => {
-                if (view === 'todo') transitionTo('main');
+                if (view !== 'main') transitionTo('main');
               }}
               onLinkClick={(e) => {
-                if (view === 'todo') {
+                if (view !== 'main') {
                   e.preventDefault();
                   transitionTo('main');
                 }
               }}
             />
           </motion.div>
+
+          {/* 列表 (List of Timers) - Left Side Header Entry */}
+          <button
+            type="button"
+            className="relative inline-flex size-8 items-center justify-center rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
+            onClick={() => setMobileTab('list')}
+            aria-label={t('header.manageShort', '列表')}
+            title={t('header.manageShort', '列表')}
+          >
+            <FiList className="size-3.5" />
+            {timers.length > 0 && (
+              <span className="absolute -top-1 -right-1 flex min-w-3.5 h-3.5 px-0.5 items-center justify-center rounded-full text-[9px] font-bold text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 shadow-xs">
+                {timers.length}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Minimal Quick Action Group */}
+        {/* Right Side: Quick Action Group (Timezone, Share, Settings) */}
         <div className="flex items-center gap-1.5">
           {timezoneInfo && (
             <div
@@ -773,18 +834,40 @@ export default function Header({ onHeightChange }: HeaderProps) {
               title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
             >
               <FiGlobe className="size-3 shrink-0" style={{ color: accentColor || '#0ea5e9' }} />
-              <span className="truncate max-w-[100px] xs:max-w-[140px]">{timezoneInfo.text}</span>
+              <span className="truncate max-w-[80px] xs:max-w-[120px]">{timezoneInfo.text}</span>
             </div>
           )}
 
+          {/* 分享 (Share & QR Code) */}
           <button
             type="button"
             className="inline-flex size-8 items-center justify-center rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
             onClick={() => setIsShareOpen(true)}
             aria-label="分享"
-            title="分享与二维码"
+            title={t('share.title', '分享与二维码')}
           >
             <FiShare2 className="size-3.5" />
+          </button>
+
+          {/* 个人设置 (Personal Settings Route) */}
+          <button
+            type="button"
+            className={`relative inline-flex size-8 items-center justify-center rounded-full border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all ${
+              view === 'settings'
+                ? 'bg-black/10 dark:bg-white/20 text-gray-900 dark:text-white'
+                : 'bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14]'
+            }`}
+            onClick={() => {
+              transitionTo('settings');
+              setMobileTab('settings');
+            }}
+            aria-label={t('header.settingsTab', '个人设置')}
+            title={t('header.settingsTab', '个人设置')}
+          >
+            <FiSettings className="size-3.5" />
+            {hasUpdate && (
+              <span className="absolute top-0 right-0 size-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-neutral-900 animate-pulse" />
+            )}
           </button>
         </div>
       </div>
@@ -1124,15 +1207,31 @@ export default function Header({ onHeightChange }: HeaderProps) {
 
     {/* Mobile Bottom TabBar with iOS Liquid Droplet Capsule Animation */}
     <MobileTabBar
-      activeTab={view === 'todo' ? 'todo' : mobileTab}
+      activeTab={
+        mobileTab === 'list'
+          ? 'list'
+          : view === 'cheer'
+          ? 'cheer'
+          : view === 'todo'
+          ? 'todo'
+          : view === 'settings'
+          ? 'settings'
+          : 'timer'
+      }
       onTabChange={(tab) => {
-        if (tab === 'todo') {
+        if (tab === 'cheer') {
+          transitionTo('cheer');
+          setMobileTab('cheer');
+        } else if (tab === 'timer') {
+          transitionTo('main');
+          setMobileTab('timer');
+        } else if (tab === 'todo') {
           transitionTo('todo');
           setMobileTab('todo');
+        } else if (tab === 'settings') {
+          transitionTo('settings');
+          setMobileTab('settings');
         } else {
-          if (view === 'todo') {
-            transitionTo('main');
-          }
           setMobileTab(tab);
         }
       }}
