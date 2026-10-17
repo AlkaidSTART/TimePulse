@@ -124,7 +124,7 @@ export default function WorldClockSelectionModal({
                   })}
                 </div>
 
-                <div className="flex justify-center">
+                <div className="flex justify-center pt-4">
                   <button
                     className="btn-glass-primary"
                     onClick={() => setView(true)}

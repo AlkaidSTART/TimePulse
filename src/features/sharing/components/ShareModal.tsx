@@ -308,27 +308,25 @@ export default function ShareModal({ onClose, defaultTab = 'website' }: ShareMod
           </div>
         )}
         
-        <div className="flex space-x-3">
+        <div className={`flex ${canUseSystemShare ? 'space-x-3' : ''}`}>
           <button
             type="button"
-            className="flex-1 btn-glass-secondary flex items-center justify-center py-2.5 rounded-xl cursor-pointer text-sm"
+            className={`${canUseSystemShare ? 'flex-1' : 'w-full'} btn-glass-secondary flex items-center justify-center py-2.5 rounded-xl cursor-pointer text-sm`}
             onClick={onClose}
           >
             {t('common.cancel')}
           </button>
-          <AutoTransition transitionKey={canUseSystemShare ? 'system-share' : 'no-system-share'} initial={false} className="flex-1">
-          {canUseSystemShare ? (
+          {canUseSystemShare && (
             <button
               type="button"
-              className="w-full btn-glass-primary flex items-center justify-center py-2.5 rounded-xl cursor-pointer text-sm"
+              className="flex-1 btn-glass-primary flex items-center justify-center py-2.5 rounded-xl cursor-pointer text-sm"
               onClick={activeTab === 'website' ? handleWebShareWebsite : handleWebShareTimer}
               data-insightflare-event="share_system"
             >
               <FiShare2 className="mr-2" />
               {t('share.systemShare', '系统分享')}
             </button>
-          ) : null}
-          </AutoTransition>
+          )}
         </div>
       </motion.div>
     </motion.div>
