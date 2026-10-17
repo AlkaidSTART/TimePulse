@@ -29,6 +29,7 @@ import {
   setHapticEnabled,
 } from '@/services/vibration';
 import { useTheme } from '@/app/providers/ThemeProvider';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface TodoListWidgetProps {
   isOpen?: boolean;
@@ -46,6 +47,7 @@ export default function TodoListWidget({
   className = '',
 }: TodoListWidgetProps) {
   const { accentColor } = useTheme();
+  const { t } = useTranslation();
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
 
@@ -176,14 +178,15 @@ export default function TodoListWidget({
     const presets =
       state.activeTab === 'checklist'
         ? [
-            { text: '倒好温水并放好水杯', type: 'checklist' as TodoType },
-            { text: '手机开启勿扰 / 静音', type: 'checklist' as TodoType },
-            { text: '关闭无关浏览器标签页', type: 'checklist' as TodoType },
-            { text: '写下本轮番茄钟核心交付物', type: 'checklist' as TodoType },
+            { text: t('todo.presetChecklist1'), type: 'checklist' as TodoType },
+            { text: t('todo.presetChecklist2'), type: 'checklist' as TodoType },
+            { text: t('todo.presetChecklist3'), type: 'checklist' as TodoType },
+            { text: t('todo.presetChecklist4'), type: 'checklist' as TodoType },
           ]
         : [
-            { text: '梳理今天最重要的 3 件事', type: 'todo' as TodoType },
-            { text: '保持专注，完成第一阶段目标', type: 'todo' as TodoType },
+            { text: t('todo.presetTodo1'), type: 'todo' as TodoType },
+            { text: t('todo.presetTodo2'), type: 'todo' as TodoType },
+            { text: t('todo.presetTodo3'), type: 'todo' as TodoType },
           ];
     dispatch({ type: 'batch_add', items: presets });
   };
@@ -207,7 +210,7 @@ export default function TodoListWidget({
               <div className="flex items-center gap-1 rounded-full bg-black/5 p-1 dark:bg-white/10">
                 <button
                   type="button"
-                  aria-label="切换到待办事项"
+                  aria-label={t('todo.switchToTodo')}
                   onClick={() => dispatch({ type: 'set_tab', tab: 'todo' })}
                   className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${
                     state.activeTab === 'todo'
@@ -216,11 +219,11 @@ export default function TodoListWidget({
                   }`}
                 >
                   <FiList className="size-3.5" />
-                  <span>待办事项</span>
+                  <span>{t('todo.tabTodo')}</span>
                 </button>
                 <button
                   type="button"
-                  aria-label="切换到核对清单"
+                  aria-label={t('todo.switchToChecklist')}
                   onClick={() => dispatch({ type: 'set_tab', tab: 'checklist' })}
                   className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${
                     state.activeTab === 'checklist'
@@ -229,7 +232,7 @@ export default function TodoListWidget({
                   }`}
                 >
                   <FiCheckCircle className="size-3.5" />
-                  <span>核对清单</span>
+                  <span>{t('todo.tabChecklist')}</span>
                 </button>
               </div>
 
@@ -244,7 +247,7 @@ export default function TodoListWidget({
                       ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400'
                       : 'text-gray-400 hover:bg-black/5 dark:hover:bg-white/10'
                   }`}
-                  title={hapticActive ? '已开启手机振动（点击关闭）' : '已关闭手机振动（点击开启）'}
+                  title={hapticActive ? t('todo.hapticOnTip') : t('todo.hapticOffTip')}
                 >
                   <FiSmartphone className="size-3.5" />
                 </button>
@@ -255,8 +258,8 @@ export default function TodoListWidget({
                     type="button"
                     onClick={onOpenAsPage}
                     className="size-7 inline-flex items-center justify-center rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 dark:hover:bg-white/10 dark:hover:text-gray-200 cursor-pointer transition-colors"
-                    title="在独立新页面打开"
-                    aria-label="在独立新页面打开"
+                    title={t('todo.openInPage')}
+                    aria-label={t('todo.openInPage')}
                   >
                     <FiMaximize2 className="size-3.5" />
                   </button>
@@ -267,7 +270,7 @@ export default function TodoListWidget({
                   type="button"
                   onClick={() => handleOpenChange(false)}
                   className="size-7 inline-flex items-center justify-center rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 dark:hover:bg-white/10 dark:hover:text-gray-200 cursor-pointer transition-colors"
-                  title="收起为桌面小胶囊"
+                  title={t('todo.minimize')}
                 >
                   <FiMinimize2 className="size-3.5" />
                 </button>
@@ -278,8 +281,8 @@ export default function TodoListWidget({
                     type="button"
                     onClick={onHideWidget}
                     className="size-7 inline-flex items-center justify-center rounded-full text-gray-400 hover:bg-black/5 hover:text-red-500 dark:hover:bg-white/10 dark:hover:text-red-400 cursor-pointer transition-colors"
-                    title="隐藏桌面悬浮挂件 (可随时在顶栏菜单重新开启)"
-                    aria-label="隐藏桌面悬浮挂件"
+                    title={t('todo.hideWidget')}
+                    aria-label={t('todo.hideWidgetAria')}
                   >
                     <FiEyeOff className="size-3.5" />
                   </button>
@@ -291,7 +294,7 @@ export default function TodoListWidget({
             <div className="pt-3 pb-2">
               <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pb-1">
                 <span className="font-medium">
-                  {state.activeTab === 'todo' ? '待办进度' : '核对进度'}
+                  {state.activeTab === 'todo' ? t('todo.todoProgressShort') : t('todo.checklistProgressShort')}
                 </span>
                 <span className="font-semibold text-gray-700 dark:text-gray-200">
                   {completedCount}/{totalCount} ({progressPercent}%)
@@ -317,7 +320,7 @@ export default function TodoListWidget({
                     className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-emerald-500/15 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400"
                   >
                     <FiCheckCircle className="size-3.5 text-emerald-500" />
-                    <span>全部任务已顺利完成，已触发触觉反馈</span>
+                    <span>{t('todo.allDoneWidget')}</span>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -328,13 +331,13 @@ export default function TodoListWidget({
               {currentTabItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center text-xs text-gray-400 dark:text-gray-500">
                   <FiList className="size-8 stroke-[1.5] mb-2 opacity-50" />
-                  <p>当前暂无{state.activeTab === 'todo' ? '待办事项' : '核对清单'}</p>
+                  <p>{state.activeTab === 'todo' ? t('todo.emptyTodo') : t('todo.emptyChecklist')}</p>
                   <button
                     type="button"
                     onClick={handleLoadFocusPresets}
                     className="mt-3 rounded-full bg-primary-500/10 px-3 py-1 font-semibold text-primary-600 hover:bg-primary-500/20 dark:bg-primary-500/15 dark:text-primary-300 transition-colors cursor-pointer"
                   >
-                    载入专注推荐清单
+                    {t('todo.loadPresetsWidget')}
                   </button>
                 </div>
               ) : (
@@ -368,8 +371,8 @@ export default function TodoListWidget({
                   type="text"
                   placeholder={
                     state.activeTab === 'todo'
-                      ? '添加新待办，按回车确认...'
-                      : '添加检查项，按回车确认...'
+                      ? t('todo.placeholderTodoWidget')
+                      : t('todo.placeholderChecklistWidget')
                   }
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
@@ -379,7 +382,7 @@ export default function TodoListWidget({
                   type="submit"
                   disabled={!inputText.trim()}
                   className="inline-flex size-7 shrink-0 items-center justify-center rounded-xl bg-primary-500 text-white disabled:opacity-40 transition-opacity cursor-pointer"
-                  aria-label="添加"
+                  aria-label={t('todo.add')}
                 >
                   <FiPlus className="size-4 stroke-[2.5]" />
                 </button>
@@ -393,20 +396,20 @@ export default function TodoListWidget({
                   type="button"
                   onClick={() => dispatch({ type: 'reset_all', itemType: 'checklist' })}
                   className="inline-flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors cursor-pointer"
-                  title="清空所有勾选，重新开始核对"
+                  title={t('todo.resetAllTip')}
                 >
                   <FiRotateCcw className="size-3" />
-                  <span>重置勾选</span>
+                  <span>{t('todo.resetAllShort')}</span>
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={() => dispatch({ type: 'clear_completed', itemType: 'todo' })}
                   className="inline-flex items-center gap-1 hover:text-red-500 transition-colors cursor-pointer"
-                  title="清除所有已完成待办"
+                  title={t('todo.clearCompletedTip')}
                 >
                   <FiTrash2 className="size-3" />
-                  <span>清除已完成</span>
+                  <span>{t('todo.clearCompletedShort')}</span>
                 </button>
               )}
 
@@ -415,10 +418,10 @@ export default function TodoListWidget({
                 type="button"
                 onClick={handleTestVibrate}
                 className="inline-flex items-center gap-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors cursor-pointer"
-                title="调用系统振动 API 测试"
+                title={t('todo.testVibrateTip')}
               >
                 <FiSmartphone className="size-3" />
-                <span>测试振动</span>
+                <span>{t('todo.testVibrate')}</span>
               </button>
             </div>
           </motion.div>
@@ -437,7 +440,7 @@ export default function TodoListWidget({
             whileTap={{ scale: 0.95 }}
             onClick={() => handleOpenChange(true)}
             className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full border border-white/30 bg-white/75 px-3.5 py-2 shadow-lg backdrop-blur-2xl dark:border-white/12 dark:bg-black/65 md:bottom-6 md:right-6 cursor-pointer"
-            aria-label="打开待办与核对清单"
+            aria-label={t('todo.openWidgetAria')}
           >
             <div
               className="flex size-6 items-center justify-center rounded-full text-white"
@@ -447,10 +450,10 @@ export default function TodoListWidget({
             </div>
             <div className="flex flex-col text-left">
               <span className="text-xs font-semibold text-gray-900 dark:text-white">
-                待办清单
+                {t('todo.tabTodo')}
               </span>
               <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                {completedCount}/{totalCount} 完成
+                {completedCount}/{totalCount} {t('todo.completedBadge')}
               </span>
             </div>
           </motion.button>

@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Reorder, useDragControls, motion } from 'framer-motion';
-import { FiCheck, FiTrash2, FiEdit2, FiCheckSquare, FiSquare } from 'react-icons/fi';
+import { FiCheck, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { TodoItem } from '../types';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface TodoItemRowProps {
   item: TodoItem;
@@ -21,6 +22,7 @@ export default function TodoItemRow({
   onEdit,
   onDragEnd,
 }: TodoItemRowProps) {
+  const { t } = useTranslation();
   const dragControls = useDragControls();
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(item.text);
@@ -70,8 +72,8 @@ export default function TodoItemRow({
         type="button"
         onPointerDown={(e) => dragControls.start(e)}
         className="inline-flex size-6 shrink-0 touch-none cursor-grab items-center justify-center rounded text-gray-400 hover:text-gray-600 active:cursor-grabbing dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
-        aria-label="拖拽排序"
-        title="拖拽排序"
+        aria-label={t('todo.dragReorder')}
+        title={t('todo.dragReorder')}
       >
         <RxDragHandleDots2 className="size-4.5 text-current" />
       </button>
@@ -86,7 +88,7 @@ export default function TodoItemRow({
           borderColor: item.completed ? accentColor : undefined,
           backgroundColor: item.completed ? accentColor : 'transparent',
         }}
-        aria-label={item.completed ? `将${item.text}标记为未完成` : `将${item.text}标记为已完成`}
+        aria-label={`${item.text} - ${item.completed ? t('todo.itemAriaCompleted') : t('todo.itemAriaUncompleted')}`}
       >
         {item.completed && (
           <motion.div
@@ -119,7 +121,7 @@ export default function TodoItemRow({
                 ? 'line-through text-gray-400 dark:text-gray-500'
                 : 'text-gray-800 dark:text-gray-100'
             }`}
-            title={`${item.text} (双击可编辑)`}
+            title={`${item.text} (${t('todo.doubleClickEdit')})`}
           >
             {item.text}
           </span>
@@ -133,7 +135,8 @@ export default function TodoItemRow({
             type="button"
             onClick={() => setIsEditing(true)}
             className="size-6 inline-flex items-center justify-center rounded text-gray-400 hover:text-blue-500 hover:bg-blue-500/10 cursor-pointer transition-colors"
-            title="编辑"
+            title={t('todo.edit')}
+            aria-label={t('todo.edit')}
           >
             <FiEdit2 className="size-3" />
           </button>
@@ -142,7 +145,8 @@ export default function TodoItemRow({
           type="button"
           onClick={() => onDelete(item.id)}
           className="size-6 inline-flex items-center justify-center rounded text-gray-400 hover:text-red-500 hover:bg-red-500/10 cursor-pointer transition-colors"
-          title="删除"
+          title={t('todo.delete')}
+          aria-label={t('todo.delete')}
         >
           <FiTrash2 className="size-3" />
         </button>

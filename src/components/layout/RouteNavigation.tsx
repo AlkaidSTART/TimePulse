@@ -94,7 +94,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               aria-current={isActive ? 'page' : undefined}
               title={
                 isActive
-                  ? `${route.title}（当前页面停留在该路由）`
+                  ? `${route.title}（正在此页面）`
                   : `切换至 ${route.title} - ${route.description}`
               }
               onClick={() => {
@@ -185,24 +185,6 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                 {labelText}
               </span>
 
-              {/* Active route live dot indicator */}
-              {isActive && (
-                <motion.span
-                  layoutId="route-active-dot"
-                  className="relative z-10 size-1.5 rounded-full bg-white shadow-xs shrink-0"
-                  animate={{ opacity: [1, 0.45, 1], scale: [1, 0.85, 1] }}
-                  transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
-                  aria-hidden="true"
-                />
-              )}
-
-              {/* Current staying badge on active route */}
-              {isActive && !compact && (
-                <span className="relative z-10 text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-white/20 text-white border border-white/30 tracking-tight">
-                  当前
-                </span>
-              )}
-
               {/* Todo Pending Badge if count > 0 */}
               {route.id === 'todo' && pendingTodoCount > 0 && !compact && (
                 <span
@@ -253,7 +235,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                     : 'bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400'
                 }`}
               >
-                {view === hoveredRoute ? '● 当前正停留' : '○ 点击前往'}
+                {view === hoveredRoute ? '正在此页' : '点击前往'}
               </span>
             </div>
 
