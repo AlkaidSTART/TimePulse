@@ -17,7 +17,7 @@ import {
   type TimeValue,
   type WorldClockTimer,
 } from '@/domain/timer';
-import { splitCalendarDuration } from '@/domain/time';
+import { splitCalendarDuration, getZonedDateTimeParts } from '@/domain/time';
 import { getNextTimerUpdateDelay } from '../timerSchedule';
 import { AutoResizer, AutoTransition, type TransitionType } from '@/components/ui';
 
@@ -421,19 +421,15 @@ export default function TimerDisplay() {
   
   // 计算世界时钟时间
   const calculateWorldClockTime = (timer: WorldClockTimer, now: number) => {
-    const timeInTimezone = new Date(new Date(now).toLocaleString("en-US", {timeZone: timer.timezone}));
-    
-    const hours = timeInTimezone.getHours();
-    const minutes = timeInTimezone.getMinutes();
-    const seconds = timeInTimezone.getSeconds();
+    const parts = getZonedDateTimeParts(now, timer.timezone);
     
     const newTimeValue = { 
       years: 0,
       months: 0,
       days: 0, 
-      hours: hours, 
-      minutes: minutes, 
-      seconds: seconds 
+      hours: parts.hour, 
+      minutes: parts.minute, 
+      seconds: parts.second, 
     };
     
     if (!areTimesEqual(newTimeValue, lastTimeRef.current)) {

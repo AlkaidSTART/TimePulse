@@ -71,6 +71,9 @@ jobs:
       - name: Sync App Version from package.json
         run: node scripts/sync-tauri-version.mjs
 
+      - name: Ensure App Icons
+        run: pnpm tauri icon public/logo.png
+
       # 未配置 Apple 证书时使用 ad-hoc 签名，避免 macOS 提示"应用已损坏"；
       # 配置 APPLE_SIGNING_IDENTITY secret 后自动使用正式签名
       - name: Build Installer
@@ -152,6 +155,12 @@ jobs:
 
       - name: Initialize Android Project
         run: pnpm tauri android init
+
+      # 替换模板生成的默认 Tauri 矢量图标与 mipmap，应用项目专属应用图标
+      - name: Patch Android App Icons
+        run: |
+          pnpm tauri icon public/logo.png
+          node scripts/patch-android-icons.mjs
 
       # 优先使用仓库 Secrets 中的正式签名密钥（ANDROID_KEYSTORE_BASE64 / ANDROID_KEY_ALIAS /
       # ANDROID_KEY_PASSWORD，生成方式见 README）；未配置时生成一次性 CI 密钥，保证 APK 可直接安装

@@ -42,6 +42,22 @@ class ImageStorage {
       };
       image.src = url;
     });
+  private objectUrlCache = new Map<string, string>();
+
+  private getOrCreateObjectUrl(id: string, blob: Blob): string {
+    const cached = this.objectUrlCache.get(id);
+    if (cached) return cached;
+    const url = URL.createObjectURL(blob);
+    this.objectUrlCache.set(id, url);
+    return url;
+  }
+
+  private revokeObjectUrl(id: string): void {
+    const url = this.objectUrlCache.get(id);
+    if (url) {
+      URL.revokeObjectURL(url);
+      this.objectUrlCache.delete(id);
+    }
   }
 
   async saveImage(file: File): Promise<string> {
@@ -50,10 +66,11 @@ class ImageStorage {
     if (!validTypes.includes(file.type)) throw new Error('只支持 JPEG、PNG、GIF 和 WebP 格式的图片');
     const dimensions = await this.getImageDimensions(file);
     const id = `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const url = this.getOrCreateObjectUrl(id, file);
     const imageData: StoredImage = {
       id,
       type: 'file',
-      url: URL.createObjectURL(file),
+      url,
       blob: file,
       metadata: { size: file.size, mimeType: file.type, ...dimensions, uploadedAt: new Date().toISOString(), name: file.name },
     };

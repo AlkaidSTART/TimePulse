@@ -16,6 +16,8 @@
     "typecheck": "tsc -b --pretty false",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "tauri": "tauri",
+    "icon:generate": "tauri icon public/logo.png",
+    "patch:android-icons": "node scripts/patch-android-icons.mjs",
     "test": "vitest run",
     "test:e2e": "playwright test"
   },

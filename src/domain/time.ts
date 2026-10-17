@@ -64,7 +64,7 @@ function getZonedDateTimeFormatter(timeZone: string): Intl.DateTimeFormat {
   return formatter;
 }
 
-function getZonedDateTimeParts(timestamp: number, timeZone: string): ZonedDateTimeParts {
+export function getZonedDateTimeParts(timestamp: number, timeZone: string): ZonedDateTimeParts {
   const values: Record<string, number> = {};
   for (const part of getZonedDateTimeFormatter(timeZone).formatToParts(new Date(timestamp))) {
     if (part.type !== 'literal') values[part.type] = Number(part.value);

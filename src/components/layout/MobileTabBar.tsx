@@ -20,6 +20,7 @@ import {
   FiCheckSquare,
   FiInfo,
   FiChevronRight,
+  FiPalette,
 } from 'react-icons/fi';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { Timer, TimerType } from '@/domain/timer';
@@ -28,6 +29,8 @@ import type { Language } from '@/i18n/types';
 import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
 import { useTodoStore, useVersionStore } from '@/stores';
+import ThemeLibraryModal from '@/components/composed/ThemeLibraryModal';
+
 
 export type MobileTab = 'timer' | 'todo' | 'list' | 'background' | 'settings';
 
@@ -179,6 +182,7 @@ export default function MobileTabBar({
   const [clickedTab, setClickedTab] = useState<string | null>(null);
   const [editingTimer, setEditingTimer] = useState<TimerEditState | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [isThemeLibraryOpen, setIsThemeLibraryOpen] = useState(false);
   const [timerOrder, setTimerOrder] = useState(() => timers.map((t) => t.id));
   const timerOrderRef = useRef(timerOrder);
   const isWidgetEnabled = useTodoStore((s) => s.isWidgetEnabled);
@@ -266,27 +270,20 @@ export default function MobileTabBar({
     setShowColorPicker(false);
   };
 
-  // Liquid capsule animation physics
-  const liquidSpring = {
+  // Minimal smooth spring physics
+  const tabSpring = {
     type: 'spring' as const,
-    stiffness: 420,
-    damping: 30,
-    mass: 0.8,
+    stiffness: 450,
+    damping: 32,
   };
 
   const tabsConfig = [
-    { id: 'timer' as MobileTab, label: t('header.timers', '计时'), icon: FiClock },
-    { id: 'todo' as MobileTab, label: t('header.todo', '待办'), icon: FiCheckSquare },
-    { id: 'add' as const, label: '新建', icon: FiPlus, isAction: true },
-    { id: 'list' as MobileTab, label: t('header.manage', '列表'), icon: FiList, badge: timers.length },
-    { id: 'settings' as MobileTab, label: t('header.settings', '设置'), icon: FiSettings },
+    { id: 'timer' as MobileTab, label: t('header.timersShort', '计时'), icon: FiClock },
+    { id: 'todo' as MobileTab, label: t('header.todoShort', '待办'), icon: FiCheckSquare },
+    { id: 'add' as const, label: t('header.newTimer', '新建'), icon: FiPlus, isAction: true },
+    { id: 'list' as MobileTab, label: t('header.manageShort', '列表'), icon: FiList, badge: timers.length },
+    { id: 'settings' as MobileTab, label: t('header.settingsShort', '设置'), icon: FiSettings },
   ];
-
-  const getTabIndex = (tabId: string) => tabsConfig.findIndex((t) => t.id === tabId);
-  const currentIndex = getTabIndex(activeTab);
-  const prevIndex = getTabIndex(prevTab);
-  const direction = currentIndex >= prevIndex ? 1 : -1;
-  const distance = Math.abs(currentIndex - prevIndex);
 
   const timersById = new Map(timers.map((t) => [t.id, t]));
   const orderedTimerIds = [
@@ -296,18 +293,7 @@ export default function MobileTabBar({
 
   return (
     <>
-      {/* SVG Liquid Filter for authentic droplet cohesion */}
-      <svg className="fixed pointer-events-none opacity-0 w-0 h-0" aria-hidden="true">
-        <defs>
-          <filter id="ios-liquid-droplet-filter">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
-            <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
-            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-          </filter>
-        </defs>
-      </svg>
-
-      {/* Floating Bottom TabBar Container */}
+      {/* Floating Bottom TabBar Container - Clean minimalist dock without halos */}
       <motion.nav
         data-page-transition-ignore="true"
         aria-label="移动端底部导航"
@@ -316,42 +302,27 @@ export default function MobileTabBar({
           y: isVisible ? 0 : 96,
           opacity: isVisible ? 1 : 0,
         }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         className="fixed bottom-3 inset-x-3 z-40 md:hidden max-w-[420px] mx-auto pointer-events-auto"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
-        <div className="relative mx-auto flex h-[62px] w-full items-center justify-around rounded-full border border-white/30 bg-white/75 p-1.5 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.06)] backdrop-blur-2xl dark:border-white/12 dark:bg-black/65 dark:shadow-[0_16px_40px_-6px_rgba(0,0,0,0.7),0_2px_10px_rgba(0,0,0,0.5)]">
+        <div className="relative mx-auto flex h-[58px] w-full items-center justify-around rounded-full border border-black/[0.08] bg-white/90 p-1 shadow-[0_8px_24px_rgba(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#18181B]/90 dark:shadow-[0_12px_32px_rgba(0,0,0,0.5)]">
           {tabsConfig.map((item) => {
             if (item.isAction) {
-              // Center Action: "+" Button with vibrant liquid bubble styling
-              const isAddClicked = clickedTab === 'add';
+              // Center Action: "+" Button - Modern solid minimalist button
               return (
                 <div key={item.id} className="relative flex flex-1 items-center justify-center px-1">
                   <motion.button
                     type="button"
                     onClick={handleAddClick}
-                    whileTap={{ scale: 0.88 }}
-                    className="relative flex size-11 items-center justify-center rounded-full text-white shadow-md shadow-primary-500/25 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                    whileTap={{ scale: 0.92 }}
+                    className="relative flex size-10.5 items-center justify-center rounded-full text-white shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white cursor-pointer"
                     style={{
-                      backgroundColor: accentColor || '#0ea5e9',
-                      background: `linear-gradient(135deg, ${accentColor || '#0ea5e9'}, color-mix(in srgb, ${accentColor || '#0ea5e9'} 80%, #000))`,
+                      backgroundColor: accentColor || '#10A37F',
                     }}
                     aria-label="新建计时器"
                   >
-                    {/* Inner highlight */}
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent via-white/10 to-white/35 pointer-events-none" />
-
-                    {/* Droplet burst on click */}
-                    {isAddClicked && (
-                      <motion.span
-                        className="absolute inset-0 rounded-full border border-white/60 pointer-events-none"
-                        initial={{ scale: 0.8, opacity: 0.9 }}
-                        animate={{ scale: 1.6, opacity: 0 }}
-                        transition={{ duration: 0.45, ease: 'easeOut' }}
-                      />
-                    )}
-
-                    <FiPlus className="size-5 stroke-[2.5]" />
+                    <FiPlus className="size-5 stroke-[2.3]" />
                   </motion.button>
                 </div>
               );
@@ -359,7 +330,6 @@ export default function MobileTabBar({
 
             const tab = item.id as MobileTab;
             const isActive = activeTab === tab;
-            const isTabClicked = clickedTab === tab;
             const Icon = item.icon;
 
             return (
@@ -367,75 +337,44 @@ export default function MobileTabBar({
                 <motion.button
                   type="button"
                   onClick={() => handleTabClick(tab)}
-                  whileTap={{ scale: 0.92 }}
+                  whileTap={{ scale: 0.94 }}
                   className="relative flex flex-col items-center justify-center w-full h-full rounded-full cursor-pointer focus:outline-none transition-colors duration-200 select-none"
                   aria-selected={isActive}
                   role="tab"
                 >
-                  {/* Liquid Water Droplet Capsule Indicator */}
+                  {/* Clean active tab capsule indicator without blur glow */}
                   {isActive && (
-                    <>
-                      {/* Ambient Liquid Glow */}
-                      <motion.div
-                        layoutId="mobile-liquid-glow"
-                        className="absolute inset-1.5 rounded-full opacity-35 blur-md pointer-events-none"
-                        style={{ backgroundColor: accentColor || '#0ea5e9' }}
-                        transition={liquidSpring}
-                      />
-
-                      {/* Liquid Droplet Capsule Body with Stretch */}
-                      <motion.div
-                        layoutId="mobile-liquid-capsule"
-                        className="absolute inset-1 rounded-full pointer-events-none overflow-hidden"
-                        style={{
-                          background: `linear-gradient(135deg, ${accentColor || '#0ea5e9'}, color-mix(in srgb, ${accentColor || '#0ea5e9'} 84%, #111827))`,
-                          boxShadow: `0 4px 14px -1px color-mix(in srgb, ${accentColor || '#0ea5e9'} 45%, transparent), inset 0 1px 1px rgba(255,255,255,0.4)`,
-                          transformOrigin: direction === 1 ? '0% 50%' : '100% 50%',
-                        }}
-                        initial={false}
-                        animate={{
-                          scaleX: [1, 1 + Math.min(distance * 0.16, 0.35), 0.96, 1],
-                        }}
-                        transition={liquidSpring}
-                      >
-                        {/* Specular Liquid Droplet Highlight */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/5 to-transparent rounded-full pointer-events-none" />
-                      </motion.div>
-                    </>
-                  )}
-
-                  {/* Water Droplet Burst Ripple on Click */}
-                  {isTabClicked && (
-                    <motion.span
-                      className="absolute inset-1 rounded-full pointer-events-none border"
-                      style={{ borderColor: accentColor || '#0ea5e9' }}
-                      initial={{ scale: 0.6, opacity: 0.8 }}
-                      animate={{ scale: 1.45, opacity: 0 }}
-                      transition={{ duration: 0.4, ease: 'easeOut' }}
+                    <motion.div
+                      layoutId="mobile-active-tab-indicator"
+                      className="absolute inset-1 rounded-full pointer-events-none shadow-xs"
+                      style={{
+                        backgroundColor: accentColor || '#10A37F',
+                      }}
+                      transition={tabSpring}
                     />
                   )}
 
-                  {/* Content: Icon + Label with Spring Pop */}
+                  {/* Content: Icon + Label */}
                   <motion.div
                     className="relative z-10 flex flex-col items-center justify-center gap-0.5"
-                    animate={isActive ? { scale: [0.94, 1.14, 1], y: [0, -1.5, 0] } : { scale: 1, y: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    animate={isActive ? { scale: [0.96, 1.05, 1] } : { scale: 1 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
                   >
                     <div className="relative">
                       <Icon
-                        className={`size-[19px] transition-colors duration-200 ${
+                        className={`size-[18px] transition-colors duration-150 ${
                           isActive
-                            ? 'text-white stroke-[2.3] drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]'
+                            ? 'text-white stroke-[2.2]'
                             : 'text-gray-500 dark:text-gray-400 stroke-[1.8]'
                         }`}
                       />
                       {/* Badge if present */}
                       {item.badge !== undefined && item.badge > 0 && (
                         <span
-                          className={`absolute -top-1.5 -right-2 flex size-3.5 items-center justify-center rounded-full text-[9px] font-bold shadow-xs ${
+                          className={`absolute -top-1.5 -right-2 flex size-3.5 items-center justify-center rounded-full text-[9px] font-bold ${
                             isActive
-                              ? 'bg-white text-gray-900 shadow-sm'
-                              : 'bg-primary-500 text-white'
+                              ? 'bg-white text-gray-900 shadow-xs'
+                              : 'bg-primary-500 text-white shadow-xs'
                           }`}
                         >
                           {item.badge}
@@ -443,9 +382,9 @@ export default function MobileTabBar({
                       )}
                     </div>
                     <span
-                      className={`text-[10px] tracking-tight transition-colors duration-200 ${
+                      className={`text-[10px] tracking-tight transition-colors duration-150 whitespace-nowrap ${
                         isActive
-                          ? 'font-bold text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]'
+                          ? 'font-semibold text-white'
                           : 'font-medium text-gray-500 dark:text-gray-400'
                       }`}
                     >
@@ -898,7 +837,39 @@ export default function MobileTabBar({
                     {t('mobile.preferences', '功能与偏好')}
                   </div>
                   <div className="rounded-xl border border-white/30 bg-white/50 dark:border-white/10 dark:bg-white/5 divide-y divide-gray-200/40 dark:divide-white/5 backdrop-blur-md overflow-hidden">
+                    {/* Theme Color Palette */}
+                    <button
+                      type="button"
+                      onClick={() => setIsThemeLibraryOpen(true)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-white/40 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className="size-7 rounded-lg flex items-center justify-center shrink-0 shadow-xs text-white"
+                          style={{ backgroundColor: accentColor || '#10A37F' }}
+                        >
+                          <FiPalette className="size-3.5 stroke-[2.2]" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                            {t('theme.title', '主题配色库')}
+                          </p>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                            {t('theme.subtitle', '灵感源自 ChatGPT 极简美学')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 shrink-0 pl-2">
+                        <span
+                          className="size-3.5 rounded-full border border-black/10 dark:border-white/20 inline-block shadow-xs"
+                          style={{ backgroundColor: accentColor || '#10A37F' }}
+                        />
+                        <FiChevronRight className="size-3.5 text-gray-400 group-hover:translate-x-0.5 transition-transform" />
+                      </div>
+                    </button>
+
                     {/* Background Settings */}
+
                     <button
                       type="button"
                       onClick={() => {
@@ -1037,6 +1008,13 @@ export default function MobileTabBar({
           </div>
         )}
       </AnimatePresence>
+
+      {/* ChatGPT Theme Color Palette Library Modal */}
+      <ThemeLibraryModal
+        isOpen={isThemeLibraryOpen}
+        onClose={() => setIsThemeLibraryOpen(false)}
+      />
     </>
   );
 }
+
