@@ -61,12 +61,33 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// 处理fetch请求 - 使用网络优先(Network First)策略
+// 处理fetch请求
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // 对于同源请求，使用网络优先策略，强制绕过浏览器缓存
+  // 对于静态构建资产 (/assets/)，文件名自带哈希永不变更，采用 Cache-First 策略实现秒开
+  if (url.origin === location.origin && url.pathname.startsWith('/assets/')) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(request).then((response) => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return response;
+        });
+      }),
+    );
+    return;
+  }
+
+  // 对于其他同源请求（如 index.html），使用网络优先策略
   if (url.origin === location.origin) {
     event.respondWith(
       fetch(request, { cache: "no-cache" }) // 强制绕过浏览器缓存

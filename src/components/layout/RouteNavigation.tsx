@@ -109,8 +109,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               style={
                 isActive
                   ? {
-                      backgroundColor: accentColor || '#0ea5e9',
-                      boxShadow: `0 2px 10px color-mix(in srgb, ${accentColor || '#0ea5e9'} 45%, transparent)`,
+                      backgroundColor: accentColor || '#10A37F',
                     }
                   : undefined
               }
@@ -118,7 +117,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                 compact ? 'px-2.5 py-1 text-[11px]' : 'px-3 py-1.5 text-xs'
               } ${
                 isActive
-                  ? 'text-white font-semibold shadow-sm'
+                  ? 'text-white font-semibold shadow-xs'
                   : 'text-gray-700 hover:text-gray-950 dark:text-gray-200 dark:hover:text-white font-medium bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.08] dark:hover:bg-white/[0.12]'
               }`}
               data-insightflare-event={route.id === 'todo' ? 'todo_route_toggle' : 'timer_route_toggle'}
@@ -142,16 +141,14 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                   initial={false}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 rounded-full pointer-events-none"
+                  className="absolute inset-0 rounded-full pointer-events-none shadow-xs"
                   style={{
-                    backgroundColor: accentColor || '#0ea5e9',
+                    backgroundColor: accentColor || '#10A37F',
                   }}
                   transition={{ type: 'spring', stiffness: 450, damping: 28 }}
-                >
-                  {/* Specular glass reflection */}
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-t from-transparent via-white/10 to-white/30" />
-                </motion.div>
+                />
               )}
+
 
               {/* Icon with animated spring bounce/tilt on hover */}
               <motion.span

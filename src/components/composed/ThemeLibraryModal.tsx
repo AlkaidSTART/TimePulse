@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiCheck, FiX, FiSliders, FiPalette } from 'react-icons/fi';
+import { FiCheck, FiX, FiSliders } from 'react-icons/fi';
+import { LuPalette } from 'react-icons/lu';
 import { HexColorPicker } from 'react-colorful';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useTimers } from '@/app/providers/TimerProvider';
