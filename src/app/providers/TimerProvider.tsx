@@ -11,7 +11,7 @@ import {
 } from '@/domain/timer';
 import { timerReducer, type TimerState } from '@/features/timer-management/reducer';
 import { addNotification, removeNotification } from '@/services/notificationManager';
-import { readTimers, writeTimers } from '@/services/storage';
+import { readActiveTimerId, readTimers, writeActiveTimerId, writeTimers } from '@/services/storage';
 
 export type TimerInput = {
   id?: string;
@@ -102,37 +102,46 @@ export function TimerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    console.log(`${new Date().toLocaleTimeString()} | [初始化] 开始加载计时器数据`);
-    const loadedTimers = readTimers();
-    const savedActiveTimerId = localStorage.getItem('activeTimerId');
-    console.log(`${new Date().toLocaleTimeString()} | [本地存储] 找到 ${loadedTimers.length} 个本地计时器`);
-    console.log(`${new Date().toLocaleTimeString()} | [本地存储] 上次活动计时器ID: ${savedActiveTimerId || '未设置'}`);
+    let cancelled = false;
 
-    if (loadedTimers.length === 0) {
-      const defaultTimer = getDefaultTimer();
-      dispatch({ type: 'replace', timers: [defaultTimer], activeTimerId: defaultTimer.id });
-      console.log(`${new Date().toLocaleTimeString()} | [初始化] 没有本地计时器，创建默认计时器`);
-    } else {
-      const selectedId = savedActiveTimerId && loadedTimers.some((timer) => timer.id === savedActiveTimerId)
-        ? savedActiveTimerId
-        : loadedTimers[0].id;
-      dispatch({ type: 'replace', timers: loadedTimers, activeTimerId: selectedId });
-      console.log(`${new Date().toLocaleTimeString()} | [初始化] 恢复活动计时器: ${selectedId}`);
-    }
-    setIsLoaded(true);
-    console.log(`${new Date().toLocaleTimeString()} | [初始化] 本地数据加载完成，共${loadedTimers.length || 1}个计时器`);
+    const loadTimers = async () => {
+      console.log(`${new Date().toLocaleTimeString()} | [初始化] 开始加载计时器数据`);
+      const [loadedTimers, savedActiveTimerId] = await Promise.all([readTimers(), readActiveTimerId()]);
+      if (cancelled) return;
+      console.log(`${new Date().toLocaleTimeString()} | [IndexedDB] 找到 ${loadedTimers.length} 个本地计时器`);
+      console.log(`${new Date().toLocaleTimeString()} | [IndexedDB] 上次活动计时器ID: ${savedActiveTimerId || '未设置'}`);
+
+      if (loadedTimers.length === 0) {
+        const defaultTimer = getDefaultTimer();
+        dispatch({ type: 'replace', timers: [defaultTimer], activeTimerId: defaultTimer.id });
+        console.log(`${new Date().toLocaleTimeString()} | [初始化] 没有本地计时器，创建默认计时器`);
+      } else {
+        const selectedId = savedActiveTimerId && loadedTimers.some((timer) => timer.id === savedActiveTimerId)
+          ? savedActiveTimerId
+          : loadedTimers[0].id;
+        dispatch({ type: 'replace', timers: loadedTimers, activeTimerId: selectedId });
+        console.log(`${new Date().toLocaleTimeString()} | [初始化] 恢复活动计时器: ${selectedId}`);
+      }
+      setIsLoaded(true);
+      console.log(`${new Date().toLocaleTimeString()} | [初始化] 本地数据加载完成，共${loadedTimers.length || 1}个计时器`);
+    };
+
+    void loadTimers();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     if (!isLoaded || !activeTimerId) return;
-    localStorage.setItem('activeTimerId', activeTimerId);
+    void writeActiveTimerId(activeTimerId);
     const activeTimer = timers.find((timer) => timer.id === activeTimerId);
-    if (activeTimer) console.log(`${new Date().toLocaleTimeString()} | [本地存储] 活动计时器名称: ${activeTimer.name}`);
+    if (activeTimer) console.log(`${new Date().toLocaleTimeString()} | [存储] 活动计时器名称: ${activeTimer.name}`);
   }, [activeTimerId, isLoaded, timers]);
 
   useEffect(() => {
     if (!isLoaded || timers.length === 0) return;
-    writeTimers(timers);
+    void writeTimers(timers);
   }, [timers, isLoaded]);
 
   const checkAndUpdateDefaultTimer = useCallback(() => {

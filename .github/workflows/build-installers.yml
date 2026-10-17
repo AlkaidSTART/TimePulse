@@ -1,0 +1,239 @@
+name: Build Installers
+
+# main 分支每次更新（或手动触发）时，打包 macOS(dmg) / Windows(exe) / Android(apk) 安装包，
+# 并作为构建产物上传，同时附加到当前版本号的 GitHub Release
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# 新推送取消进行中的旧构建，避免重复打包
+concurrency:
+  group: build-installers-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  desktop:
+    name: Desktop (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            os: macos-latest
+            target: universal-apple-darwin
+            bundles: dmg
+            rustTargets: aarch64-apple-darwin,x86_64-apple-darwin
+            artifactKey: timepulse-macos
+            artifactPath: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          - name: Windows
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bundles: nsis
+            rustTargets: x86_64-pc-windows-msvc
+            artifactKey: timepulse-windows
+            artifactPath: src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rustTargets }}
+
+      - name: Cache Rust Build Artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+          key: ${{ matrix.artifactKey }}
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Sync App Version from package.json
+        run: node scripts/sync-tauri-version.mjs
+
+      # 未配置 Apple 证书时使用 ad-hoc 签名，避免 macOS 提示"应用已损坏"；
+      # 配置 APPLE_SIGNING_IDENTITY secret 后自动使用正式签名
+      - name: Build Installer
+        run: pnpm tauri build --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY || '-' }}
+
+      - name: Upload Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifactKey }}
+          path: ${{ matrix.artifactPath }}
+          if-no-files-found: error
+
+  android:
+    name: Android (APK)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # 版本号与本仓库锁定的 @tauri-apps/cli 一致（见 tauri-cli 的 NDK_VERSION / SDK_VERSION）
+      - name: Setup Android SDK and NDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-37 ndk;29.0.13846066'
+
+      - name: Configure Android Environment
+        run: |
+          echo "ANDROID_HOME=${ANDROID_SDK_ROOT}" >> "$GITHUB_ENV"
+          echo "NDK_HOME=${ANDROID_SDK_ROOT}/ndk/29.0.13846066" >> "$GITHUB_ENV"
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Cache Rust Build Artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+          key: android
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('src-tauri/gen/android/**') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Sync App Version from package.json
+        run: node scripts/sync-tauri-version.mjs
+
+      - name: Initialize Android Project
+        run: pnpm tauri android init
+
+      # 优先使用仓库 Secrets 中的正式签名密钥（ANDROID_KEYSTORE_BASE64 / ANDROID_KEY_ALIAS /
+      # ANDROID_KEY_PASSWORD，生成方式见 README）；未配置时生成一次性 CI 密钥，保证 APK 可直接安装
+      - name: Write Android Signing Config
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cd src-tauri/gen/android
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/keystore.jks"
+            ALIAS="$KEYSTORE_ALIAS"
+            PASSWORD="$KEYSTORE_PASSWORD"
+          else
+            keytool -genkeypair -keystore "$RUNNER_TEMP/keystore.jks" \
+              -alias timepulse-ci -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass timepulse-ci -keypass timepulse-ci \
+              -dname "CN=TimePulse CI, OU=CI, O=TimePulse, L=Beijing, ST=Beijing, C=CN"
+            ALIAS=timepulse-ci
+            PASSWORD=timepulse-ci
+          fi
+          {
+            echo "keyAlias=$ALIAS"
+            echo "password=$PASSWORD"
+            echo "storeFile=$RUNNER_TEMP/keystore.jks"
+          } > keystore.properties
+
+      - name: Patch Gradle Signing
+        run: node scripts/patch-android-signing.mjs
+
+      # 仅构建 arm64 APK（覆盖绝大多数真机，显著缩短构建时间）
+      - name: Build APK
+        run: pnpm tauri android build --apk --target aarch64
+
+      - name: Collect APK
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          APK=$(find src-tauri/gen/android/app/build/outputs/apk -name '*.apk' | head -n1)
+          mkdir -p installers
+          cp "$APK" "installers/TimePulse_${VERSION}_android-arm64.apk"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: timepulse-android
+          path: installers/*.apk
+          if-no-files-found: error
+
+  publish:
+    name: Publish Installers
+    needs:
+      - desktop
+      - android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Installers
+        uses: actions/download-artifact@v4
+        with:
+          pattern: timepulse-*
+          merge-multiple: true
+          path: installers
+
+      - name: List Installers
+        run: ls -lh installers
+
+      # 附加到 v{package.json 版本} 的 Release（已存在则覆盖同名文件），
+      # 与 release.yml 的版本发布流程保持一致
+      - name: Upload Installers to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="v$(jq -r .version package.json)"
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "Release $VERSION 已存在，更新安装包..."
+          else
+            echo "Release $VERSION 不存在，创建..."
+            gh release create "$VERSION" \
+              --title "Release $VERSION" \
+              --notes "TimePulse $VERSION 安装包：macOS (dmg) / Windows (exe) / Android (apk)"
+          fi
+          gh release upload "$VERSION" installers/* --clobber
+          echo "安装包已上传到 Release $VERSION"

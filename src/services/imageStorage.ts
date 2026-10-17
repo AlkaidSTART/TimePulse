@@ -1,5 +1,5 @@
-const DB_NAME = 'TimePulseDB';
-const DB_VERSION = 1;
+import { openTimePulseDatabase } from './storage';
+
 const STORE_NAME = 'custom_backgrounds';
 
 export interface StoredImageMetadata {
@@ -21,30 +21,11 @@ export interface StoredImage {
 }
 
 class ImageStorage {
-  private db: IDBDatabase | null = null;
-
-  private async initDB(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-      request.onerror = () => reject(new Error('无法打开 IndexedDB'));
-      request.onsuccess = () => {
-        this.db = request.result;
-        resolve(request.result);
-      };
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-          store.createIndex('type', 'type', { unique: false });
-        }
-      };
-    });
-  }
-
+  /**
+   * 统一走 storage.ts 的共享 opener，避免多处 indexedDB.open 版本不一致。
+   */
   private async ensureDB(): Promise<IDBDatabase> {
-    if (!this.db) await this.initDB();
-    if (!this.db) throw new Error('无法初始化 IndexedDB');
-    return this.db;
+    return openTimePulseDatabase();
   }
 
   private getImageDimensions(file: Blob): Promise<{ width: number; height: number }> {
@@ -151,11 +132,6 @@ class ImageStorage {
       request.onsuccess = () => resolve();
       request.onerror = () => reject(new Error('清空图片失败'));
     });
-  }
-
-  close(): void {
-    this.db?.close();
-    this.db = null;
   }
 }
 
