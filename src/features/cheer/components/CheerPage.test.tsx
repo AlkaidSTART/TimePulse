@@ -40,11 +40,13 @@ describe('CheerPage quote carousel', () => {
     const refreshButton = screen.getByTitle('换一句');
     expect(refreshButton).toBeDefined();
 
-    // First click should trigger switch
+    // First click should trigger switch and show loading state
     await act(async () => {
       fireEvent.click(refreshButton);
     });
 
+    expect(screen.getByTestId('quote-loading')).toBeDefined();
+    expect(screen.getByText('Loading...')).toBeDefined();
     expect(refreshButton.hasAttribute('disabled')).toBe(true);
 
     // Rapid successive clicks within 450ms debounce/throttle window should be ignored
@@ -59,11 +61,30 @@ describe('CheerPage quote carousel', () => {
     });
 
     expect(refreshButton.hasAttribute('disabled')).toBe(false);
+    expect(screen.queryByTestId('quote-loading')).toBeNull();
 
     const quoteElement = screen.getByText((content) =>
       INSPIRATIONAL_QUOTES.some((q) => content.includes(q.text))
     );
     expect(quoteElement).toBeDefined();
+  });
+
+  it('displays loading indicator during quote transition', async () => {
+    render(<CheerPage />);
+
+    const refreshButton = screen.getByTitle('换一句');
+    await act(async () => {
+      fireEvent.click(refreshButton);
+    });
+
+    expect(screen.getByTestId('quote-loading')).toBeDefined();
+    expect(screen.getByText('Loading...')).toBeDefined();
+
+    act(() => {
+      vi.advanceTimersByTime(400);
+    });
+
+    expect(screen.queryByTestId('quote-loading')).toBeNull();
   });
 
   it('copies current quote text to clipboard when "复制" is clicked and debounces duplicate clicks', async () => {
@@ -98,9 +119,16 @@ describe('CheerPage quote carousel', () => {
   it('auto-rotates to next quote after 15 seconds', async () => {
     render(<CheerPage />);
 
-    // Advancing timers by 15000ms should trigger auto-rotation
+    // Advancing timers by 15000ms triggers auto-rotation and enters loading state
     await act(async () => {
       vi.advanceTimersByTime(15000);
+    });
+
+    expect(screen.getByTestId('quote-loading')).toBeDefined();
+
+    // Advancing through the loading duration (350ms) reveals the next quote
+    await act(async () => {
+      vi.advanceTimersByTime(400);
     });
 
     const quoteElement = screen.getByText((content) =>

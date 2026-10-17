@@ -13,7 +13,14 @@ import {
 import { normalizeLanguage } from '@/i18n/types';
 import { timerReducer, type TimerAction } from '@/features/timer-management/reducer';
 import { addNotification, removeNotification } from '@/services/notificationManager';
-import { readActiveTimerId, readTimers, writeActiveTimerId, writeTimers } from '@/services/storage';
+import {
+  readActiveTimerId,
+  readCachedActiveTimerId,
+  readCachedTimers,
+  readTimers,
+  writeActiveTimerId,
+  writeTimers,
+} from '@/services/storage';
 import { useThemeStore } from './useThemeStore';
 
 export type TimerInput = {
@@ -109,9 +116,30 @@ function syncActiveTimerColor(timers: Timer[], activeTimerId: string | null): vo
   }
 }
 
+function getInitialTimerState(): { timers: Timer[]; activeTimerId: string | null } {
+  if (typeof window === 'undefined') {
+    return { timers: [], activeTimerId: null };
+  }
+  const cachedTimers = readCachedTimers();
+  const cachedActiveId = readCachedActiveTimerId();
+
+  if (cachedTimers.length > 0) {
+    const selectedId = cachedActiveId && cachedTimers.some((t) => t.id === cachedActiveId)
+      ? cachedActiveId
+      : cachedTimers[0].id;
+    return { timers: cachedTimers, activeTimerId: selectedId };
+  }
+
+  // 首屏无缓存时提供默认本地时钟，消除首屏等待
+  const defaultTimer = getDefaultTimer();
+  return { timers: [defaultTimer], activeTimerId: defaultTimer.id };
+}
+
+const initialTimerState = getInitialTimerState();
+
 export const useTimerStore = create<TimerState>((set, get) => ({
-  timers: [],
-  activeTimerId: null,
+  timers: initialTimerState.timers,
+  activeTimerId: initialTimerState.activeTimerId,
   holidaysList: typeof window !== 'undefined' ? getHolidaysList() : [],
   isLoaded: false,
 

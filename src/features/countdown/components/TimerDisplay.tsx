@@ -267,8 +267,78 @@ const CalendarTimeRows = memo(function CalendarTimeRows({
   );
 });
 
+function getInitialDisplaySnapshot(timer: Timer | null): {
+  timeValue: DisplayTime;
+  showYears: boolean;
+  showDays: boolean;
+} {
+  if (!timer) {
+    return {
+      timeValue: { years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 },
+      showYears: false,
+      showDays: false,
+    };
+  }
+
+  const now = Date.now();
+  const timerType = getTimerType(timer);
+
+  if (timerType === 'worldclock') {
+    const parts = getZonedDateTimeParts(now, (timer as WorldClockTimer).timezone);
+    return {
+      timeValue: {
+        years: 0,
+        months: 0,
+        days: 0,
+        hours: parts.hour,
+        minutes: parts.minute,
+        seconds: parts.second,
+      },
+      showYears: false,
+      showDays: false,
+    };
+  }
+
+  if (timerType === 'stopwatch') {
+    const sw = timer as StopwatchTimer;
+    const startTimestamp = sw.startTime === null ? Number.NaN : toDate(sw.startTime).getTime();
+    const wallClockEnd = sw.isRunning
+      ? now
+      : sw.pausedAt
+        ? toDate(sw.pausedAt).getTime()
+        : startTimestamp;
+    const effectiveEnd = wallClockEnd - (sw.totalPausedTime || 0);
+    const split = splitCalendarDuration(startTimestamp, effectiveEnd);
+    return {
+      timeValue: split,
+      showYears: split.years > 0,
+      showDays: split.days > 0 || split.months > 0 || split.years > 0,
+    };
+  }
+
+  const cd = timer as CountdownTimer;
+  const targetDate = toDate(cd.targetDate);
+  if (targetDate.getTime() - now <= 0) {
+    return {
+      timeValue: { years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 },
+      showYears: false,
+      showDays: false,
+    };
+  }
+  const split = splitCalendarDuration(now, targetDate.getTime(), cd.timezone);
+  return {
+    timeValue: split,
+    showYears: split.years > 0,
+    showDays: split.days > 0 || split.months > 0 || split.years > 0,
+  };
+}
+
 export default function TimerDisplay() {
   const { getActiveTimer, updateTimer } = useTimers();
+  const activeTimerAtMount = getActiveTimer() as Timer | null;
+  const activeTimerTypeAtMount = activeTimerAtMount ? getTimerType(activeTimerAtMount) : null;
+  const initialSnapshot = useMemo(() => getInitialDisplaySnapshot(activeTimerAtMount), [activeTimerAtMount?.id]);
+
   const { isFullscreen, timerFontSize: rawTimerFontSize, labelFontSize: rawLabelFontSize } = useFullscreen();
   const { t, currentLang } = useTranslation();
   const timeLabels = useMemo(() => ({
@@ -281,21 +351,23 @@ export default function TimerDisplay() {
   }), [t]);
   const timerFontSize = (rawTimerFontSize || 'medium') as FontSize;
   const labelFontSize = (rawLabelFontSize || 'medium') as FontSize;
-  const [timeValue, setTimeValue] = useState<DisplayTime>({ years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [isInitialValuesReady, setIsInitialValuesReady] = useState(false);
+  const [timeValue, setTimeValue] = useState<DisplayTime>(() => initialSnapshot.timeValue);
+  const [isInitialValuesReady, setIsInitialValuesReady] = useState(() => Boolean(activeTimerAtMount));
   const [isDisplayVisible, setIsDisplayVisible] = useState(false);
-  const [showDays, setShowDays] = useState(false);
-  const [showYears, setShowYears] = useState(false);
+  const [showDays, setShowDays] = useState(() => initialSnapshot.showDays);
+  const [showYears, setShowYears] = useState(() => initialSnapshot.showYears);
   const [isFinished, setIsFinished] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
+  const [isRunning, setIsRunning] = useState(() => activeTimerTypeAtMount === 'stopwatch' && (activeTimerAtMount as StopwatchTimer)?.isRunning === true);
   const [isLapModalOpen, setIsLapModalOpen] = useState(false);
   const [isStopwatchStopDialogOpen, setIsStopwatchStopDialogOpen] = useState(false);
-  const [timeValueTimerType, setTimeValueTimerType] = useState<TimerType | null>(null);
+  const [timeValueTimerType, setTimeValueTimerType] = useState<TimerType | null>(activeTimerTypeAtMount);
   
   // 使用 ref 跟踪最后计算的时间，避免不必要的重渲染
-  const lastTimeRef = useRef<DisplayTime | null>(null);
-  const activeTimerIdentityRef = useRef<{ id: string; type: TimerType } | null>(null);
-  const initialValuesReadyRef = useRef(false);
+  const lastTimeRef = useRef<DisplayTime | null>(initialSnapshot.timeValue);
+  const activeTimerIdentityRef = useRef<{ id: string; type: TimerType } | null>(
+    activeTimerAtMount ? { id: activeTimerAtMount.id, type: activeTimerTypeAtMount! } : null
+  );
+  const initialValuesReadyRef = useRef(Boolean(activeTimerAtMount));
   const timerIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // 判断两个时间对象是否相等
@@ -593,8 +665,8 @@ export default function TimerDisplay() {
   useEffect(() => {
     if (!isInitialValuesReady || isDisplayVisible || !activeTimer) return undefined;
 
-    // Instant layout stabilization with clean skeleton preview
-    const revealTimer = window.setTimeout(() => setIsDisplayVisible(true), 60);
+    // Zero-lag layout stabilization
+    const revealTimer = window.setTimeout(() => setIsDisplayVisible(true), 0);
     return () => window.clearTimeout(revealTimer);
   }, [
     isInitialValuesReady,
@@ -682,7 +754,7 @@ export default function TimerDisplay() {
             exit={{
               opacity: 0,
               filter: 'blur(4px)',
-              transition: { duration: 0.16, ease: 'easeOut' },
+              transition: { duration: 0.1, ease: 'easeOut' },
             }}
             className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
           >

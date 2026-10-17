@@ -296,46 +296,39 @@ export default function CheerPage() {
           </div>
 
           <div className="relative flex-1 flex flex-col justify-between min-h-0 pt-0.5 overflow-hidden">
-            <AnimatePresence mode="wait" initial={false}>
-              {isLoading ? (
-                <motion.div
-                  key="quote-loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="flex-1 flex flex-col items-center justify-center gap-1.5 select-none"
-                  role="status"
-                  aria-label="正在加载名言"
-                  data-testid="quote-loading"
-                >
-                  <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-                    <FiLoader className="size-3.5 animate-spin text-primary-500" />
-                    <span className="font-mono tracking-wider text-[11px] font-medium uppercase">
-                      Loading...
-                    </span>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key={quoteIndex}
-                  initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex-1 flex flex-col justify-between min-h-0"
-                >
-                  <div className="flex-1 flex items-center min-h-0">
-                    <p className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic select-text">
-                      “{currentQuote.text}”
-                    </p>
-                  </div>
-                  <div className="mt-1 text-right text-[11px] text-gray-400 dark:text-gray-500 shrink-0">
-                    —— {currentQuote.author}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {isLoading ? (
+              <div
+                className="flex-1 flex flex-col items-center justify-center gap-1.5 select-none animate-in fade-in duration-150"
+                role="status"
+                aria-label="正在加载名言"
+                data-testid="quote-loading"
+              >
+                <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+                  <FiLoader className="size-3.5 animate-spin text-primary-500" />
+                  <span className="font-mono tracking-wider text-[11px] font-medium uppercase">
+                    Loading...
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <motion.div
+                key={quoteIndex}
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="flex-1 flex flex-col justify-between min-h-0"
+              >
+                <div className="flex-1 flex items-center min-h-0">
+                  <p className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic select-text">
+                    “{currentQuote.text}”
+                  </p>
+                </div>
+                <div className="mt-1 text-right text-[11px] text-gray-400 dark:text-gray-500 shrink-0">
+                  —— {currentQuote.author}
+                </div>
+              </motion.div>
+            )}
           </div>
 
           {/* 轮播倒计时微进度指示条（极简雅致，悬停时暂停） */}

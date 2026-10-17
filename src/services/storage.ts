@@ -91,6 +91,25 @@ function readLegacyTimers(storage: Storage = localStorage): Timer[] {
   }
 }
 
+/**
+ * 同步从 localStorage 缓存中读取计时器，供 store 首屏预水合使用
+ */
+export function readCachedTimers(storage: Storage = localStorage): Timer[] {
+  return readLegacyTimers(storage);
+}
+
+/**
+ * 同步从 localStorage 缓存中读取活动计时器 ID
+ */
+export function readCachedActiveTimerId(storage: Storage = localStorage): string | null {
+  try {
+    return storage.getItem(STORAGE_KEYS.activeTimerId);
+  } catch (error) {
+    console.warn('读取 localStorage 缓存活动计时器失败:', error);
+    return null;
+  }
+}
+
 function writeLegacyValue(key: string, value: string | null): void {
   try {
     if (value === null) localStorage.removeItem(key);
