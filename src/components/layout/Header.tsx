@@ -15,6 +15,7 @@ import { PRESET_COLORS } from '@/constants/colors';
 import { AutoResizer, AutoTransition } from '@/components/ui';
 import { LinearDialogTransition } from '@/components/composed';
 import MobileTabBar, { type MobileTab } from './MobileTabBar';
+import WebDock from './WebDock';
 import AnimatedLogo from './AnimatedLogo';
 import RouteNavigation from './RouteNavigation';
 import { usePageTransition } from '@/hooks/usePageTransition';
@@ -183,6 +184,37 @@ export default function Header({ onHeightChange }: HeaderProps) {
     document.addEventListener('pointerdown', handleClickOutside);
     return () => document.removeEventListener('pointerdown', handleClickOutside);
   }, [isToolsOpen]);
+
+  // Dock visibility state on web desktop
+  const [isDockVisible, setIsDockVisible] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('timepulse_dock_visible') !== 'false';
+  });
+
+  const toggleDock = () => {
+    setIsDockVisible((prev) => {
+      const next = !prev;
+      localStorage.setItem('timepulse_dock_visible', String(next));
+      return next;
+    });
+  };
+
+  // Sync hash with modal states
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'add') {
+        setIsTimerCreationOpen(true);
+      } else if (hash === 'share') {
+        setIsShareOpen(true);
+      } else if (hash === 'manage') {
+        setIsManageOpen(true);
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    handleHash();
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
 
   useLayoutEffect(() => {
     const nav = navRef.current;
@@ -620,6 +652,29 @@ export default function Header({ onHeightChange }: HeaderProps) {
                       }`}
                     >
                       {isWidgetEnabled ? t('header.active', '显示中') : t('header.inactive', '已隐藏')}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
+                      toggleDock();
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiMaximize className="size-4 text-sky-500" />
+                      <span>{t('header.dockBar', '底部 Dock 栏')}</span>
+                    </div>
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        isDockVisible
+                          ? 'bg-primary-500/15 text-primary-600 dark:text-primary-400'
+                          : 'bg-black/5 text-gray-400 dark:bg-white/10 dark:text-gray-500'
+                      }`}
+                    >
+                      {isDockVisible ? t('header.active', '显示中') : t('header.inactive', '已隐藏')}
                     </span>
                   </button>
 
@@ -1108,6 +1163,28 @@ export default function Header({ onHeightChange }: HeaderProps) {
       updateTimer={updateTimer}
       reorderTimers={reorderTimers}
     />
+
+    {/* Desktop Apple-Style Web Dock */}
+    {isDockVisible && (
+      <WebDock
+        onOpenAdd={() => {
+          setIsTimerCreationOpen(true);
+          if (window.location.hash !== '#add') window.location.hash = 'add';
+        }}
+        onOpenManage={() => {
+          setIsManageOpen(true);
+          if (window.location.hash !== '#manage') window.location.hash = 'manage';
+        }}
+        onOpenBackground={() => {
+          if (window.location.hash !== '#background') window.location.hash = 'background';
+        }}
+        onOpenShare={() => {
+          setIsShareOpen(true);
+          if (window.location.hash !== '#share') window.location.hash = 'share';
+        }}
+        onOpenThemeLibrary={() => setIsThemeLibraryOpen(true)}
+      />
+    )}
 
     {/* Theme Color Palette Library Modal */}
     <ThemeLibraryModal

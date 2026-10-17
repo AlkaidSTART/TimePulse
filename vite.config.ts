@@ -48,7 +48,7 @@ export default defineConfig({
             if (id.includes('@number-flow') || id.includes('overlayscrollbars')) {
               return 'vendor-ui';
             }
-            if (id.includes('react-icons')) {
+            if (id.includes('react-icons') || id.includes('lucide-react')) {
               return 'vendor-icons';
             }
             return 'vendor-misc';
@@ -68,6 +68,7 @@ export default defineConfig({
       'qrcode.react',
       'react-colorful',
       'react-icons/fi',
+      'lucide-react',
       'solarlunar',
       'uuid',
     ],
