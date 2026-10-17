@@ -36,7 +36,24 @@ describe('Zustand Stores Suite', () => {
       expect(useThemeStore.getState().accentColor).toBe('#ff0055');
       expect(localStorage.getItem('accent-color')).toBe('#ff0055');
     });
+
+    it('sets theme preset and matches preset id for ChatGPT presets', () => {
+      const state = useThemeStore.getState();
+      state.setThemePreset('purple');
+      expect(useThemeStore.getState().themePresetId).toBe('purple');
+      expect(useThemeStore.getState().accentColor).toBe('#8B5CF6');
+      expect(localStorage.getItem('theme-preset')).toBe('purple');
+
+      state.setThemePreset('blue');
+      expect(useThemeStore.getState().themePresetId).toBe('blue');
+      expect(useThemeStore.getState().accentColor).toBe('#3B82F6');
+
+      state.setThemePreset('custom', '#123456');
+      expect(useThemeStore.getState().themePresetId).toBe('custom');
+      expect(useThemeStore.getState().accentColor).toBe('#123456');
+    });
   });
+
 
   describe('useBackgroundStore', () => {
     it('updates background settings and syncs to localStorage', () => {

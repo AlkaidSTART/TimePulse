@@ -20,8 +20,8 @@ import {
   FiCheckSquare,
   FiInfo,
   FiChevronRight,
-  FiPalette,
 } from 'react-icons/fi';
+import { LuPalette } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { Timer, TimerType } from '@/domain/timer';
 import { useTranslation } from '@/i18n/useTranslation';
@@ -92,21 +92,26 @@ function MobileTimerRow({
       dragListener={false}
       dragControls={dragControls}
       onDragEnd={onDragEnd}
-      className={`group relative flex items-center justify-between gap-3 rounded-2xl border p-3.5 transition-all duration-200 ${
+      className={`group relative flex items-center justify-between gap-3 rounded-2xl border p-3 transition-all duration-200 ${
         isActive
-          ? 'border-primary-500/50 bg-primary-500/10 dark:bg-primary-500/20 ring-1 ring-primary-500/25 shadow-sm'
-          : 'border-white/20 bg-white/40 hover:bg-white/60 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
-      } backdrop-blur-md`}
-      style={{ borderLeftWidth: '4px', borderLeftColor: timer.color || '#0ea5e9' }}
+          ? 'border-black/15 bg-white/95 dark:border-white/20 dark:bg-white/[0.12] shadow-xs'
+          : 'border-black/[0.06] bg-white/60 hover:bg-white/80 dark:border-white/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.08]'
+      } backdrop-blur-xl`}
     >
+      {/* Visual Accent Pill on Left */}
+      <span
+        className="shrink-0 w-1.5 h-9 rounded-full shadow-xs"
+        style={{ backgroundColor: timer.color || '#0ea5e9' }}
+      />
+
       {/* Drag handle */}
       <button
         type="button"
-        className="inline-flex size-7 shrink-0 touch-none cursor-grab items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 active:cursor-grabbing dark:text-gray-500 dark:hover:text-gray-300"
+        className="inline-flex size-7 shrink-0 touch-none cursor-grab items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 active:cursor-grabbing dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
         onPointerDown={(e) => dragControls.start(e)}
         aria-label="拖动排序"
       >
-        <RxDragHandleDots2 className="size-5 text-current" />
+        <RxDragHandleDots2 className="size-4.5 text-current" />
       </button>
 
       {/* Timer Info - Tap to select */}
@@ -116,15 +121,15 @@ function MobileTimerRow({
         className="flex-1 min-w-0 text-left cursor-pointer focus:outline-none"
       >
         <div className="flex items-center gap-2">
-          <h4 className="truncate font-medium text-sm text-gray-900 dark:text-gray-100">
+          <h4 className="truncate font-semibold text-sm text-gray-900 dark:text-gray-100 tracking-tight">
             {timer.name}
           </h4>
           {isActive && (
             <span
-              className="flex items-center gap-1 text-[11px] font-semibold text-white px-2 py-0.5 rounded-full shadow-xs"
+              className="flex items-center gap-1 text-[10px] font-semibold text-white px-2 py-0.5 rounded-full shadow-xs"
               style={{ backgroundColor: timer.color || '#0ea5e9' }}
             >
-              <FiCheck className="size-3 stroke-[2.5]" />
+              <FiCheck className="size-2.5 stroke-[2.8]" />
               当前
             </span>
           )}
@@ -134,12 +139,12 @@ function MobileTimerRow({
         </p>
       </button>
 
-      {/* Actions */}
+      {/* Actions: Subtle frosted icon buttons */}
       <div className="flex shrink-0 items-center gap-1.5">
         <button
           type="button"
           onClick={onEdit}
-          className="inline-flex size-8 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 dark:bg-blue-500/15 dark:text-blue-400 cursor-pointer transition-colors"
+          className="inline-flex size-7.5 items-center justify-center rounded-full bg-black/[0.04] text-gray-600 hover:bg-black/[0.08] dark:bg-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.14] cursor-pointer transition-colors"
           title="编辑"
         >
           <FiEdit className="size-3.5" />
@@ -147,7 +152,7 @@ function MobileTimerRow({
         <button
           type="button"
           onClick={onDelete}
-          className="inline-flex size-8 items-center justify-center rounded-full bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:bg-red-500/15 dark:text-red-400 cursor-pointer transition-colors"
+          className="inline-flex size-7.5 items-center justify-center rounded-full bg-black/[0.04] text-gray-600 hover:bg-red-500/10 hover:text-red-500 dark:bg-white/[0.08] dark:text-gray-300 dark:hover:bg-red-500/20 dark:hover:text-red-400 cursor-pointer transition-colors"
           title="删除"
         >
           <FiX className="size-3.5" />
@@ -293,7 +298,7 @@ export default function MobileTabBar({
 
   return (
     <>
-      {/* Floating Bottom TabBar Container - Clean minimalist dock without halos */}
+      {/* Floating Bottom TabBar Container - VisionOS / Dynamic Island Style Floating Dock */}
       <motion.nav
         data-page-transition-ignore="true"
         aria-label="移动端底部导航"
@@ -306,23 +311,24 @@ export default function MobileTabBar({
         className="fixed bottom-3 inset-x-3 z-40 md:hidden max-w-[420px] mx-auto pointer-events-auto"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
-        <div className="relative mx-auto flex h-[58px] w-full items-center justify-around rounded-full border border-black/[0.08] bg-white/90 p-1 shadow-[0_8px_24px_rgba(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#18181B]/90 dark:shadow-[0_12px_32px_rgba(0,0,0,0.5)]">
+        <div className="relative mx-auto flex h-[58px] w-full items-center justify-around rounded-full border border-black/[0.08] bg-white/85 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.06)] backdrop-blur-2xl dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)]">
           {tabsConfig.map((item) => {
             if (item.isAction) {
-              // Center Action: "+" Button - Modern solid minimalist button
+              // Center Action: "+" Button - Modern solid glowing button
               return (
                 <div key={item.id} className="relative flex flex-1 items-center justify-center px-1">
                   <motion.button
                     type="button"
                     onClick={handleAddClick}
-                    whileTap={{ scale: 0.92 }}
-                    className="relative flex size-10.5 items-center justify-center rounded-full text-white shadow-xs transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-white cursor-pointer"
+                    whileTap={{ scale: 0.9 }}
+                    className="relative flex size-10.5 items-center justify-center rounded-full text-white cursor-pointer transition-transform focus:outline-none"
                     style={{
-                      backgroundColor: accentColor || '#10A37F',
+                      backgroundColor: accentColor || '#0ea5e9',
+                      boxShadow: `0 4px 14px color-mix(in srgb, ${accentColor || '#0ea5e9'} 45%, transparent)`,
                     }}
                     aria-label="新建计时器"
                   >
-                    <FiPlus className="size-5 stroke-[2.3]" />
+                    <FiPlus className="size-5 stroke-[2.4]" />
                   </motion.button>
                 </div>
               );
@@ -338,61 +344,17 @@ export default function MobileTabBar({
                   type="button"
                   onClick={() => handleTabClick(tab)}
                   whileTap={{ scale: 0.94 }}
-                  className="relative flex flex-col items-center justify-center w-full h-full rounded-full cursor-pointer focus:outline-none transition-colors duration-200 select-none"
+                  className="relative flex flex-col items-center justify-center w-full h-full rounded-full cursor-pointer focus:outline-none select-none transition-colors duration-200"
                   aria-selected={isActive}
                   role="tab"
                 >
-                  {/* Liquid Water Droplet Capsule Indicator */}
+                  {/* Clean Minimalist Active Tab Capsule Indicator */}
                   {isActive && (
-                    <>
-                      {/* Ambient Water Droplet Soft Glow */}
-                      <motion.div
-                        layoutId="mobile-liquid-glow"
-                        className="absolute inset-1 rounded-full bg-white/70 dark:bg-white/10 opacity-50 dark:opacity-20 blur-sm pointer-events-none"
-                        transition={tabSpring}
-                      />
-
-                      {/* Liquid Droplet Capsule Body */}
-                      <motion.div
-                        layoutId="mobile-active-tab-indicator"
-                        className="liquid-droplet-pill absolute inset-1 rounded-full pointer-events-none overflow-hidden"
-                        transition={tabSpring}
-                      >
-                        {/* 顶部弧形液体高光 (Convex Specular Dome Arc) */}
-                        <div
-                          className="pointer-events-none absolute inset-x-0 top-0 h-[52%] overflow-hidden rounded-t-full"
-                          aria-hidden="true"
-                        >
-                          <div
-                            className="w-full h-full"
-                            style={{
-                              background:
-                                'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.28) 55%, transparent 100%)',
-                            }}
-                          />
-                        </div>
-
-                        {/* 对角流体折射光泽 (Diagonal Fluid Sheen) */}
-                        <div
-                          className="pointer-events-none absolute inset-0 rounded-full opacity-45"
-                          style={{
-                            background:
-                              'linear-gradient(125deg, rgba(255, 255, 255, 0.65) 0%, transparent 42%, rgba(255, 255, 255, 0.2) 80%, transparent 100%)',
-                          }}
-                          aria-hidden="true"
-                        />
-
-                        {/* 底部表面张力折射弧线 (Bottom Meniscus Arc) */}
-                        <div
-                          className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1.5px] rounded-full opacity-70"
-                          style={{
-                            background:
-                              'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.95) 50%, transparent 100%)',
-                          }}
-                          aria-hidden="true"
-                        />
-                      </motion.div>
-                    </>
+                    <motion.div
+                      layoutId="mobile-active-tab-indicator"
+                      className="liquid-droplet-pill absolute inset-1 rounded-full pointer-events-none"
+                      transition={tabSpring}
+                    />
                   )}
 
                   {/* Content: Icon + Label */}
@@ -405,7 +367,7 @@ export default function MobileTabBar({
                       <Icon
                         className={`size-[18px] transition-colors duration-150 ${
                           isActive
-                            ? 'text-gray-950 dark:text-white stroke-[2.4] drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
+                            ? 'text-gray-950 dark:text-white stroke-[2.3]'
                             : 'text-gray-500 dark:text-gray-400 stroke-[1.8]'
                         }`}
                       />
@@ -425,7 +387,7 @@ export default function MobileTabBar({
                     <span
                       className={`text-[10px] tracking-tight transition-colors duration-150 whitespace-nowrap ${
                         isActive
-                          ? 'font-bold text-gray-950 dark:text-white drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
+                          ? 'font-bold text-gray-950 dark:text-white'
                           : 'font-medium text-gray-500 dark:text-gray-400'
                       }`}
                     >
@@ -889,7 +851,7 @@ export default function MobileTabBar({
                           className="size-7 rounded-lg flex items-center justify-center shrink-0 shadow-xs text-white"
                           style={{ backgroundColor: accentColor || '#10A37F' }}
                         >
-                          <FiPalette className="size-3.5 stroke-[2.2]" />
+                          <LuPalette className="size-3.5 stroke-[2.2]" />
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs font-medium text-gray-900 dark:text-white truncate">

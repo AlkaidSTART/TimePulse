@@ -56,6 +56,19 @@ describe('MobileTabBar component', () => {
     expect(screen.getByText(/设置/i)).toBeDefined();
   });
 
+  it('renders transparent liquid water droplet capsule indicator for active route without blue', () => {
+    const { container } = render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="timer" />
+      </ThemeProvider>,
+    );
+
+    const dropletIndicator = container.querySelector('.liquid-droplet-pill');
+    expect(dropletIndicator).not.toBeNull();
+    // Indicator is styled by liquid-droplet-pill class rather than hardcoded solid blue background
+    expect((dropletIndicator as HTMLElement).style.backgroundColor).toBe('');
+  });
+
   it('renders settings and functions bottom sheet in single-screen layout when activeTab is settings', () => {
     render(
       <ThemeProvider>
@@ -92,4 +105,15 @@ describe('MobileTabBar component', () => {
 
     expect(defaultProps.toggleTheme).toHaveBeenCalledTimes(1);
   });
+
+  it('renders theme palette library button in settings sheet', () => {
+    render(
+      <ThemeProvider>
+        <MobileTabBar {...defaultProps} activeTab="settings" />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByText(/主题配色库/i)).toBeDefined();
+  });
 });
+

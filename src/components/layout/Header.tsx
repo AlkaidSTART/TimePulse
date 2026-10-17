@@ -677,18 +677,21 @@ export default function Header({ onHeightChange }: HeaderProps) {
         </div>
       </nav>
 
-      {/* Mobile Top Bar: Completely transparent */}
-      <div className="md:hidden flex items-center justify-between px-4 pt-3 pb-1 w-full pointer-events-auto bg-transparent">
-        {/* Minimal Brand Logo & Route Switcher */}
-        <div className="flex items-center gap-2">
+      {/* Mobile Top Bar: Refined Minimal Header */}
+      <div className="md:hidden flex items-center justify-between px-4 pt-3.5 pb-1 w-full pointer-events-auto bg-transparent">
+        {/* Brand Logo & Title with subtle ambient highlight */}
+        <div className="flex items-center gap-2.5">
           <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex items-center shrink-0"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="flex items-center gap-2 shrink-0 cursor-pointer"
+            onClick={() => {
+              if (view === 'todo') transitionTo('main');
+            }}
           >
             <AnimatedLogo
-              color="#f97316"
+              color={accentColor || '#0ea5e9'}
               size="md"
               onClick={() => {
                 if (view === 'todo') transitionTo('main');
@@ -700,35 +703,32 @@ export default function Header({ onHeightChange }: HeaderProps) {
                 }
               }}
             />
+            <span className="font-display font-bold text-sm tracking-tight text-gray-900/90 dark:text-white/95">
+              TimePulse
+            </span>
           </motion.div>
-
-          <RouteNavigation compact />
         </div>
 
-        {/* Minimal Quick Action */}
+        {/* Minimal Quick Action Group */}
         <div className="flex items-center gap-1.5">
           {timezoneInfo && (
             <div
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/40 dark:bg-white/10 border border-white/20 dark:border-white/10 text-[11px] font-medium text-gray-700 dark:text-gray-200 backdrop-blur-md select-none shrink-0"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/60 dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/10 text-[11px] font-medium text-gray-700 dark:text-gray-200 shadow-xs backdrop-blur-xl select-none shrink-0"
               title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
             >
               <FiGlobe className="size-3 shrink-0 text-primary-500 dark:text-primary-400" />
-              <span className="truncate max-w-[90px] xs:max-w-[130px]">{timezoneInfo.text}</span>
+              <span className="truncate max-w-[100px] xs:max-w-[140px]">{timezoneInfo.text}</span>
             </div>
           )}
 
           <button
             type="button"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-500/10 text-primary-600 hover:bg-primary-500/20 dark:bg-primary-500/15 dark:text-primary-300 font-medium text-xs cursor-pointer active:scale-95 transition-all"
-            onClick={() => {
-              setIsTimerCreationOpen(true);
-              if (window.location.hash !== '#add') window.location.hash = 'add';
-            }}
-            data-insightflare-event="timer_create_open"
-            data-insightflare-event-from="mobile"
+            className="inline-flex size-8 items-center justify-center rounded-full bg-white/60 dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
+            onClick={() => setIsShareOpen(true)}
+            aria-label="分享"
+            title="分享与二维码"
           >
-            <FiPlus className="size-3.5 stroke-[2.5]" />
-            <span>新建</span>
+            <FiShare2 className="size-3.5" />
           </button>
         </div>
       </div>

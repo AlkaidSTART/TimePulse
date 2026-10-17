@@ -101,3 +101,10 @@ export async function triggerHaptic(type: HapticType = 'item_complete'): Promise
 
   return false;
 }
+
+/**
+ * 轻触轻微振动反馈快捷方法
+ */
+export function vibrateLight(): void {
+  void triggerHaptic('reorder');
+}

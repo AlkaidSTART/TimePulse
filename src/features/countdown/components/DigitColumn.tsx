@@ -81,6 +81,7 @@ function DigitColumn({
           y: -2,
         }}
         transition={{ type: 'spring', stiffness: 380, damping: 25 }}
+      >
         <NumberFlow
           value={isValueVisible ? value : 0}
           format={{ minimumIntegerDigits: 2, useGrouping: false }}
