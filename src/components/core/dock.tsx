@@ -283,7 +283,7 @@ export function DockIcon({ children, className, ...rest }: DockIconProps) {
 }
 
 export function DockBadge({ children, className, style, ...rest }: DockBadgeProps) {
-  void rest;
+  const { width: _width, isHovered: _isHovered, ...htmlProps } = rest as Record<string, unknown>;
   const context = useContext(DockItemContext);
   let magnification = DEFAULT_MAGNIFICATION;
   try {
@@ -303,6 +303,7 @@ export function DockBadge({ children, className, style, ...rest }: DockBadgeProp
 
   return (
     <motion.span
+      {...htmlProps}
       style={{ scale, originX: 1, originY: 0, ...style }}
       className={cn(
         'pointer-events-none absolute -top-1.5 -right-1.5 z-10 flex min-w-4 h-4 px-1 items-center justify-center rounded-full text-[9px] font-bold leading-none text-white shadow-xs ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee]',

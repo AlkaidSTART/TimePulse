@@ -5,6 +5,7 @@ import {
   DockItem,
   DockIcon,
   DockLabel,
+  DockBadge,
   AppleStyleDock,
   defaultAppleDockData,
 } from './dock';
@@ -100,5 +101,33 @@ describe('Dock component suite', () => {
       expect.objectContaining({ title: 'Home' }),
       0
     );
+  });
+
+  it('renders badge on DockItem without interfering with icon content', () => {
+    render(
+      <Dock>
+        <DockItem
+          badge={<DockBadge data-testid="dock-badge">3</DockBadge>}
+          aria-label="Item with badge"
+        >
+          <DockLabel>Notifications</DockLabel>
+          <DockIcon>
+            <HomeIcon data-testid="dock-icon" />
+          </DockIcon>
+        </DockItem>
+      </Dock>
+    );
+
+    const badge = screen.getByTestId('dock-badge');
+    expect(badge).toBeDefined();
+    expect(badge.textContent).toBe('3');
+
+    // Badge is positioned at top-right corner of dock item rather than inside the icon
+    expect(badge.className).toContain('-top-1.5');
+    expect(badge.className).toContain('-right-1.5');
+
+    // Icon is clean inside DockIcon
+    const icon = screen.getByTestId('dock-icon');
+    expect(icon).toBeDefined();
   });
 });

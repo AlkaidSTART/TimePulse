@@ -4,7 +4,7 @@ import { useTimers } from '@/app/providers/TimerProvider';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import DigitColumn from './DigitColumn';
-import TimerSkeleton from './TimerSkeleton';
+import TimerLoading from './TimerLoading';
 import { addNotification } from '@/services/notificationManager';
 import { track, bucketDurationMs } from '@/services/analytics';
 import { FiPlay, FiPause, FiSquare, FiFlag, FiList } from 'react-icons/fi';

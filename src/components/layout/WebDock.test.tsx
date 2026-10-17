@@ -81,4 +81,29 @@ describe('WebDock component', () => {
 
     expect(onOpenShare).toHaveBeenCalledTimes(1);
   });
+
+  it('renders pending todo badge on dock item without obscuring icon when pending todos exist', () => {
+    localStorage.setItem(
+      'timepulse_todo_items_v1',
+      JSON.stringify([{ id: 'test-1', text: 'Test Todo', completed: false, type: 'todo' }])
+    );
+
+    renderWithProviders();
+
+    const todoButton = screen.getByRole('button', { name: /^待办清单$/i });
+    expect(todoButton).toBeDefined();
+
+    const badge = todoButton.querySelector('span.pointer-events-none');
+    expect(badge).not.toBeNull();
+    expect(badge?.textContent).toBe('1');
+    expect(badge?.className).toContain('-top-1.5');
+    expect(badge?.className).toContain('-right-1.5');
+
+    // The icon container (DockIcon) should not contain the badge
+    const dockIcon = todoButton.querySelector('.aspect-square');
+    expect(dockIcon).not.toBeNull();
+    expect(dockIcon?.contains(badge!)).toBe(false);
+
+    localStorage.removeItem('timepulse_todo_items_v1');
+  });
 });

@@ -2,32 +2,24 @@ import { render, screen, cleanup } from '@testing-library/react';
 import { describe, expect, it, afterEach } from 'vitest';
 import TimerSkeleton from './TimerSkeleton';
 
-describe('TimerSkeleton', () => {
+describe('TimerSkeleton backward compatibility', () => {
   afterEach(() => {
     cleanup();
   });
 
-  it('renders skeleton cards with default 3 columns and accessible role', () => {
+  it('renders minimalist loading animation with accessible role and timer-skeleton testid', () => {
     render(<TimerSkeleton />);
 
     const skeleton = screen.getByTestId('timer-skeleton');
     expect(skeleton).toBeInTheDocument();
     expect(skeleton).toHaveAttribute('role', 'status');
     expect(skeleton).toHaveAttribute('aria-label', '正在加载时间');
-
-    // Default 3 cards
-    const cards = skeleton.querySelectorAll('.liquid-glass-digit');
-    expect(cards.length).toBe(3);
   });
 
-  it('renders specified number of columns and title placeholder when showTitle is true', () => {
+  it('gracefully handles legacy columns and showTitle props', () => {
     render(<TimerSkeleton columns={4} showTitle={true} />);
 
     const skeleton = screen.getByTestId('timer-skeleton');
-    const cards = skeleton.querySelectorAll('.liquid-glass-digit');
-    expect(cards.length).toBe(4);
-
-    const titleSkeleton = skeleton.querySelector('.animate-pulse');
-    expect(titleSkeleton).toBeInTheDocument();
+    expect(skeleton).toBeInTheDocument();
   });
 });

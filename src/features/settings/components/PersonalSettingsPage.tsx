@@ -5,11 +5,9 @@ import {
   FiUser,
   FiSun,
   FiCheck,
-  FiTrash2,
   FiRotateCcw,
   FiRotateCw,
   FiSave,
-  FiHeart,
   FiGlobe,
   FiCoffee,
   FiChevronRight,
@@ -43,11 +41,7 @@ export default function PersonalSettingsPage() {
     nickname,
     avatar,
     customMotto,
-    cheerCount,
-    cheerNotes,
     updateSettings,
-    addCheerNote,
-    removeCheerNote,
     resetSettings,
   } = usePersonalSettingsStore();
 
@@ -60,7 +54,6 @@ export default function PersonalSettingsPage() {
   const [inputNickname, setInputNickname] = useState(cleanInitialNickname);
   const [inputMotto, setInputMotto] = useState(customMotto);
   const [selectedAvatar, setSelectedAvatar] = useState(cleanInitialAvatar);
-  const [newNoteContent, setNewNoteContent] = useState('');
   const [saveToast, setSaveToast] = useState(false);
 
   useEffect(() => {
@@ -78,7 +71,6 @@ export default function PersonalSettingsPage() {
   const nicknameInputId = useId();
   const mottoInputId = useId();
   const customAvatarInputId = useId();
-  const noteInputId = useId();
 
   // 保存个人资料修改
   const handleSaveProfile = () => {
@@ -91,14 +83,6 @@ export default function PersonalSettingsPage() {
     setSelectedAvatar(cleanAvatar);
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 2000);
-  };
-
-  // 添加打气心得
-  const handleAddNote = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newNoteContent.trim()) return;
-    addCheerNote(newNoteContent.trim(), selectedAvatar);
-    setNewNoteContent('');
   };
 
   return (
@@ -405,69 +389,7 @@ export default function PersonalSettingsPage() {
           </div>
         </section>
 
-        {/* 3. 今日打气心得与心情足迹 */}
-        <section className="rounded-2xl border border-black/[0.08] dark:border-white/10 bg-white/70 dark:bg-white/[0.05] p-5 sm:p-6 backdrop-blur-xl shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white">
-              <FiHeart className="size-4 text-rose-500" />
-              <span>今日打气心得记录</span>
-            </div>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 font-mono font-bold">
-              今日已打气 {cheerCount} 次
-            </span>
-          </div>
-
-          <form onSubmit={handleAddNote} className="flex gap-2">
-            <input
-              id={noteInputId}
-              type="text"
-              value={newNoteContent}
-              onChange={(e) => setNewNoteContent(e.target.value)}
-              placeholder="记录一句给自己的鼓励或心得..."
-              aria-label="输入鼓励心得"
-              className="flex-1 px-3.5 py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.06] border border-black/10 dark:border-white/15 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
-            <button
-              type="submit"
-              disabled={!newNoteContent.trim()}
-              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white disabled:opacity-50 transition-opacity"
-              style={{ backgroundColor: accentColor || '#10A37F' }}
-            >
-              记录
-            </button>
-          </form>
-
-          {cheerNotes.length > 0 ? (
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {cheerNotes.map((note) => (
-                <div
-                  key={note.id}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] border border-black/[0.04] dark:border-white/[0.06] text-xs"
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <span className="size-1.5 rounded-full bg-primary-500 shrink-0" />
-                    <span className="truncate text-gray-800 dark:text-gray-200">{note.content}</span>
-                    <span className="shrink-0 text-[10px] text-gray-400">{note.date} {note.time}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeCheerNote(note.id)}
-                    className="p-1 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-500 transition-colors ml-2"
-                    title="删除此记录"
-                  >
-                    <FiTrash2 className="size-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center py-4 text-xs text-gray-400">
-              暂无心得记录，在上方写下你今天的一句加油感悟吧～
-            </p>
-          )}
-        </section>
-
-        {/* 4. 支持与联系作者 (Buy Me a Coffee & Contact Author) */}
+        {/* 3. 支持与联系作者 (Buy Me a Coffee & Contact Author) */}
         <section className="rounded-2xl border border-black/[0.08] dark:border-white/10 bg-white/70 dark:bg-white/[0.05] p-5 sm:p-6 backdrop-blur-xl shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white">
