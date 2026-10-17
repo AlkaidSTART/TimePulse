@@ -46,6 +46,7 @@
     "autoprefixer": "^10.5.5",
     "class-variance-authority": "^0.7.1",
     "eslint": "^9.39.5",
+    "fake-indexeddb": "^6.2.5",
     "jsdom": "^30.0.1",
     "playwright": "^1.63.0",
     "postcss": "^8.5.28",

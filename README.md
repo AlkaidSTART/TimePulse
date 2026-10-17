@@ -46,7 +46,7 @@ TimePulse 是一个具有现代化 UI 和交互的计时器网页应用，支持
 - Radix UI / shadcn 风格源码组件 - 可维护的交互原语
 - Framer Motion - 高级动画库
 - Tailwind CSS - 实用工具优先的 CSS 框架
-- localStorage - 本地数据持久化
+- IndexedDB - 本地数据持久化（计时器数据）
 
 ## 快速开始
 > 作为 Vite 构建的纯前端项目，可以在任何静态托管服务上部署。
