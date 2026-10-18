@@ -209,9 +209,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const supabase = await getSupabaseClient();
       const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo },
+        options: { redirectTo, skipBrowserRedirect: true },
       });
 
       if (error) {
@@ -220,7 +220,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, error: formatted };
       }
 
-      // 成功时浏览器即将跳转到第三方授权页，保持加载态以避免重复点击
+      const url = data?.url;
+      if (!url) {
+        const formatted = '未获取到授权地址，请稍后再试';
+        set({ isLoading: false, error: formatted });
+        return { success: false, error: formatted };
+      }
+
+      if (typeof window !== 'undefined') {
+        // 预检：provider 未启用时 GoTrue 的 /authorize 返回 4xx（CORS 可读），
+        // 先探测可避免浏览器直接跳到原始 JSON 错误页。
+        const probe = await fetch(url, { redirect: 'manual' }).catch(() => null);
+        if (probe && probe.status >= 400) {
+          const body = (await probe.json().catch(() => null)) as { msg?: string } | null;
+          const formatted = formatAuthError(body?.msg ?? `HTTP ${probe.status}`);
+          set({ isLoading: false, error: formatted });
+          return { success: false, error: formatted };
+        }
+
+        // 跳转到第三方授权页；回跳时由 detectSessionInUrl 自动建立会话
+        window.location.assign(url);
+      }
+
       return { success: true };
     } catch (err) {
       const formatted = formatAuthError(err);

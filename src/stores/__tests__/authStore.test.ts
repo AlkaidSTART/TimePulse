@@ -127,29 +127,57 @@ describe('useAuthStore', () => {
 
   it('signInWithOAuth passes provider and redirectTo', async () => {
     const spy = vi.spyOn(supabase.auth, 'signInWithOAuth').mockResolvedValueOnce({
-      data: { provider: 'google', url: 'https://accounts.google.com/o/oauth2/v2/auth' },
+      data: { provider: 'google', url: 'https://example.invalid/authorize?provider=google' },
       error: null,
     } as any);
+    const fetchMock = vi.fn(async () => new Response(null, { status: 302 }));
+    vi.stubGlobal('fetch', fetchMock);
 
     const res = await useAuthStore.getState().signInWithOAuth('google');
 
     expect(res.success).toBe(true);
     expect(spy).toHaveBeenCalledWith({
       provider: 'google',
-      options: { redirectTo: expect.any(String) },
+      options: { redirectTo: expect.any(String), skipBrowserRedirect: true },
     });
+    expect(fetchMock).toHaveBeenCalledWith('https://example.invalid/authorize?provider=google', {
+      redirect: 'manual',
+    });
+    vi.unstubAllGlobals();
   });
 
   it('translates disabled OAuth provider error into friendly Chinese text', async () => {
     vi.spyOn(supabase.auth, 'signInWithOAuth').mockResolvedValueOnce({
-      data: { provider: 'github', url: null },
-      error: new Error('Unsupported provider: provider is not enabled') as any,
+      data: { provider: 'github', url: 'https://example.invalid/authorize?provider=github' },
+      error: null,
     } as any);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ msg: 'Unsupported provider: provider is not enabled' }), {
+            status: 400,
+          })
+      )
+    );
 
     const res = await useAuthStore.getState().signInWithOAuth('github');
 
     expect(res.success).toBe(false);
     expect(useAuthStore.getState().error).toBe('该登录方式暂未开启，请使用邮箱登录或稍后再试');
+    vi.unstubAllGlobals();
+  });
+
+  it('handles signInWithOAuth client errors', async () => {
+    vi.spyOn(supabase.auth, 'signInWithOAuth').mockResolvedValueOnce({
+      data: { provider: 'github', url: null },
+      error: new Error('Failed to fetch') as any,
+    } as any);
+
+    const res = await useAuthStore.getState().signInWithOAuth('github');
+
+    expect(res.success).toBe(false);
+    expect(useAuthStore.getState().error).toBe('网络连接失败，请检查网络设置或稍候重试');
   });
 
   it('handles signOut correctly', async () => {
