@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import type { CSSProperties, ChangeEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls, useReducedMotion } from 'framer-motion';
 import { FiMenu, FiX, FiSettings, FiCoffee, FiSun, FiMaximize, FiMinimize, FiEdit, FiSave, FiGlobe, FiPlus, FiShare2, FiImage, FiMoreHorizontal, FiCheckSquare, FiCheck, FiInfo, FiUser, FiRotateCw } from 'react-icons/fi';
@@ -121,6 +121,20 @@ function TimerManageRow({
   );
 }
 
+const offsetFormatterCache = new Map<string, Intl.DateTimeFormat>();
+
+function getOffsetFormatter(timeZone: string): Intl.DateTimeFormat {
+  let formatter = offsetFormatterCache.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      timeZoneName: 'shortOffset',
+    });
+    offsetFormatterCache.set(timeZone, formatter);
+  }
+  return formatter;
+}
+
 function getActiveTimezoneInfo(timer: Timer | null): { text: string; full: string } | null {
   if (!timer || timer.type === 'stopwatch') return null;
   const timezone = timer.timezone || (typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'UTC');
@@ -128,10 +142,7 @@ function getActiveTimezoneInfo(timer: Timer | null): { text: string; full: strin
 
   let offset = '';
   try {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      timeZoneName: 'shortOffset',
-    }).formatToParts(new Date());
+    const parts = getOffsetFormatter(timezone).formatToParts(new Date());
     const offsetPart = parts.find((p) => p.type === 'timeZoneName')?.value;
     if (offsetPart) {
       offset = offsetPart.replace('GMT', 'UTC');
@@ -423,7 +434,11 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const shouldReduceMotion = useReducedMotion();
   const activeTimer = timers.find(timer => timer.id === activeTimerId) || null;
   const isTimerView = view === 'main';
-  const timezoneInfo = isTimerView ? getActiveTimezoneInfo(activeTimer) : null;
+  const timezoneInfo = useMemo(
+    () => (isTimerView && activeTimer ? getActiveTimezoneInfo(activeTimer) : null),
+    // 只在时区相关字段发生变化时重新计算，避免每次渲染构造 Intl 格式化
+    [isTimerView, activeTimer?.id, activeTimer?.type, activeTimer?.timezone, activeTimer?.city, activeTimer?.country],
+  );
 
   return (
     <>
