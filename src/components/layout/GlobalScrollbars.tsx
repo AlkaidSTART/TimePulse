@@ -20,13 +20,17 @@ type ManagedScrollbar = {
   owned: boolean;
 };
 
-function getScrollbarOptions(host: HTMLElement): PartialOptions | null {
+/** 便宜的溢出判定：只查类名与内联样式，不触发样式重算 */
+function hasOverflowHint(host: HTMLElement): boolean {
   const className = typeof host.className === 'string' ? host.className : '';
   const hasOverflowUtility = /overflow-(?:(?:x|y)-)?(?:auto|scroll)\b/.test(className);
   const hasInlineOverflow = [host.style.overflow, host.style.overflowX, host.style.overflowY]
     .some((value) => /^(auto|scroll|overlay)$/.test(value.trim()));
-  if (!hasOverflowUtility && !hasInlineOverflow) return null;
+  return hasOverflowUtility || hasInlineOverflow;
+}
 
+/** 精确判定需要 getComputedStyle，仅在确实要挂载自定义滚动条时调用 */
+function getScrollbarOptions(host: HTMLElement): PartialOptions | null {
   const style = window.getComputedStyle(host);
   if (style.position === 'fixed' || style.position === 'absolute') return null;
 
@@ -76,12 +80,19 @@ export default function GlobalScrollbars() {
         return;
       }
 
-      const options = getScrollbarOptions(host);
-      if (!options) return;
+      // 类名/内联样式未声明溢出时不可能是滚动容器，直接跳过。
+      // 原生滚动条模式到此结束：不再为轴判定触发 getComputedStyle（强制样式重算）。
+      if (!hasOverflowHint(host)) return;
 
       host.dataset.timepulseScrollbar = 'true';
       if (nativeScrollbars) {
         managed.set(host, { instance: null, owned: false });
+        return;
+      }
+
+      const options = getScrollbarOptions(host);
+      if (!options) {
+        delete host.dataset.timepulseScrollbar;
         return;
       }
 
