@@ -4620,6 +4620,7 @@ dependencies = [
 name = "time-pulse"
 version = "0.8.1"
 dependencies = [
+ "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-deep-link",
