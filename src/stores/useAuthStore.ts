@@ -57,6 +57,15 @@ function formatAuthError(error: unknown): string {
   if (rawMsg.includes('network') || rawMsg.includes('Failed to fetch') || rawMsg.includes('NetworkError')) {
     return '网络连接失败，请检查网络设置或稍候重试';
   }
+  if (rawMsg.includes('Payload too large') || rawMsg.includes('413') || rawMsg.includes('file_size_limit')) {
+    return '头像文件体积超出存储桶限制（单图限 200KB 以内，云端总配额 5MB）';
+  }
+  if (rawMsg.includes('storage quota') || rawMsg.includes('quota exceeded') || rawMsg.includes('storage_limit')) {
+    return '云端对象存储空间已满（总配额 5MB），请联系管理员或稍后重试';
+  }
+  if (rawMsg.includes('mime type') || rawMsg.includes('mime_types') || rawMsg.includes('unsupported media')) {
+    return '不支持的文件格式，仅支持 JPG、PNG、WEBP 格式静态图片';
+  }
 
   return rawMsg || '认证操作失败，请重试';
 }

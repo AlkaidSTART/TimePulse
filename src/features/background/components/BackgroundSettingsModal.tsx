@@ -204,10 +204,11 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
       >
         {/* 标题栏 */}
         <div className="flex justify-between items-center pb-6">
-          <h2 className="text-2xl font-semibold">背景设置</h2>
+          <h2 className="text-2xl font-semibold">{t('background.title', '背景设置')}</h2>
           <button
             className="p-2 rounded-full btn-glass-hover cursor-pointer"
             onClick={onClose}
+            aria-label={t('common.close', '关闭')}
           >
             <FiX className="text-xl" />
           </button>
@@ -231,7 +232,7 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
             onClick={() => selectTab('url')}
           >
             <FiLink className="size-3.5 sm:size-4 shrink-0" />
-            <span className="truncate">图片 URL</span>
+            <span className="truncate">{t('background.tabUrl', '图片 URL')}</span>
           </button>
           <button
             className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-2 sm:px-4 text-xs sm:text-sm h-11 rounded-lg border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-sm font-medium transition-all ${
@@ -249,7 +250,7 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
             onClick={() => selectTab('file')}
           >
             <FiUpload className="size-3.5 sm:size-4 shrink-0" />
-            <span className="truncate">上传文件</span>
+            <span className="truncate">{t('background.tabFile', '上传文件')}</span>
           </button>
           <button
             className={`flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-2 sm:px-4 text-xs sm:text-sm h-11 rounded-lg border border-white/20 dark:border-white/10 bg-white/10 dark:bg-black/10 backdrop-blur-sm font-medium transition-all ${
@@ -267,7 +268,7 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
             onClick={() => selectTab('preview')}
           >
             <FiEye className="size-3.5 sm:size-4 shrink-0" />
-            <span className="truncate">预览调整</span>
+            <span className="truncate">{t('background.tabPreview', '预览调整')}</span>
           </button>
         </div>
 
@@ -319,18 +320,18 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
             className="flex flex-col gap-4"
           >
             <div>
-              <label className="block text-sm font-medium mb-2">图片 URL</label>
+              <label className="block text-sm font-medium mb-2">{t('background.urlLabel', '图片 URL')}</label>
               <input
                 type="url"
                 value={imageUrl}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => setImageUrl(event.target.value)}
-                placeholder="https://example.com/image.jpg"
+                placeholder={t('background.urlPlaceholder', 'https://example.com/image.jpg')}
                 className="w-full px-4 py-3 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-primary-500 focus:outline-none"
                 disabled={isUploading}
               />
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              支持 JPEG、PNG、GIF、WebP 格式。请确保图片 URL 支持跨域访问。
+              {t('background.urlHint', '支持 JPEG、PNG、GIF、WebP 格式。请确保图片 URL 支持跨域访问。')}
             </p>
             <button
               className="w-full py-3 rounded-lg border border-white/20 backdrop-blur-sm font-medium transition-colors cursor-pointer disabled:opacity-50"
@@ -342,7 +343,7 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
               onClick={handleUrlUpload}
               disabled={isUploading || !imageUrl.trim()}
             >
-              {isUploading ? '加载中...' : '设置背景'}
+              {isUploading ? t('background.loading', '加载中...') : t('background.setBgButton', '设置背景')}
             </button>
           </motion.div>
         )}
@@ -369,15 +370,15 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
                 className="cursor-pointer flex flex-col items-center"
               >
                 <FiUpload className="text-4xl mb-3 text-gray-400" />
-                <p className="text-lg font-medium mb-1">点击上传图片</p>
+                <p className="text-lg font-medium mb-1">{t('background.clickUpload', '点击上传图片')}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  支持 JPEG、PNG、GIF、WebP 格式
+                  {t('background.fileHint', '支持 JPEG、PNG、GIF、WebP 格式')}
                 </p>
               </label>
             </div>
             {isUploading && (
               <div className="text-center text-gray-500 dark:text-gray-400">
-                上传中...
+                {t('background.uploading', '上传中...')}
               </div>
             )}
           </motion.div>
@@ -393,7 +394,7 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
           >
             {/* 背景预览 */}
             <div>
-              <label className="block text-sm font-medium mb-2">当前背景预览</label>
+              <label className="block text-sm font-medium mb-2">{t('background.currentPreview', '当前背景预览')}</label>
               <div
                 className="w-full h-48 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative"
                 style={{
@@ -406,7 +407,7 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
               >
                 {!previewUrl && (
                   <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                    未设置背景
+                    {t('background.noBgSet', '未设置背景')}
                   </div>
                 )}
                 {/* 遮罩预览 */}
@@ -421,7 +422,7 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
 
             {/* 背景模式选择 */}
             <div>
-              <label className="block text-sm font-medium mb-3">背景模式</label>
+              <label className="block text-sm font-medium mb-3">{t('background.modeLabel', '背景模式')}</label>
               <div className="grid grid-cols-3 gap-3">
                 {backgroundModes.map(mode => {
                   const Icon = mode.icon;
@@ -464,7 +465,7 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
             {/* 高斯模糊调节 */}
             <div>
               <label className="block text-sm font-medium mb-3">
-                高斯模糊: {blurAmount}px
+                {t('background.blurLabel', '高斯模糊')}: {blurAmount}px
               </label>
               <input
                 type="range"
@@ -479,16 +480,16 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
                 }}
               />
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                <span>无模糊</span>
-                <span>轻微</span>
-                <span>强烈</span>
+                <span>{t('background.blurNone', '无模糊')}</span>
+                <span>{t('background.blurMild', '轻微')}</span>
+                <span>{t('background.blurStrong', '强烈')}</span>
               </div>
             </div>
 
             {/* 遮罩透明度调节 */}
             <div>
               <label className="block text-sm font-medium mb-3">
-                遮罩透明度: {Math.round(bgOpacity * 100)}%
+                {t('background.opacityLabel', '遮罩透明度')}: {Math.round(bgOpacity * 100)}%
               </label>
               <input
                 type="range"
@@ -503,9 +504,9 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
                 }}
               />
               <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                <span>透明</span>
-                <span>半透明</span>
-                <span>不透明</span>
+                <span>{t('background.opacityTransparent', '透明')}</span>
+                <span>{t('background.opacityHalf', '半透明')}</span>
+                <span>{t('background.opacityOpaque', '不透明')}</span>
               </div>
             </div>
 
@@ -515,7 +516,7 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
               onClick={handleClearBackground}
             >
               <FiTrash2 className="inline mr-2" />
-              清除自定义背景
+              {t('background.clearBg', '清除自定义背景')}
             </button>
           </motion.div>
         )}
@@ -525,7 +526,7 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
 
         <div className="flex justify-start pt-6">
           <button className="btn-glass-secondary" onClick={onClose}>
-            {_t('common.cancel', '取消')}
+            {t('common.cancel', '取消')}
           </button>
         </div>
       </motion.div>

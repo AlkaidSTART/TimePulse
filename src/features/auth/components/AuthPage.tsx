@@ -432,8 +432,8 @@ export default function AuthPage() {
         </div>
       </header>
 
-      {/* 3. 核心内容区域：桌面端奢华双栏，移动端聚焦卡片 */}
-      <main className="relative z-10 w-full max-w-6xl mx-auto flex-1 flex flex-col justify-center py-4 sm:py-8 lg:py-10">
+      {/* 3. 核心内容区域：紧凑自适应弹性居中与平滑滚动 */}
+      <main className="relative z-10 w-full max-w-6xl mx-auto flex-1 flex flex-col py-2 sm:py-4">
         {user ? (
           /* =================================================== */
           /* 已登录状态：账号管理与个人信息设置 (极简主义设计) */
@@ -442,15 +442,15 @@ export default function AuthPage() {
             initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: shouldReduceMotion ? 0 : 0.25, ease: 'easeOut' }}
-            className="w-full max-w-xl mx-auto rounded-3xl border border-black/[0.08] dark:border-white/10 cream:border-[#dfd3c0] bg-white/90 dark:bg-zinc-900/90 cream:bg-[#faf5ea]/95 p-6 sm:p-8 md:p-9 backdrop-blur-xl shadow-sm space-y-6"
+            className="my-auto w-full max-w-xl mx-auto rounded-3xl border border-black/[0.08] dark:border-white/10 cream:border-[#dfd3c0] bg-white/90 dark:bg-zinc-900/90 cream:bg-[#faf5ea]/95 p-4 sm:p-6 md:p-7 backdrop-blur-xl shadow-sm space-y-4 sm:space-y-4.5"
           >
             {/* 1. 顶部用户卡片：纯净头像与账号基本信息 */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-5 border-b border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0]/70">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3.5 pb-4 border-b border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0]/70">
+              <div className="flex items-center gap-3.5">
                 <UserAvatar
                   avatarUrl={userAvatarUrl}
                   name={userDisplayName}
-                  size="xl"
+                  size="lg"
                   editable
                   isUploading={isUploadingAvatar}
                   onUpload={handleAvatarUpload}
@@ -475,25 +475,25 @@ export default function AuthPage() {
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg sm:text-xl font-bold tracking-tight text-gray-950 dark:text-white cream:text-[#26211e] truncate">
+                  <h2 className="text-base sm:text-lg font-bold tracking-tight text-gray-950 dark:text-white cream:text-[#26211e] truncate">
                     {userDisplayName}
                   </h2>
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                     <span className="size-1.5 rounded-full bg-emerald-500" />
                     已安全连接
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#786e63] mt-1 truncate">
+                <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#786e63] mt-0.5 truncate">
                   {user.email}
                 </p>
 
                 {/* 头像快捷操作行与状态提示 */}
-                <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                <div className="flex flex-wrap items-center gap-2 mt-2">
                   <button
                     type="button"
                     onClick={() => avatarFileInputRef.current?.click()}
                     disabled={isUploadingAvatar}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] dark:hover:bg-white/[0.12] cream:bg-[#eee4d4] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-gray-800 dark:text-gray-200 cream:text-[#26211e] shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] dark:hover:bg-white/[0.12] cream:bg-[#eee4d4] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-gray-800 dark:text-gray-200 cream:text-[#26211e] shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <FiUploadCloud className="size-3.5 text-primary-500" />
                     <span>{isUploadingAvatar ? '正在上传...' : '上传自定义头像'}</span>
@@ -504,7 +504,7 @@ export default function AuthPage() {
                       type="button"
                       onClick={handleRemoveAvatar}
                       disabled={isUploadingAvatar}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50"
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-medium text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50"
                       title="重置为默认文字头像"
                     >
                       <FiTrash2 className="size-3.5" />
@@ -512,7 +512,7 @@ export default function AuthPage() {
                     </button>
                   )}
 
-                  <span className="text-[11px] text-gray-400 cream:text-[#8a7f72]">
+                  <span className="text-[10px] sm:text-[11px] text-gray-400 cream:text-[#8a7f72]">
                     支持 JPG/PNG/WEBP/GIF，最大 5MB
                   </span>
                 </div>
@@ -520,7 +520,7 @@ export default function AuthPage() {
                 {/* 头像上传成功或错误提示 */}
                 {avatarFeedback && (
                   <div
-                    className={`mt-2 text-xs flex items-center gap-1.5 font-medium ${
+                    className={`mt-1.5 text-xs flex items-center gap-1.5 font-medium ${
                       avatarFeedback.type === 'success'
                         ? 'text-emerald-600 dark:text-emerald-400'
                         : 'text-red-500 dark:text-red-400'
@@ -538,20 +538,20 @@ export default function AuthPage() {
             </div>
 
             {/* 2. 个人信息设置区（替代原设置页组件，在管理账号中维护） */}
-            <form onSubmit={handleSavePersonalProfile} className="space-y-4">
+            <form onSubmit={handleSavePersonalProfile} className="space-y-3 sm:space-y-3.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
-                  <FiUser className="size-4" style={{ color: activeColor }} />
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
+                  <FiUser className="size-3.5 sm:size-4" style={{ color: activeColor }} />
                   <span>个人信息设置</span>
                 </div>
-                <span className="text-xs text-gray-400 cream:text-[#8a7f72]">问候卡片及主页专属称呼</span>
+                <span className="text-[11px] text-gray-400 cream:text-[#8a7f72]">问候卡片及主页专属称呼</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+                <div className="space-y-1">
                   <label
                     htmlFor={profileNicknameInputId}
-                    className="text-xs font-medium text-gray-600 dark:text-gray-300 cream:text-[#52493f]"
+                    className="text-[11px] font-medium text-gray-600 dark:text-gray-300 cream:text-[#52493f]"
                   >
                     你的称呼 / 昵称
                   </label>
@@ -561,14 +561,14 @@ export default function AuthPage() {
                     value={profileNickname}
                     onChange={(e) => setProfileNickname(e.target.value)}
                     placeholder="输入自定义昵称"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] cream:bg-[#f5ece0]/80 border border-black/[0.08] dark:border-white/10 cream:border-[#d7c9b5] text-sm text-gray-900 dark:text-white cream:text-[#26211e] placeholder:text-gray-400 cream:placeholder:text-[#968a7a] focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors"
+                    className="w-full px-3 py-1.5 sm:py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] cream:bg-[#f5ece0]/80 border border-black/[0.08] dark:border-white/10 cream:border-[#d7c9b5] text-xs sm:text-sm text-gray-900 dark:text-white cream:text-[#26211e] placeholder:text-gray-400 cream:placeholder:text-[#968a7a] focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors"
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <label
                     htmlFor={profileMottoInputId}
-                    className="text-xs font-medium text-gray-600 dark:text-gray-300 cream:text-[#52493f]"
+                    className="text-[11px] font-medium text-gray-600 dark:text-gray-300 cream:text-[#52493f]"
                   >
                     个性座右铭 / 专属签名
                   </label>
@@ -578,26 +578,26 @@ export default function AuthPage() {
                     value={profileMotto}
                     onChange={(e) => setProfileMotto(e.target.value)}
                     placeholder="心怀热爱，奔赴每一个灿烂的日子"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] cream:bg-[#f5ece0]/80 border border-black/[0.08] dark:border-white/10 cream:border-[#d7c9b5] text-sm text-gray-900 dark:text-white cream:text-[#26211e] placeholder:text-gray-400 cream:placeholder:text-[#968a7a] focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors"
+                    className="w-full px-3 py-1.5 sm:py-2 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] cream:bg-[#f5ece0]/80 border border-black/[0.08] dark:border-white/10 cream:border-[#d7c9b5] text-xs sm:text-sm text-gray-900 dark:text-white cream:text-[#26211e] placeholder:text-gray-400 cream:placeholder:text-[#968a7a] focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-1">
-                <div className="text-xs">
+              <div className="flex items-center justify-between pt-0.5">
+                <div className="text-[11px]">
                   {profileSaveSuccess && (
                     <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                      <FiCheck className="size-3.5" /> 设置保存成功！个人资料已实时同步更新。
+                      <FiCheck className="size-3" /> 设置保存成功！个人资料已实时同步更新。
                     </span>
                   )}
                 </div>
                 <button
                   type="submit"
                   disabled={isSavingProfile}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-xs transition-opacity hover:opacity-90 active:scale-[0.98] disabled:opacity-50 cursor-pointer ml-auto"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-xs transition-opacity hover:opacity-90 active:scale-[0.98] disabled:opacity-50 cursor-pointer ml-auto"
                   style={{ backgroundColor: activeColor }}
                 >
-                  <FiCheck className="size-4" />
+                  <FiCheck className="size-3.5 sm:size-4" />
                   <span>{isSavingProfile ? '正在保存...' : '保存个人资料'}</span>
                 </button>
               </div>
@@ -605,9 +605,9 @@ export default function AuthPage() {
 
             {/* 3. 账号与同步元数据（简约分组列表） */}
             <div className="rounded-2xl border border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0]/70 bg-black/[0.015] dark:bg-white/[0.02] cream:bg-[#f5ece0]/50 divide-y divide-black/[0.05] dark:divide-white/[0.06] cream:divide-[#dfd3c0]/60 text-xs">
-              <div className="flex items-center justify-between p-3.5">
+              <div className="flex items-center justify-between px-3.5 py-2 sm:py-2.5">
                 <span className="text-gray-500 dark:text-gray-400 cream:text-[#786e63]">账号用户 ID</span>
-                <div className="flex items-center gap-2 font-mono text-gray-700 dark:text-gray-300 cream:text-[#3d362f]">
+                <div className="flex items-center gap-1.5 font-mono text-gray-700 dark:text-gray-300 cream:text-[#3d362f]">
                   <span>{user.id.slice(0, 16)}...</span>
                   <button
                     type="button"
@@ -620,7 +620,7 @@ export default function AuthPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3.5">
+              <div className="flex items-center justify-between px-3.5 py-2 sm:py-2.5">
                 <span className="text-gray-500 dark:text-gray-400 cream:text-[#786e63]">云端同步状态</span>
                 <div className="flex items-center gap-1.5 font-medium text-gray-800 dark:text-gray-200 cream:text-[#26211e]">
                   <span className="size-1.5 rounded-full bg-emerald-500" />
@@ -630,36 +630,36 @@ export default function AuthPage() {
             </div>
 
             {/* 4. 操作与快捷导航 */}
-            <div className="space-y-3 pt-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-2.5 pt-0.5">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => transitionTo('main')}
-                  className="py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-2xs transition-opacity hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-2 px-3 sm:py-2.5 sm:px-4 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-2xs transition-opacity hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer truncate"
                   style={{ backgroundColor: activeColor }}
                 >
-                  <span>返回主页计时器</span>
-                  <FiArrowRight className="size-3.5" />
+                  <span className="truncate">返回主页计时器</span>
+                  <FiArrowRight className="size-3.5 shrink-0" />
                 </button>
 
                 <button
                   type="button"
                   onClick={() => transitionTo('settings')}
-                  className="py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium border border-black/10 dark:border-white/15 cream:border-[#d7c9b5] bg-black/[0.02] dark:bg-white/[0.04] cream:bg-[#f5ece0]/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-gray-700 dark:text-gray-200 cream:text-[#3d362f] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="py-2 px-3 sm:py-2.5 sm:px-4 rounded-xl text-xs sm:text-sm font-medium border border-black/10 dark:border-white/15 cream:border-[#d7c9b5] bg-black/[0.02] dark:bg-white/[0.04] cream:bg-[#f5ece0]/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-gray-700 dark:text-gray-200 cream:text-[#3d362f] transition-colors flex items-center justify-center gap-1.5 cursor-pointer truncate"
                 >
-                  <FiSettings className="size-3.5" />
-                  <span>前往个人设置中心</span>
+                  <FiSettings className="size-3.5 shrink-0" />
+                  <span className="truncate">前往个人设置中心</span>
                 </button>
               </div>
 
-              <div className="text-center pt-1">
+              <div className="text-center pt-0.5">
                 <button
                   type="button"
                   onClick={async () => {
                     await signOut();
                   }}
                   disabled={isLoading}
-                  className="inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 py-1.5 px-3 rounded-lg hover:bg-red-500/10 transition-colors disabled:opacity-50 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 py-1 px-2.5 rounded-lg hover:bg-red-500/10 transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   <FiLogOut className="size-3.5" />
                   <span>退出当前账号</span>
@@ -680,7 +680,7 @@ export default function AuthPage() {
               ease: 'easeOut',
               layout: { duration: 0.3, ease: [0.25, 1, 0.5, 1] },
             }}
-            className="w-full max-w-lg mx-auto rounded-3xl border border-black/[0.08] dark:border-white/10 cream:border-amber-900/10 bg-white/85 dark:bg-zinc-900/85 cream:bg-[#fcf9f2]/90 p-5 sm:p-7 md:p-9 backdrop-blur-2xl shadow-2xl shadow-black/5 dark:shadow-black/30 relative overflow-hidden"
+            className="my-auto w-full max-w-lg mx-auto rounded-3xl border border-black/[0.08] dark:border-white/10 cream:border-amber-900/10 bg-white/85 dark:bg-zinc-900/85 cream:bg-[#fcf9f2]/90 p-5 sm:p-7 md:p-8 backdrop-blur-2xl shadow-2xl shadow-black/5 dark:shadow-black/30 relative overflow-hidden"
           >
 
               <div className="space-y-4 sm:space-y-5">
