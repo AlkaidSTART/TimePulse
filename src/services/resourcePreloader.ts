@@ -3,9 +3,7 @@ import { warmUpDatabase } from './db';
 import imageStorage from './imageStorage';
 
 const CRITICAL_IMAGES = [
-  '/logo.png',
   '/website-qr.png',
-  '/qrcode.png',
   '/favicon-32x32.png',
 ];
 
