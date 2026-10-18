@@ -1,11 +1,12 @@
 name: Build Installers
 
-# main 分支每次更新（或手动触发）时，打包 macOS(dmg) / Windows(exe) / Android(apk) 安装包，
-# 并作为构建产物上传，同时附加到当前版本号的 GitHub Release
+# 当 Release and Version Bump 发布工作流成功完成后（或手动触发时），
+# 自动基于已升级的版本打包 macOS(dmg) / Windows(exe) / Android(apk) 安装包并附加到 GitHub Release
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Release and Version Bump"]
+    types:
+      - completed
   workflow_dispatch:
 
 # 新推送取消进行中的旧构建，避免重复打包
@@ -38,10 +39,14 @@ jobs:
             artifactKey: timepulse-windows
             artifactPath: src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
     runs-on: ${{ matrix.os }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -91,10 +96,14 @@ jobs:
   android:
     name: Android (APK)
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -216,10 +225,14 @@ jobs:
       - desktop
       - android
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Download Installers
         uses: actions/download-artifact@v4
@@ -248,3 +261,23 @@ jobs:
           fi
           gh release upload "$VERSION" installers/* --clobber
           echo "安装包已上传到 Release $VERSION"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Sync Installer Assets to Supabase Database
+        run: node scripts/sync-github-releases.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://ikdbwkrqlfksmjgrzchm.supabase.co' }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

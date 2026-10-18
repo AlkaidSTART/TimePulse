@@ -32,11 +32,12 @@ import OAuthButtons from './OAuthButtons';
 import { ProgressSubmitButton, type SubmitButtonStatus } from '@/components/ui/ProgressSubmitButton';
 import { FieldValidationTooltip } from '@/components/composed/FieldValidationTooltip';
 import { UserAvatar } from '@/components/composed/UserAvatar';
+import { useTranslation } from '@/i18n/useTranslation';
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
 
 // 密码强度评估辅助函数
-function getPasswordStrength(pwd: string): { score: number; label: string; color: string } {
+function getPasswordStrength(pwd: string, t?: (key: string, def?: string) => string): { score: number; label: string; color: string } {
   if (!pwd) return { score: 0, label: '', color: '' };
   let score = 0;
   if (pwd.length >= 6) score += 1;
@@ -44,16 +45,18 @@ function getPasswordStrength(pwd: string): { score: number; label: string; color
   if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score += 1;
   if (/[^a-zA-Z0-9]/.test(pwd)) score += 1;
 
-  if (score <= 1) return { score: 1, label: '较弱', color: '#f87171' };
-  if (score === 2) return { score: 2, label: '中等', color: '#fbbf24' };
-  if (score === 3) return { score: 3, label: '良好', color: '#34d399' };
-  return { score: 4, label: '安全', color: '#10b981' };
+  const translate = t || ((_k, d) => d || '');
+  if (score <= 1) return { score: 1, label: translate('auth.strengthWeak', '较弱'), color: '#f87171' };
+  if (score === 2) return { score: 2, label: translate('auth.strengthMedium', '中等'), color: '#fbbf24' };
+  if (score === 3) return { score: 3, label: translate('auth.strengthGood', '良好'), color: '#34d399' };
+  return { score: 4, label: translate('auth.strengthStrong', '安全'), color: '#10b981' };
 }
 
 export default function AuthPage() {
   const shouldReduceMotion = useReducedMotion();
   const { transitionTo } = usePageTransition();
   const { theme, toggleTheme, accentColor } = useTheme();
+  const { t } = useTranslation();
 
   const user = useAuthStore((s) => s.user);
   const isLoading = useAuthStore((s) => s.isLoading);
