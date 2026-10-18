@@ -37,7 +37,13 @@ function formatAuthError(error: unknown): string {
   if (rawMsg.includes('rate limit') || rawMsg.includes('security purposes') || rawMsg.includes('60 seconds')) {
     return '操作过于频繁，请稍候再试';
   }
-  if (rawMsg.includes('invalid format') || rawMsg.includes('valid email') || rawMsg.includes('invalid email')) {
+  if (
+    rawMsg.includes('invalid format') ||
+    rawMsg.includes('valid email') ||
+    rawMsg.includes('invalid email') ||
+    // GoTrue 严格邮箱校验：`Email address "x" is invalid`
+    rawMsg.includes('is invalid')
+  ) {
     return '请输入有效的电子邮箱地址';
   }
   if (rawMsg.includes('Signup requires a valid password')) {
@@ -231,7 +237,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       set({
         session: data.session,
-        user: data.user,
+        // 邮箱验证开启时注册不返回会话：必须保持未登录态，
+        // 否则会在用户完成邮箱验证前展示“已登录”会员界面。
+        user: data.session ? data.user : null,
         isLoading: false,
         error: null,
         successMessage: message,

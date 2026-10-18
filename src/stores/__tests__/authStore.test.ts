@@ -92,6 +92,39 @@ describe('useAuthStore', () => {
     expect(useAuthStore.getState().user?.email).toBe('new@example.com');
   });
 
+  it('keeps user logged out when signup requires email confirmation', async () => {
+    const mockUser = { id: 'u789', email: 'pending@example.com', user_metadata: {} };
+
+    vi.spyOn(supabase.auth, 'signUp').mockResolvedValueOnce({
+      data: { user: mockUser as any, session: null },
+      error: null,
+    });
+
+    const { signUpWithEmail } = useAuthStore.getState();
+    const result = await signUpWithEmail('pending@example.com', 'secret123');
+
+    expect(result.success).toBe(true);
+    expect(result.session).toBeNull();
+
+    const state = useAuthStore.getState();
+    expect(state.user).toBeNull();
+    expect(state.session).toBeNull();
+    expect(state.successMessage).toContain('注册申请已提交');
+  });
+
+  it('translates strict email validation errors into friendly Chinese text', async () => {
+    vi.spyOn(supabase.auth, 'signUp').mockResolvedValueOnce({
+      data: { user: null, session: null },
+      error: new Error('Email address "tp-test@example.com" is invalid') as any,
+    });
+
+    const { signUpWithEmail } = useAuthStore.getState();
+    const result = await signUpWithEmail('tp-test@example.com', 'secret123');
+
+    expect(result.success).toBe(false);
+    expect(useAuthStore.getState().error).toBe('请输入有效的电子邮箱地址');
+  });
+
   it('handles signOut correctly', async () => {
     useAuthStore.setState({
       user: { id: 'u123', email: 'user@example.com' } as any,
