@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { useEffect, type MouseEvent, type ReactNode } from 'react';
-import { AutoResizer } from '@/components/ui';
+import { AutoResizer } from '@/components/ui/auto-resizer';
 
 type LinearDialogShellProps = {
   onClose: () => void;

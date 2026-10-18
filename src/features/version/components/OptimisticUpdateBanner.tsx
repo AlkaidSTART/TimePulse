@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FiArrowUpCircle, FiExternalLink, FiX } from 'react-icons/fi';
-import { useVersionStore } from '@/stores';
+import { useVersionStore } from '@/stores/useVersionStore';
 import { useTranslation } from '@/i18n/useTranslation';
 import { GITHUB_RELEASES_URL } from '@/constants/version';
 

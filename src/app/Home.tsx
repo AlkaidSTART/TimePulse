@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { AutoResizer, AutoTransition } from '@/components/ui';
+import { AutoResizer } from '@/components/ui/auto-resizer';
+import { AutoTransition } from '@/components/ui/auto-transition';
 import Layout from '@/components/layout/Layout';
 import CustomBackground from '@/features/background/components/CustomBackground';
 import GradientBackground from '@/features/background/components/GradientBackground';

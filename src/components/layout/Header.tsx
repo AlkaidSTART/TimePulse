@@ -13,15 +13,18 @@ import { useTranslation } from '@/i18n/useTranslation';
 import type { Language } from '@/i18n/types';
 import TimerTabs from '@/features/timer-management/components/TimerTabs';
 import { PRESET_COLORS } from '@/constants/colors';
-import { AutoResizer, AutoTransition } from '@/components/ui';
-import { LinearDialogTransition, DatePicker } from '@/components/composed';
+import { AutoResizer } from '@/components/ui/auto-resizer';
+import { AutoTransition } from '@/components/ui/auto-transition';
+import { LinearDialogTransition } from '@/components/composed/linear-dialog-transition';
 import MobileTabBar, { type MobileTab } from './MobileTabBar';
 import WebDock from './WebDock';
 import AnimatedLogo from './AnimatedLogo';
 import RouteNavigation from './RouteNavigation';
 import { usePageTransition } from '@/hooks/usePageTransition';
 import { useOrientation } from '@/hooks/useOrientation';
-import { useTodoStore, useVersionStore, useAuthStore } from '@/stores';
+import { useTodoStore } from '@/stores/useTodoStore';
+import { useVersionStore } from '@/stores/useVersionStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { FiList } from 'react-icons/fi';
 import { throttle, debounce } from '@/utils/performance';
 
@@ -29,6 +32,7 @@ const ThemeLibraryModal = lazy(() => import('@/components/composed/ThemeLibraryM
 const ShareModal = lazy(() => import('@/features/sharing/components/ShareModal'));
 const TimerCreationFlow = lazy(() => import('@/features/timer-management/components/TimerCreationFlow'));
 const HexColorPicker = lazy(() => import('react-colorful').then((m) => ({ default: m.HexColorPicker })));
+const DatePicker = lazy(() => import('@/components/composed/DatePicker'));
 
 type TimerUpdate = {
   name: string;
@@ -1104,10 +1108,12 @@ export default function Header({ onHeightChange }: HeaderProps) {
                       <>
                         <div>
                           <label className="block text-sm font-medium mb-1">{t('modal.edit.date')}</label>
-                          <DatePicker
-                            value={editingTimer.targetDate}
-                            onChange={(e) => setEditingTimer({ ...editingTimer, targetDate: e.target.value })}
-                          />
+                          <Suspense fallback={null}>
+                            <DatePicker
+                              value={editingTimer.targetDate}
+                              onChange={(e) => setEditingTimer({ ...editingTimer, targetDate: e.target.value })}
+                            />
+                          </Suspense>
                         </div>
 
                         <div>

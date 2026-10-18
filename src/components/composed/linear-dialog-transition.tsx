@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { AutoTransition } from '@/components/ui';
+import { AutoTransition } from '@/components/ui/auto-transition';
 import { cn } from '@/components/ui/utils';
 
 export type LinearDialogDirection = 1 | -1;

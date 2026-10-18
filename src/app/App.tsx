@@ -10,7 +10,7 @@ import GlobalScrollbars from '@/components/layout/GlobalScrollbars';
 import OpeningAnimation from '@/components/layout/OpeningAnimation';
 import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
 
-import { useAuthStore } from '@/stores';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 declare global {
   interface Window {

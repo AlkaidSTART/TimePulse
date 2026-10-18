@@ -20,7 +20,8 @@ import {
 } from '@/domain/timer';
 import { splitCalendarDuration, getZonedDateTimeParts } from '@/domain/time';
 import { getNextTimerUpdateDelay } from '../timerSchedule';
-import { AutoResizer, AutoTransition, type TransitionType } from '@/components/ui';
+import { AutoResizer } from '@/components/ui/auto-resizer';
+import { AutoTransition, type TransitionType } from '@/components/ui/auto-transition';
 
 const LapTimesModal = lazy(() => import('@/features/stopwatch/components/LapTimesModal'));
 const StopwatchStopConfirmModal = lazy(() => import('@/features/stopwatch/components/StopwatchStopConfirmModal'));
