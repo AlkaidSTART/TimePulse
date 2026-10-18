@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
   FiClock,
@@ -24,40 +24,46 @@ import {
 // 15秒无限轮播间隔（落在用户期望的10-20s区间，兼顾阅读节奏与动态感）
 const QUOTE_AUTO_ROTATE_MS = 15000;
 
-export default function CheerPage() {
-  const shouldReduceMotion = useReducedMotion();
-  const { transitionTo } = usePageTransition();
-  const { isFullscreen, isHeaderVisible } = useFullscreen();
-
+/**
+ * 时钟与日期区域：独立持有每秒状态并只在页面可见时走表。
+ * 隔离开秒级重渲染，父组件（金句卡片、快捷入口）不再每秒跟着渲染。
+ */
+const CheerClock = memo(function CheerClock() {
   const [currentTime, setCurrentTime] = useState(() => new Date());
-  const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * INSPIRATIONAL_QUOTES.length));
-  const [isCopied, setIsCopied] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [pendingTodosCount, setPendingTodosCount] = useState(0);
 
-  // 每秒更新当前时间
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const tick = () => setCurrentTime(new Date());
 
-  // 获取待办数
-  useEffect(() => {
-    try {
-      const items = readTodoItems();
-      setPendingTodosCount(items.filter((i) => !i.completed).length);
-    } catch {
-      // ignore
-    }
+    const start = () => {
+      if (timer !== null) return;
+      tick();
+      timer = setInterval(tick, 1000);
+    };
+    const stop = () => {
+      if (timer !== null) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        start();
+      } else {
+        stop();
+      }
+    };
+
+    handleVisibilityChange();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   // 当前时间段配置
-  const timeSlot: TimeSlotConfig = useMemo(() => {
-    return getCurrentTimeSlot(currentTime);
-  }, [currentTime]);
+  const timeSlot: TimeSlotConfig = useMemo(() => getCurrentTimeSlot(currentTime), [currentTime]);
 
   // 格式化时间与日期（轻量精致）
   const timeString = useMemo(() => {
@@ -92,6 +98,70 @@ export default function CheerPage() {
       lunarText,
     };
   }, [dateKey]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="flex flex-col items-center gap-2 text-center"
+    >
+      {/* 精致克制的时间展示（字号大小适中） */}
+      <div className="flex items-baseline gap-1 font-mono tracking-tight font-medium text-gray-800 dark:text-gray-100">
+        <span className="text-4xl sm:text-5xl tabular-nums">
+          {timeString.hours}
+        </span>
+        <span className="text-3xl sm:text-4xl opacity-40 animate-pulse text-primary-500">
+          :
+        </span>
+        <span className="text-4xl sm:text-5xl tabular-nums">
+          {timeString.minutes}
+        </span>
+        <span className="text-xs sm:text-sm opacity-50 tabular-nums ml-1 font-normal text-gray-500 dark:text-gray-400">
+          {timeString.seconds}
+        </span>
+      </div>
+
+      {/* 极简日期与时段标签 */}
+      <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 font-normal">
+        <span>{dateInfo.fullDate}</span>
+        <span>·</span>
+        <span>{dateInfo.dayOfWeek}</span>
+        {dateInfo.lunarText && (
+          <>
+            <span>·</span>
+            <span>{dateInfo.lunarText}</span>
+          </>
+        )}
+        <span>·</span>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[11px] font-medium text-gray-600 dark:text-gray-300">
+          {timeSlot.name}
+        </span>
+      </div>
+    </motion.div>
+  );
+});
+
+export default function CheerPage() {
+  const shouldReduceMotion = useReducedMotion();
+  const { transitionTo } = usePageTransition();
+  const { isFullscreen, isHeaderVisible } = useFullscreen();
+
+  const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * INSPIRATIONAL_QUOTES.length));
+  const [isCopied, setIsCopied] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pendingTodosCount, setPendingTodosCount] = useState(0);
+
+  // 获取待办数
+  useEffect(() => {
+    try {
+      const items = readTodoItems();
+      setPendingTodosCount(items.filter((i) => !i.completed).length);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const currentQuote = INSPIRATIONAL_QUOTES[quoteIndex] || INSPIRATIONAL_QUOTES[0];
 
@@ -188,45 +258,7 @@ export default function CheerPage() {
       <div className="mx-auto flex w-full max-w-xl flex-col items-center gap-5 sm:gap-6 my-auto">
         
         {/* 顶部：极简雅致的时间与日期（向下微调位移，舒展优雅） */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="flex flex-col items-center gap-2 text-center"
-        >
-          {/* 精致克制的时间展示（字号大小适中） */}
-          <div className="flex items-baseline gap-1 font-mono tracking-tight font-medium text-gray-800 dark:text-gray-100">
-            <span className="text-4xl sm:text-5xl tabular-nums">
-              {timeString.hours}
-            </span>
-            <span className="text-3xl sm:text-4xl opacity-40 animate-pulse text-primary-500">
-              :
-            </span>
-            <span className="text-4xl sm:text-5xl tabular-nums">
-              {timeString.minutes}
-            </span>
-            <span className="text-xs sm:text-sm opacity-50 tabular-nums ml-1 font-normal text-gray-500 dark:text-gray-400">
-              {timeString.seconds}
-            </span>
-          </div>
-
-          {/* 极简日期与时段标签 */}
-          <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 font-normal">
-            <span>{dateInfo.fullDate}</span>
-            <span>·</span>
-            <span>{dateInfo.dayOfWeek}</span>
-            {dateInfo.lunarText && (
-              <>
-                <span>·</span>
-                <span>{dateInfo.lunarText}</span>
-              </>
-            )}
-            <span>·</span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[11px] font-medium text-gray-600 dark:text-gray-300">
-              {timeSlot.name}
-            </span>
-          </div>
-        </motion.div>
+        <CheerClock />
 
         {/* 今日灵感一言（15s无限轮播卡片，悬停暂停，集成细腻流转动效） */}
         <motion.div
