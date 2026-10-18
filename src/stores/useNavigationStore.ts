@@ -104,7 +104,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
     // 路由鉴权守卫：未登录不允许放行至受保护页面
     if (!canAccessView(nextView)) {
       if (window.location.hash !== '#login' && window.location.hash !== '#register' && window.location.hash !== '#forgot') {
-        window.location.hash = '#login';
+        window.location.hash = getDefaultAuthHash();
       }
       get().setView('auth');
       return;
@@ -153,7 +153,7 @@ if (typeof window !== 'undefined') {
     if (!canAccessView(targetView)) {
       useNavigationStore.getState().setView('auth');
       if (window.location.hash !== '#login' && window.location.hash !== '#register' && window.location.hash !== '#forgot') {
-        window.location.hash = '#login';
+        window.location.hash = getDefaultAuthHash();
       }
       return;
     }
@@ -173,7 +173,7 @@ if (typeof window !== 'undefined') {
         useNavigationStore.getState().setView('auth');
         const rawHash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
         if (rawHash !== 'login' && rawHash !== 'register' && rawHash !== 'auth' && rawHash !== 'forgot') {
-          window.location.hash = '#login';
+          window.location.hash = getDefaultAuthHash();
         }
       }
     }

@@ -12,6 +12,8 @@ import { AutoResizer, AutoTransition } from '@/components/ui';
 import { LinearDialogTransition } from '@/components/composed';
 import { cn } from '@/lib/utils';
 import type { Holiday } from '@/domain/timer';
+import { getLocalizedHolidayName } from '@/domain/holidays';
+import { useI18n } from '@/context/I18nContext';
 import { PRESET_COLORS } from '@/constants/colors';
 
 const presetColors = PRESET_COLORS;
@@ -41,6 +43,7 @@ export default function AddTimerModal({
   const holidaysList = rawHolidaysList;
   const { accentColor } = useTheme();
   const { t } = useTranslation();
+  const { currentLang } = useI18n();
 
   const [mode, setMode] = useState<'short' | 'long'>(initialMode);
   const [showColorPicker, setShowColorPicker] = useState(false);

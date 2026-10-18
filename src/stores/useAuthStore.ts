@@ -132,6 +132,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isInitialized: true,
       });
 
+      if (user && typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('timepulse_has_registered', 'true');
+          if (user.email) {
+            localStorage.setItem('timepulse_registered_email', user.email);
+          }
+        } catch {}
+      }
+
       // 同步昵称与签名（若云端有对应元数据）
       if (user?.user_metadata?.nickname) {
         const currentNickname = usePersonalSettingsStore.getState().nickname;
@@ -161,6 +170,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             session: newSession,
             user: newUser,
           });
+
+          if (newUser && typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('timepulse_has_registered', 'true');
+              if (newUser.email) {
+                localStorage.setItem('timepulse_registered_email', newUser.email);
+              }
+            } catch {}
+          }
 
           if (newUser?.user_metadata?.nickname) {
             const currentNickname = usePersonalSettingsStore.getState().nickname;
@@ -223,6 +241,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         error: null,
         successMessage: '登录成功，欢迎回来！',
       });
+
+      if (data.user && typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('timepulse_has_registered', 'true');
+          if (data.user.email) {
+            localStorage.setItem('timepulse_registered_email', data.user.email);
+          }
+        } catch {}
+      }
 
       // 同步用户昵称与签名
       if (data.user?.user_metadata?.nickname) {
@@ -318,8 +345,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (error) {
         const formatted = formatAuthError(error);
+        if (formatted.includes('已被注册') && typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('timepulse_has_registered', 'true');
+            localStorage.setItem('timepulse_registered_email', trimmedEmail);
+          } catch {}
+        }
         set({ isLoading: false, error: formatted });
         return { success: false, error: formatted };
+      }
+
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('timepulse_has_registered', 'true');
+          localStorage.setItem('timepulse_registered_email', trimmedEmail);
+        } catch {}
       }
 
       const hasSession = Boolean(data.session);
