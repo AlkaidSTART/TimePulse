@@ -61,8 +61,8 @@ const SUPABASE_KEY =
   process.env.SUPABASE_PUBLISHABLE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('[Sync Releases] 错误: 未找到 SUPABASE_URL 或 SUPABASE_SECRET_KEY 配置');
-  process.exit(1);
+  console.warn('[Sync Releases] 警告: 未找到 SUPABASE_URL 或 SUPABASE_SECRET_KEY 配置，跳过数据库同步');
+  process.exit(0);
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
