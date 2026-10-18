@@ -60,6 +60,14 @@
         }
         document.documentElement.classList.remove('dark');
         document.documentElement.style.colorScheme = 'light';
+
+        // 语言包与主包并行下载：i18n 初始化时直接复用这个 Promise，不再等 JS 启动后才请求
+        const langParam = new URLSearchParams(window.location.search).get('lang') || '';
+        const earlyLocale = langParam.toLowerCase().startsWith('en') ? 'en' : 'zh';
+        window.__TIMEPULSE_EARLY_LOCALE__ = earlyLocale;
+        window.__TIMEPULSE_EARLY_LOCALE_PROMISE__ = fetch('/locales/' + earlyLocale + '/common.json')
+          .then((response) => (response.ok ? response.json() : null))
+          .catch(() => null);
       } catch (_) {
         document.documentElement.style.colorScheme = 'light';
       }
