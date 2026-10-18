@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "overlayscrollbars/styles/overlayscrollbars.css";
 @source "../src";
 @custom-variant cream (&:where(.cream, .cream *));
 @custom-variant dark (&:where(.dark, .dark *));

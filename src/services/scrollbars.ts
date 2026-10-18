@@ -1,5 +1,7 @@
-import { OverlayScrollbars } from 'overlayscrollbars';
-
+/**
+ * 平台判定：Apple/Safari/Android/触摸设备使用原生滚动条，
+ * 桌面非 Apple 环境才按需加载 OverlayScrollbars（见 GlobalScrollbars）。
+ */
 export function shouldUseNativeScrollbars(): boolean {
   if (typeof navigator === 'undefined') return false;
 
@@ -22,13 +24,4 @@ export function shouldUseNativeScrollbars(): boolean {
     ('ontouchstart' in window || ((navigator.maxTouchPoints || 0) > 0));
 
   return isApplePlatform || isSafari || isAndroid || isTouchDevice;
-}
-
-export function getScrollViewport(host: HTMLElement | null): HTMLElement | null {
-  if (!host) return null;
-
-  return (
-    (OverlayScrollbars(host)?.elements().viewport as HTMLElement | undefined) ??
-    host
-  );
 }
