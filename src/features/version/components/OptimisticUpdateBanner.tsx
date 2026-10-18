@@ -7,13 +7,11 @@ import { GITHUB_RELEASES_URL } from '@/constants/version';
 
 export default function OptimisticUpdateBanner() {
   const { t } = useTranslation();
-  const {
-    isBannerVisible,
-    latestVersion,
-    downloadUrl,
-    dismissBanner,
-    checkUpdate,
-  } = useVersionStore();
+  const isBannerVisible = useVersionStore((s) => s.isBannerVisible);
+  const latestVersion = useVersionStore((s) => s.latestVersion);
+  const downloadUrl = useVersionStore((s) => s.downloadUrl);
+  const dismissBanner = useVersionStore((s) => s.dismissBanner);
+  const checkUpdate = useVersionStore((s) => s.checkUpdate);
 
   // 应用初始化加载后延迟检查更新（避免与首屏加载、倒计时动画争抢资源）
   useEffect(() => {
