@@ -34,7 +34,7 @@
       },
       "mobile": [
         {
-          "scheme": "timepulse"
+          "scheme": ["timepulse"]
         }
       ]
     }
