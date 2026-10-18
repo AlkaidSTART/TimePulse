@@ -4,6 +4,8 @@ import { useAuthStore } from '../useAuthStore';
 
 describe('useNavigationStore', () => {
   beforeEach(() => {
+    window.location.hash = '';
+    localStorage.clear();
     useAuthStore.setState({
       user: null,
       session: null,

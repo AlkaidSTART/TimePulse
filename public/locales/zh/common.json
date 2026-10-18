@@ -698,7 +698,8 @@
     "alreadyHaveAccount": "已有账号？直接登录",
     "switchNow": "立即切换",
     "tabPendingRegister": "待注册",
-    "tabRegistered": "已注册"
+    "tabRegistered": "已注册",
+    "avatarLoginPrompt": "云端存储空间仅 5MB，请先登录账号后再上传专属头像"
   },
   "cheer": {
     "copyQuote": "复制此句",

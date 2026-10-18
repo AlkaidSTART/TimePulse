@@ -698,7 +698,8 @@
     "alreadyHaveAccount": "Already have an account? Sign in directly",
     "switchNow": "Switch now",
     "tabPendingRegister": "Register first",
-    "tabRegistered": "Registered"
+    "tabRegistered": "Registered",
+    "avatarLoginPrompt": "Cloud storage quota is 5MB. Please sign in to upload your custom avatar."
   },
   "cheer": {
     "copyQuote": "Copy Quote",

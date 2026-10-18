@@ -219,33 +219,33 @@ export default function AuthPage() {
     setAvatarFeedback(null);
     if (!user) {
       setIsUploadingAvatar(false);
-      setAvatarFeedback({ type: 'error', message: '云端存储空间仅 5MB，请先登录账号后再上传专属头像' });
+      setAvatarFeedback({ type: 'error', message: t('auth.avatarLoginPrompt', '云端存储空间仅 5MB，请先登录账号后再上传专属头像') });
       setTimeout(() => setAvatarFeedback(null), 4500);
       return;
     }
     const res = await uploadAvatar(file);
     setIsUploadingAvatar(false);
     if (res.success) {
-      setAvatarFeedback({ type: 'success', message: '头像已自动优化至轻量 WebP 并同步至云端！' });
+      setAvatarFeedback({ type: 'success', message: t('auth.avatarSuccess', '头像已自动优化至轻量 WebP 并同步至云端！') });
       setTimeout(() => setAvatarFeedback(null), 3500);
     } else {
-      setAvatarFeedback({ type: 'error', message: res.error || '头像上传失败，请稍后重试' });
+      setAvatarFeedback({ type: 'error', message: res.error || t('auth.avatarFailed', '头像上传失败，请稍后重试') });
       setTimeout(() => setAvatarFeedback(null), 4500);
     }
   };
 
   // 处理重置或移除自定义头像
   const handleRemoveAvatar = async () => {
-    if (!window.confirm('确定要移除当前自定义头像并恢复默认头像吗？')) return;
+    if (!window.confirm(t('auth.avatarResetPrompt', '确定要移除当前自定义头像并恢复默认头像吗？'))) return;
     setIsUploadingAvatar(true);
     setAvatarFeedback(null);
     const res = await removeAvatar();
     setIsUploadingAvatar(false);
     if (res.success) {
-      setAvatarFeedback({ type: 'success', message: '已恢复默认头像' });
+      setAvatarFeedback({ type: 'success', message: t('auth.avatarResetSuccess', '已恢复默认头像') });
       setTimeout(() => setAvatarFeedback(null), 3000);
     } else {
-      setAvatarFeedback({ type: 'error', message: res.error || '重置头像失败' });
+      setAvatarFeedback({ type: 'error', message: res.error || t('auth.avatarResetFailed', '重置头像失败') });
       setTimeout(() => setAvatarFeedback(null), 4000);
     }
   };
