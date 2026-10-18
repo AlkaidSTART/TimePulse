@@ -55,7 +55,7 @@ export default function PersonalSettingsPage() {
   const settingsFileInputRef = useRef<HTMLInputElement>(null);
 
   const userDisplayName = user?.user_metadata?.nickname || (nickname === '阳光旅人' ? '' : nickname) || (user?.email ? user.email.split('@')[0] : t('personalSettings.memberDefaultName', 'TimePulse 会员'));
-  const userAvatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || (avatar && (avatar.startsWith('http') || avatar.startsWith('data:')) ? avatar : null);
+  const userAvatarUrl = getEffectiveAvatarUrl(user, avatar);
 
   const handleAvatarUpload = async (file: File) => {
     setIsUploadingAvatar(true);
