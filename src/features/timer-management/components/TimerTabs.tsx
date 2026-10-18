@@ -2,8 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { flushSync } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
-import { useI18n } from '@/context/I18nContext';
+import { useTranslation } from '@/i18n/useTranslation';
 import type { Timer } from '@/domain/timer';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { getCompactTimerItems, type CompactTimerItem } from './timerTabsLayout';
@@ -27,8 +26,7 @@ function transformBetween(from: CapsuleRect, base: CapsuleRect): string {
 }
 
 export default function TimerTabs({ timers, activeTimerId, setActiveTimerId, className = '' }: TimerTabsProps) {
-  const { t } = useTranslation();
-  const { currentLang } = useI18n();
+  const { t, currentLang } = useTranslation();
   const { accentColor } = useTheme();
   const reducedMotion = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(false);

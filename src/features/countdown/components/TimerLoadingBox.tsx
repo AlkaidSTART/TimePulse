@@ -1,6 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
 import { animate, useReducedMotion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '@/i18n/useTranslation';
 
 export interface TimerLoadingBoxProps {
   color?: string;
