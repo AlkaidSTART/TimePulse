@@ -48,17 +48,17 @@ function makeStopwatch(id: string, name: string, isRunning = false): Timer {
 }
 
 describe('TimerSync Service - 多端计时器同步', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     localStorage.clear();
     sessionStorage.clear();
     setClientDeviceIdForTest(null);
-    teardownRealtimeChannel();
+    await teardownRealtimeChannel();
     useAuthStore.setState({ user: null, session: null });
     vi.restoreAllMocks();
   });
 
-  afterEach(() => {
-    teardownRealtimeChannel();
+  afterEach(async () => {
+    await teardownRealtimeChannel();
     vi.restoreAllMocks();
   });
 
@@ -211,7 +211,7 @@ describe('TimerSync Service - 多端计时器同步', () => {
   });
 
   describe('实时多端通道 (setupRealtimeChannel)', () => {
-    it('订阅用户专属广播通道，并正确处理来自对端的广播', () => {
+    it('订阅用户专属广播通道，并正确处理来自对端的广播', async () => {
       setClientDeviceIdForTest('my-computer');
       const userId = 'user-abc';
 
@@ -226,12 +226,13 @@ describe('TimerSync Service - 多端计时器同步', () => {
           return mockChannel;
         }),
         unsubscribe: vi.fn().mockResolvedValue('ok'),
+        teardown: vi.fn(),
         send: vi.fn().mockResolvedValue('ok'),
       };
 
       vi.spyOn(supabase, 'channel').mockReturnValue(mockChannel as unknown as any);
 
-      setupRealtimeChannel(userId);
+      await setupRealtimeChannel(userId);
 
       expect(supabase.channel).toHaveBeenCalledWith(
         `timepulse:sync:${userId}`,
@@ -287,11 +288,12 @@ describe('TimerSync Service - 多端计时器同步', () => {
         on: vi.fn().mockReturnThis(),
         subscribe: vi.fn().mockReturnThis(),
         unsubscribe: vi.fn().mockResolvedValue('ok'),
+        teardown: vi.fn(),
         send: sendSpy,
       };
       vi.spyOn(supabase, 'channel').mockReturnValue(mockChannel as unknown as any);
 
-      setupRealtimeChannel('user-abc');
+      await setupRealtimeChannel('user-abc');
 
       const timer = makeStopwatch('sw-test', '测试秒表', true);
       notifyLocalTimerChange([timer], 'sw-test', { type: 'update', timer });

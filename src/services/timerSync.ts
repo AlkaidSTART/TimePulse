@@ -1,10 +1,17 @@
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useTimerStore } from '@/stores/useTimerStore';
 import { parseTimer, type Timer } from '@/domain/timer';
 import type { TimerAction } from '@/features/timer-management/reducer';
 import { addNotification } from '@/services/notificationManager';
+
+type SupabaseClient = typeof import('@/lib/supabase')['supabase'];
+let supabaseClientPromise: Promise<SupabaseClient> | null = null;
+
+export function getSupabaseClient(): Promise<SupabaseClient> {
+  supabaseClientPromise ??= import('@/lib/supabase').then((m) => m.supabase);
+  return supabaseClientPromise;
+}
 
 export interface TimerSyncPayload {
   originDeviceId: string;
@@ -104,6 +111,7 @@ export async function pushTimersToCloud(
   if (!targetUserId) return false;
 
   try {
+    const supabase = await getSupabaseClient();
     if (timers.length > 0) {
       const rows = timers.map((timer, index) => ({
         user_id: targetUserId,
@@ -192,6 +200,7 @@ export async function pullTimersFromCloud(
   if (!targetUserId) return null;
 
   try {
+    const supabase = await getSupabaseClient();
     const [timersRes, stateRes] = await Promise.all([
       supabase
         .from('timers')
@@ -306,10 +315,11 @@ export function notifyLocalTimerChange(
   schedulePushToCloud(timers, activeTimerId);
 }
 
-export function setupRealtimeChannel(userId: string): RealtimeChannel {
-  teardownRealtimeChannel();
+export async function setupRealtimeChannel(userId: string): Promise<RealtimeChannel> {
+  await teardownRealtimeChannel();
   currentUserId = userId;
 
+  const supabase = await getSupabaseClient();
   const channelName = `timepulse:sync:${userId}`;
   const channel = supabase.channel(channelName, {
     config: {
@@ -341,12 +351,11 @@ export function setupRealtimeChannel(userId: string): RealtimeChannel {
   return channel;
 }
 
-export function teardownRealtimeChannel(): void {
+export async function teardownRealtimeChannel(): Promise<void> {
   if (activeChannel) {
     try {
-      if (activeChannel && typeof (activeChannel as unknown as { unsubscribe?: unknown }).unsubscribe === 'function') {
-        void supabase.removeChannel(activeChannel).catch(() => {});
-      }
+      const supabase = await getSupabaseClient();
+      void supabase.removeChannel(activeChannel);
     } catch {
       // ignore
     }
@@ -370,16 +379,16 @@ export function initTimerSync(): () => void {
   const unsubscribeAuth = useAuthStore.subscribe((state) => {
     const user = state.user;
     if (user && user.id !== currentUserId) {
-      setupRealtimeChannel(user.id);
+      void setupRealtimeChannel(user.id);
       void reconcileCloudOnLogin(user.id);
     } else if (!user && currentUserId) {
-      teardownRealtimeChannel();
+      void teardownRealtimeChannel();
     }
   });
 
   const currentUser = useAuthStore.getState().user;
   if (currentUser) {
-    setupRealtimeChannel(currentUser.id);
+    void setupRealtimeChannel(currentUser.id);
     void reconcileCloudOnLogin(currentUser.id);
   }
 
@@ -403,7 +412,7 @@ export function initTimerSync(): () => void {
     unsubscribeAuth();
     document.removeEventListener('visibilitychange', handleVisibilityOrOnline);
     window.removeEventListener('online', handleVisibilityOrOnline);
-    teardownRealtimeChannel();
+    void teardownRealtimeChannel();
     isInitialized = false;
   };
 }
