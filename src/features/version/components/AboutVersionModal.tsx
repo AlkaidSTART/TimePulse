@@ -20,6 +20,7 @@ import { SiWechat } from 'react-icons/si';
 import { useVersionStore, type AboutModalTab } from '@/stores/useVersionStore';
 import { useTranslation } from '@/i18n/useTranslation';
 import { GITHUB_RELEASES_URL, GITHUB_REPO } from '@/constants/version';
+import { openExternalUrl } from '@/utils/browser';
 import AnimatedLogo from '@/components/layout/AnimatedLogo';
 import { AutoTransition } from '@/components/ui';
 
@@ -55,15 +56,11 @@ export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
 
   const handleOpenDownload = () => {
     const targetUrl = downloadUrl || GITHUB_RELEASES_URL;
-    if (typeof window !== 'undefined') {
-      window.open(targetUrl, '_blank', 'noopener,noreferrer');
-    }
+    void openExternalUrl(targetUrl);
   };
 
   const handleOpenRepo = () => {
-    if (typeof window !== 'undefined') {
-      window.open(`https://github.com/${GITHUB_REPO}`, '_blank', 'noopener,noreferrer');
-    }
+    void openExternalUrl(`https://github.com/${GITHUB_REPO}`);
   };
 
   const handleDownloadFile = (url: string, filename: string) => {
@@ -204,7 +201,7 @@ export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
                           </div>
                         ) : hasUpdate ? (
                           <div className="space-y-2.5">
-                            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold text-sm">
+                            <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 font-semibold text-sm">
                               <FiArrowUpCircle className="size-5 shrink-0" />
                               <span>
                                 {t('version.newVersionFound', '发现新版本')}: v{latestVersion}
@@ -247,11 +244,11 @@ export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
                         <button
                           type="button"
                           onClick={handleOpenDownload}
-                          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-gradient-to-r from-primary-500 via-amber-500 to-primary-600 text-white font-semibold text-sm shadow-lg shadow-primary-500/25 hover:opacity-95 active:scale-[0.98] transition-all cursor-pointer"
+                          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-primary-500 hover:bg-primary-600 active:scale-[0.98] text-white font-medium text-xs sm:text-sm shadow-xs transition-colors cursor-pointer"
                         >
-                          <FiArrowUpCircle className="size-4.5" />
+                          <FiArrowUpCircle className="size-4" />
                           <span>{t('version.downloadReleases', '前往 GitHub Releases 下载')}</span>
-                          <FiExternalLink className="size-4" />
+                          <FiExternalLink className="size-3.5" />
                         </button>
                       </div>
                     )}

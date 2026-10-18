@@ -136,6 +136,8 @@ describe('useAuthStore', () => {
     const res = await useAuthStore.getState().signInWithOAuth('google');
 
     expect(res.success).toBe(true);
+    expect(useAuthStore.getState().isLoading).toBe(false);
+    expect(useAuthStore.getState().successMessage).toBe('已在浏览器中打开授权页，请在浏览器中完成登录');
     expect(spy).toHaveBeenCalledWith({
       provider: 'google',
       options: { redirectTo: expect.any(String), skipBrowserRedirect: true },
