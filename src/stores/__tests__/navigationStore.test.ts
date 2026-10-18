@@ -61,7 +61,22 @@ describe('useNavigationStore', () => {
 
     useNavigationStore.getState().transitionTo('main');
     expect(useNavigationStore.getState().view).toBe('auth');
+    expect(window.location.hash).toBe('#register');
+  });
+
+  it('redirects to #login when initialized, not logged in, but previously registered', () => {
+    localStorage.setItem('timepulse_has_registered', 'true');
+    useAuthStore.setState({
+      user: null,
+      session: null,
+      isInitialized: true,
+    });
+
+    useNavigationStore.getState().setView('cheer');
+    useNavigationStore.getState().transitionTo('main');
+    expect(useNavigationStore.getState().view).toBe('auth');
     expect(window.location.hash).toBe('#login');
+    localStorage.removeItem('timepulse_has_registered');
   });
 
   it('allows transition to protected routes when user is authenticated', () => {

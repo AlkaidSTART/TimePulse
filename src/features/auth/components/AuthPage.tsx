@@ -32,6 +32,7 @@ import OAuthButtons from './OAuthButtons';
 import { ProgressSubmitButton, type SubmitButtonStatus } from '@/components/ui/ProgressSubmitButton';
 import { FieldValidationTooltip } from '@/components/composed/FieldValidationTooltip';
 import { UserAvatar } from '@/components/composed/UserAvatar';
+import { getEffectiveAvatarUrl } from '@/utils/avatar';
 import { useTranslation } from '@/i18n/useTranslation';
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
@@ -967,11 +968,6 @@ export default function AuthPage() {
                           {t('auth.switchNow', '立即切换')}
                         </button>
                       )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                      <FiAlertCircle className="size-4 shrink-0 mt-0.5 text-red-500" />
-                      <span className="flex-1 leading-relaxed font-medium">{error || localValidation}</span>
                     </motion.div>
                   )}
                 </AnimatePresence>

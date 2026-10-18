@@ -139,7 +139,7 @@ export default function Home() {
               <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
             </span>
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider font-mono">
-              正在连接时光空间...
+              {t('common.connectingSpace', '正在连接时光空间...')}
             </span>
           </div>
         </div>

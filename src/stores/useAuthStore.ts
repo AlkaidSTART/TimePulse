@@ -663,7 +663,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           data: {
             ...(nickname !== undefined ? { nickname } : {}),
             ...(customMotto !== undefined ? { custom_motto: customMotto } : {}),
-            ...(avatarUrl !== undefined ? { avatar_url: avatarUrl } : {}),
+            ...(avatarUrl !== undefined ? { avatar_url: avatarUrl, custom_avatar_url: avatarUrl } : {}),
           },
         });
 

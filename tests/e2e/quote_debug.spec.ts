@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('inspect cheer quote card', async ({ page }) => {
+test('inspect cheer quote card with Wang Zengqi quote', async ({ page }) => {
   const dummyUser = {
     id: 'test-user-id',
     email: 'test@example.com',
@@ -44,16 +44,36 @@ test('inspect cheer quote card', async ({ page }) => {
   }, dummySession);
 
   await page.goto('/#cheer');
-  await page.waitForTimeout(2000);
+  await page.waitForTimeout(1000);
 
-  // Look for the "换一句" button
+  // Set the exact quote from user's screenshot
+  await page.evaluate(() => {
+    // @ts-ignore
+    const win = window as any;
+    // We can access or dispatch to zustand
+  });
+
+  // Let's find the quote index in INSPIRATIONAL_QUOTES or click "换一句" until we find it, or inject it via store
+  await page.evaluate(async () => {
+    const { useQuotesStore } = await import('/src/stores/useQuotesStore.ts');
+    useQuotesStore.setState({
+      quotes: [{
+        text: '生活不在别处，脚下即是前方。心怀浪漫与热烈，把平凡的日子过得热气腾腾。',
+        author: '汪曾祺',
+        source: '人间草木',
+        category: 'life'
+      }],
+      currentIndex: 0,
+    });
+  });
+
+  await page.waitForTimeout(1000);
+
   const refreshButton = page.getByTitle('换一句');
-  await expect(refreshButton).toBeVisible({ timeout: 10000 });
+  await expect(refreshButton).toBeVisible();
 
-  // Find the card container
   const card = refreshButton.locator('xpath=ancestor::div[contains(@class, "rounded-2xl")]').first();
-  await page.screenshot({ path: 'test-results/cheer-full.png' });
-  await card.screenshot({ path: 'test-results/cheer-card.png' });
+  await card.screenshot({ path: 'test-results/wang-zengqi.png' });
 
   // Print card dimensions and inner elements
   const info = await card.evaluate((el) => {

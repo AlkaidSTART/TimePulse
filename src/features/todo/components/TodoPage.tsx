@@ -380,7 +380,11 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                   ? t('todo.hapticEnabled', '触觉反馈已开启')
                   : t('todo.hapticDisabled', '触觉反馈已关闭')}
               </span>
-              <span className="sm:hidden">{hapticActive ? '触觉开启' : '触觉关闭'}</span>
+              <span className="sm:hidden">
+                {hapticActive
+                  ? t('todo.hapticOnShort', '触觉开启')
+                  : t('todo.hapticOffShort', '触觉关闭')}
+              </span>
             </button>
           </div>
         </div>
