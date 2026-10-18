@@ -4,6 +4,8 @@ import { usePersonalSettingsStore } from './usePersonalSettingsStore';
 
 type SupabaseClient = typeof import('@/lib/supabase')['supabase'];
 
+export type OAuthProvider = 'google' | 'github';
+
 let supabaseClientPromise: Promise<SupabaseClient> | null = null;
 
 /**
@@ -30,6 +32,9 @@ function formatAuthError(error: unknown): string {
   }
   if (rawMsg.includes('User already registered')) {
     return '该邮箱已被注册，请直接登录';
+  }
+  if (rawMsg.includes('provider is not enabled') || rawMsg.includes('Unsupported provider')) {
+    return '该登录方式暂未开启，请使用邮箱登录或稍后再试';
   }
   if (rawMsg.includes('Password should be at least') || rawMsg.includes('least 6 characters')) {
     return '密码长度不能少于 6 位字符';
@@ -68,6 +73,7 @@ export interface AuthState {
   // Actions
   initialize: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithOAuth: (provider: OAuthProvider) => Promise<{ success: boolean; error?: string }>;
   signUpWithEmail: (
     email: string,
     password: string,
@@ -190,6 +196,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         });
       }
 
+      return { success: true };
+    } catch (err) {
+      const formatted = formatAuthError(err);
+      set({ isLoading: false, error: formatted });
+      return { success: false, error: formatted };
+    }
+  },
+
+  signInWithOAuth: async (provider) => {
+    set({ isLoading: true, error: null, successMessage: null });
+    try {
+      const supabase = await getSupabaseClient();
+      const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo },
+      });
+
+      if (error) {
+        const formatted = formatAuthError(error);
+        set({ isLoading: false, error: formatted });
+        return { success: false, error: formatted };
+      }
+
+      // 成功时浏览器即将跳转到第三方授权页，保持加载态以避免重复点击
       return { success: true };
     } catch (err) {
       const formatted = formatAuthError(err);

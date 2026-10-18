@@ -27,6 +27,7 @@ import { usePageTransition } from '@/hooks/usePageTransition';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import AnimatedLogo from '@/components/layout/AnimatedLogo';
+import OAuthButtons from './OAuthButtons';
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
 
@@ -550,6 +551,9 @@ export default function AuthPage() {
                     <span className="text-[11px] text-gray-400">重置向导</span>
                   </div>
                 )}
+
+                {/* 第三方 OAuth 快捷登录（Google / GitHub） */}
+                {mode !== 'forgot' && <OAuthButtons />}
 
                 {/* 异常反馈提示 Banner */}
                 <AnimatePresence>
