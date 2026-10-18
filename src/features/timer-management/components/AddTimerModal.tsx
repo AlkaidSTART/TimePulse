@@ -255,7 +255,7 @@ export default function AddTimerModal({
                         type="button"
                         onClick={() => setShortHours((h) => Math.min(99, h + 1))}
                         className="size-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                        aria-label="增加小时"
+                        aria-label={t('modal.addTimer.increaseHour', '增加小时')}
                       >
                         <FiPlus className="size-3.5" />
                       </button>
@@ -277,7 +277,7 @@ export default function AddTimerModal({
                         type="button"
                         onClick={() => setShortHours((h) => Math.max(0, h - 1))}
                         className="size-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                        aria-label="减少小时"
+                        aria-label={t('modal.addTimer.decreaseHour', '减少小时')}
                       >
                         <FiMinus className="size-3.5" />
                       </button>
@@ -292,7 +292,7 @@ export default function AddTimerModal({
                         type="button"
                         onClick={() => setShortMinutes((m) => (m + 1) % 60)}
                         className="size-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                        aria-label="增加分钟"
+                        aria-label={t('modal.addTimer.increaseMinute', '增加分钟')}
                       >
                         <FiPlus className="size-3.5" />
                       </button>
@@ -314,7 +314,7 @@ export default function AddTimerModal({
                         type="button"
                         onClick={() => setShortMinutes((m) => (m - 1 + 60) % 60)}
                         className="size-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                        aria-label="减少分钟"
+                        aria-label={t('modal.addTimer.decreaseMinute', '减少分钟')}
                       >
                         <FiMinus className="size-3.5" />
                       </button>
@@ -329,7 +329,7 @@ export default function AddTimerModal({
                         type="button"
                         onClick={() => setShortSeconds((s) => (s + 1) % 60)}
                         className="size-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                        aria-label="增加秒"
+                        aria-label={t('modal.addTimer.increaseSecond', '增加秒')}
                       >
                         <FiPlus className="size-3.5" />
                       </button>
@@ -351,7 +351,7 @@ export default function AddTimerModal({
                         type="button"
                         onClick={() => setShortSeconds((s) => (s - 1 + 60) % 60)}
                         className="size-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                        aria-label="减少秒"
+                        aria-label={t('modal.addTimer.decreaseSecond', '减少秒')}
                       >
                         <FiMinus className="size-3.5" />
                       </button>
@@ -369,12 +369,12 @@ export default function AddTimerModal({
                       {t('modal.countdown.quickSet', '常用预设')}:
                     </span>
                     {[
-                      { label: '1分钟', h: 0, m: 1, s: 0 },
-                      { label: '5分钟', h: 0, m: 5, s: 0 },
-                      { label: '10分钟', h: 0, m: 10, s: 0 },
-                      { label: '25分钟', h: 0, m: 25, s: 0 },
-                      { label: '30分钟', h: 0, m: 30, s: 0 },
-                      { label: '1小时', h: 1, m: 0, s: 0 },
+                      { label: t('modal.addTimer.preset1m', '1分钟'), h: 0, m: 1, s: 0 },
+                      { label: t('modal.addTimer.preset5m', '5分钟'), h: 0, m: 5, s: 0 },
+                      { label: t('modal.addTimer.preset10m', '10分钟'), h: 0, m: 10, s: 0 },
+                      { label: t('modal.addTimer.preset25m', '25分钟'), h: 0, m: 25, s: 0 },
+                      { label: t('modal.addTimer.preset30m', '30分钟'), h: 0, m: 30, s: 0 },
+                      { label: t('modal.addTimer.preset1h', '1小时'), h: 1, m: 0, s: 0 },
                     ].map((item) => (
                       <button
                         key={item.label}
@@ -393,14 +393,14 @@ export default function AddTimerModal({
 
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-xs text-slate-400 dark:text-slate-500 mr-0.5 shrink-0">
-                      快速微调:
+                      {t('modal.addTimer.quickFineTune', '快速微调')}:
                     </span>
                     {[
-                      { label: '+1分', addSec: 60 },
-                      { label: '+5分', addSec: 300 },
-                      { label: '+10分', addSec: 600 },
-                      { label: '+30分', addSec: 1800 },
-                      { label: '+1时', addSec: 3600 },
+                      { label: t('modal.addTimer.addMinute1', '+1分'), addSec: 60 },
+                      { label: t('modal.addTimer.addMinute5', '+5分'), addSec: 300 },
+                      { label: t('modal.addTimer.addMinute10', '+10分'), addSec: 600 },
+                      { label: t('modal.addTimer.addMinute30', '+30分'), addSec: 1800 },
+                      { label: t('modal.addTimer.addHour1', '+1时'), addSec: 3600 },
                     ].map((preset) => (
                       <button
                         key={preset.label}

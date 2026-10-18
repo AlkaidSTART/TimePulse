@@ -472,7 +472,7 @@ export default function TodoListWidget({
                     }`}
                   >
                     <span className={`size-1 rounded-full ${state.autoSort ? 'bg-emerald-500' : 'bg-gray-400'}`} />
-                    <span>{state.autoSort ? '自动排序：开' : '自动排序：关'}</span>
+                    <span>{state.autoSort ? t('todo.autoSortOn', '自动排序：开') : t('todo.autoSortOff', '自动排序：关')}</span>
                   </button>
                 </div>
               </div>

@@ -133,13 +133,15 @@ export default function AddWorldClockModal({ onClose, onBack, embedded = false }
                   
                   <form className="flex flex-col gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1">时间名称</label>
+                      <label className="block text-sm font-medium mb-1">
+                        {t('modal.worldclock.timeName', '时间名称')}
+                      </label>
                       <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleChange}
-                        placeholder={`例如: ${formData.city}时间`}
+                        placeholder={t('modal.worldclock.timeNamePlaceholder', '例如: {city}时间').replace('{city}', formData.city)}
                         className="w-full px-4 py-2 rounded-lg bg-white/10 dark:bg-black/10 backdrop-blur-sm border border-white/20 dark:border-white/10 focus:ring-2 focus:ring-primary-500 focus:outline-none"
                         required
                       />
@@ -238,9 +240,11 @@ export default function AddWorldClockModal({ onClose, onBack, embedded = false }
                   <FiCheck className="text-3xl text-white" />
                 </motion.div>
               </div>
-              <h2 className="w-full pb-2 text-2xl font-semibold">世界时间已创建</h2>
+              <h2 className="w-full pb-2 text-2xl font-semibold">
+                {t('modal.worldclock.createdTitle', '世界时间已创建')}
+              </h2>
               <p className="w-full text-gray-500 dark:text-gray-400">
-                {formData.city}{t('timer.successfullyCreated', '时间已成功创建')}
+                {t('modal.worldclock.createdDesc', '{city}时间已成功创建').replace('{city}', formData.city)}
               </p>
             </div>
           )}

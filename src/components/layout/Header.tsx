@@ -539,12 +539,12 @@ export default function Header({ onHeightChange }: HeaderProps) {
               setIsTimerCreationOpen(true);
               if (window.location.hash !== '#add') window.location.hash = 'add';
             }}
-            title="新建计时器"
+            title={t('header.newTimer', '新建计时器')}
             data-insightflare-event="timer_create_open"
             data-insightflare-event-from="desktop"
           >
             <FiPlus className="size-3.5 stroke-[2.5]" />
-            <span>新建</span>
+            <span>{t('header.newTimer', '新建')}</span>
           </button>
 
           <div className="h-4 w-px bg-gray-300/50 dark:bg-white/10 mx-0.5 shrink-0" />
@@ -638,7 +638,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                   : 'hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300'
               }`}
               onClick={() => setIsToolsOpen(!isToolsOpen)}
-              title="更多功能与设置"
+              title={t('header.moreSettings', '更多功能与设置')}
             >
               <FiMoreHorizontal className="size-4.5" />
             </button>
@@ -867,10 +867,10 @@ export default function Header({ onHeightChange }: HeaderProps) {
                       ) : (
                         <FiUser className="size-4 text-emerald-500" />
                       )}
-                      <span>{user ? '账号信息' : '登录 / 注册'}</span>
+                      <span>{user ? t('auth.accountTitle', '账号信息') : t('personalSettings.signInNow', '登录 / 注册')}</span>
                     </div>
                     {user ? (
-                      <span className="size-2 rounded-full bg-emerald-500" title="已登录" />
+                      <span className="size-2 rounded-full bg-emerald-500" title={t('personalSettings.signedIn', '已登录')} />
                     ) : (
                       <span className="text-[10px] text-gray-400">Supabase</span>
                     )}
@@ -976,7 +976,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
             type="button"
             className="glass-circle-button size-10 sm:size-11 shrink-0"
             onClick={() => setIsShareOpen(true)}
-            aria-label="分享"
+            aria-label={t('share.title', '分享与二维码')}
             title={t('share.title', '分享与二维码')}
           >
             <FiShare2 className="size-4.5 sm:size-5" />
@@ -1329,7 +1329,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                 >
                   <div className="flex flex-col">
                     <span className="text-base font-semibold text-gray-900 dark:text-white tracking-tight">
-                      简体中文
+                      {t('header.chineseSimplified', '简体中文')}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                       {t('header.chineseDesc', '中文 (简体) · zh-CN')}

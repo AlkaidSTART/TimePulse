@@ -37,6 +37,19 @@ export function canAccessView(targetView: PageView): boolean {
   return true;
 }
 
+/**
+ * 获取未登录拦截时的默认认证 Hash：
+ * 若本地已注册过账号则引导至 #login，未注册过账号则引导至 #register。
+ */
+export function getDefaultAuthHash(): string {
+  if (typeof window === 'undefined') return '#register';
+  try {
+    return localStorage.getItem('timepulse_has_registered') === 'true' ? '#login' : '#register';
+  } catch {
+    return '#register';
+  }
+}
+
 function getInitialView(): PageView {
   if (typeof window === 'undefined') return 'cheer';
   const rawHash = window.location.hash.toLowerCase().replace(/^#\/?/, '');

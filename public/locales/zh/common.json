@@ -684,7 +684,12 @@
     "errorProviderNotEnabled": "该登录方式暂未开启，请使用邮箱登录或稍后再试",
     "errorRateLimit": "操作过于频繁，请稍候再试",
     "errorNetwork": "网络连接失败，请检查网络设置或稍候重试",
-    "errorGeneric": "操作失败，请重试"
+    "errorGeneric": "操作失败，请重试",
+    "registerFirstNotice": "要在注册账号之后，才允许切换到登录",
+    "alreadyHaveAccount": "已有账号？直接登录",
+    "switchNow": "立即切换",
+    "tabPendingRegister": "待注册",
+    "tabRegistered": "已注册"
   },
   "cheer": {
     "copyQuote": "复制此句",

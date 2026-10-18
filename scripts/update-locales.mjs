@@ -511,6 +511,11 @@ const enAdditions = {
     errorRateLimit: 'Too many requests. Please try again later',
     errorNetwork: 'Network connection failed. Please check network settings',
     errorGeneric: 'Operation failed. Please try again',
+    registerFirstNotice: 'Please register an account before switching to sign in',
+    alreadyHaveAccount: 'Already have an account? Sign in directly',
+    switchNow: 'Switch now',
+    tabPendingRegister: 'Register first',
+    tabRegistered: 'Registered',
   },
   cheer: {
     copyQuote: 'Copy Quote',

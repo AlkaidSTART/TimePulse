@@ -180,13 +180,13 @@ export default function WebDock({
     },
     {
       id: 'theme',
-      title: `${t('theme.title', '切换主题')} (${theme === 'cream' ? '米白模式' : '白色模式'})`,
+      title: `${t('theme.title', '切换主题')} (${theme === 'cream' ? t('personalSettings.themeCream', '米白模式') : t('personalSettings.themeLight', '白色模式')})`,
       icon: <SunMoon className="size-full text-neutral-700 dark:text-neutral-200" />,
       onClick: toggleTheme,
     },
     {
       id: 'settings',
-      title: user ? `个人账号: ${user.user_metadata?.nickname || user.email}` : t('header.settingsTab', '个人设置中心'),
+      title: user ? `${t('personalSettings.cloudAccount', '个人账号')}: ${user.user_metadata?.nickname || user.email}` : t('header.settingsTab', '个人设置中心'),
       icon: userAvatarUrl ? (
         <img
           src={userAvatarUrl}
@@ -216,7 +216,7 @@ export default function WebDock({
 
   return (
     <motion.aside
-      aria-label="Web端桌面快捷栏"
+      aria-label={t('header.dockBar', 'Web端桌面快捷栏')}
       initial={false}
       animate={{
         y: isFullscreen && !isHeaderVisible ? 100 : 0,

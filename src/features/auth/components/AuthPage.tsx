@@ -1058,7 +1058,7 @@ export default function AuthPage() {
                               className="overflow-hidden pt-1 space-y-1"
                             >
                               <div className="flex items-center justify-between text-[11px]">
-                                <span className="text-gray-400">密码强度</span>
+                                <span className="text-gray-400">{t('auth.passwordStrength', '密码强度')}</span>
                                 <span style={{ color: pwdStrength.color }} className="font-semibold">
                                   {pwdStrength.label}
                                 </span>
@@ -1102,11 +1102,11 @@ export default function AuthPage() {
                               htmlFor={confirmPasswordInputId}
                               className="block text-xs font-semibold text-gray-700 dark:text-gray-300"
                             >
-                              确认登录密码
+                              {t('auth.confirmPassword', '确认登录密码')}
                             </label>
                             {confirmPassword && password === confirmPassword && (
                               <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
-                                <FiCheck className="size-3.5" /> 密码一致
+                                <FiCheck className="size-3.5" /> {t('auth.passwordsMatch', '密码一致')}
                               </span>
                             )}
                           </div>
@@ -1163,7 +1163,7 @@ export default function AuthPage() {
                                 }
                               }}
                               onInvalid={(e) => e.preventDefault()}
-                              placeholder="再次输入刚才设置的密码"
+                              placeholder={t('auth.confirmPasswordPlaceholder', '再次输入刚才设置的密码')}
                               autoComplete="new-password"
                               aria-required="true"
                               aria-invalid={hasConfirmPasswordError}
@@ -1186,24 +1186,24 @@ export default function AuthPage() {
                       progressColor={activeColor}
                       idleText={
                         mode === 'forgot'
-                          ? '发送重置密码邮件'
+                          ? t('auth.submitForgot', '发送重置密码邮件')
                           : mode === 'signup'
-                          ? '注册账号'
-                          : '立即登录'
+                          ? t('auth.submitSignUp', '注册账号')
+                          : t('auth.submitSignIn', '立即登录')
                       }
                       loadingText={
                         mode === 'forgot'
-                          ? '正在发送重置邮件...'
+                          ? t('auth.submittingForgot', '正在发送重置邮件...')
                           : mode === 'signup'
-                          ? '正在创建专属账号...'
-                          : '正在安全验证...'
+                          ? t('auth.submittingSignUp', '正在创建专属账号...')
+                          : t('auth.submittingSignIn', '正在安全验证...')
                       }
                       successText={
                         mode === 'forgot'
-                          ? '重置邮件已发送'
+                          ? t('auth.successForgot', '重置邮件已发送')
                           : mode === 'signup'
-                          ? '注册成功，欢迎加入'
-                          : '登录成功，欢迎回来'
+                          ? t('auth.successSignUp', '注册成功，欢迎加入')
+                          : t('auth.successSignIn', '登录成功，欢迎回来')
                       }
                       icon={<FiArrowRight className="size-4" />}
                       onSuccessComplete={handleSuccessComplete}
@@ -1220,7 +1220,7 @@ export default function AuthPage() {
                       onClick={() => handleModeChange('signin')}
                       className="text-xs text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
                     >
-                      记起密码了？返回登录
+                      {t('auth.rememberPassword', '记起密码了？返回登录')}
                     </button>
                   </div>
                 )}
@@ -1229,7 +1229,7 @@ export default function AuthPage() {
                 <div className="text-center pt-3 border-t border-black/[0.05] dark:border-white/[0.06]">
                   <p className="text-[11px] text-gray-400 dark:text-gray-500 flex items-center justify-center gap-1.5 font-medium">
                     <FiShield className="size-3.5 text-emerald-500 shrink-0" />
-                    <span>数据均通过行业级 TLS 加密传输，由 Supabase 提供安全认证支持</span>
+                    <span>{t('auth.tlsNote', '数据均通过行业级 TLS 加密传输，由 Supabase 提供安全认证支持')}</span>
                   </p>
                 </div>
               </div>
@@ -1240,12 +1240,12 @@ export default function AuthPage() {
       {/* 4. 独立路由底部版权与极简理念 */}
       <footer className="relative z-10 w-full max-w-6xl mx-auto py-2 px-4 flex flex-col sm:flex-row items-center justify-between text-[11px] sm:text-xs text-gray-400 dark:text-gray-500 gap-1.5 sm:gap-2">
         <div className="flex items-center gap-2">
-          <span>TimePulse · 时光脉搏</span>
+          <span>TimePulse · {t('common.appName', 'TimePulse')}</span>
           <span>·</span>
-          <span>用专注丈量光阴</span>
+          <span>{t('auth.subtitle', '极简专注 · 温暖打气 · 随时掌握时光脉搏')}</span>
         </div>
         <div className="flex items-center gap-1 font-mono text-[10px] sm:text-[11px]">
-          <span>© {new Date().getFullYear()} TimePulse Project. 保留所有权利</span>
+          <span>© {new Date().getFullYear()} TimePulse Project.</span>
         </div>
       </footer>
     </div>
