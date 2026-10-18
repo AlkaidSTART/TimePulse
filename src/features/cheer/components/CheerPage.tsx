@@ -20,6 +20,8 @@ import {
   INSPIRATIONAL_QUOTES,
   type TimeSlotConfig,
 } from '../cheerData';
+import { useQuotesStore } from '@/stores/useQuotesStore';
+import { formatQuoteAuthor, formatQuoteForCopy } from '@/services/quotes';
 
 // 15秒无限轮播间隔（落在用户期望的10-20s区间，兼顾阅读节奏与动态感）
 const QUOTE_AUTO_ROTATE_MS = 15000;
@@ -147,11 +149,20 @@ export default function CheerPage() {
   const { transitionTo } = usePageTransition();
   const { isFullscreen, isHeaderVisible } = useFullscreen();
 
-  const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * INSPIRATIONAL_QUOTES.length));
+  const quotes = useQuotesStore((s) => s.quotes);
+  const currentIndex = useQuotesStore((s) => s.currentIndex);
+  const loadQuotes = useQuotesStore((s) => s.loadQuotes);
+  const nextQuote = useQuotesStore((s) => s.nextQuote);
+
   const [isCopied, setIsCopied] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pendingTodosCount, setPendingTodosCount] = useState(0);
+
+  // 页面挂载时从云端数据库动态同步最新名言库
+  useEffect(() => {
+    loadQuotes();
+  }, [loadQuotes]);
 
   // 获取待办数
   useEffect(() => {
@@ -163,7 +174,8 @@ export default function CheerPage() {
     }
   }, []);
 
-  const currentQuote = INSPIRATIONAL_QUOTES[quoteIndex] || INSPIRATIONAL_QUOTES[0];
+  const currentQuote = quotes[currentIndex] || quotes[0] || INSPIRATIONAL_QUOTES[0];
+  const displayAuthor = useMemo(() => formatQuoteAuthor(currentQuote), [currentQuote]);
 
   const lastSwitchTimeRef = useRef(0);
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -214,8 +226,8 @@ export default function CheerPage() {
       }, 500);
     }
 
-    setQuoteIndex((prev) => (prev + 1) % INSPIRATIONAL_QUOTES.length);
-  }, []);
+    nextQuote(manual);
+  }, [nextQuote]);
 
   // 15秒无限轮播定时器（悬停、已复制或页面不可见时暂停，移开后恢复计时）
   useEffect(() => {
@@ -227,13 +239,13 @@ export default function CheerPage() {
     }, QUOTE_AUTO_ROTATE_MS);
 
     return () => clearInterval(timer);
-  }, [quoteIndex, isHovered, isCopied, handleNextQuote]);
+  }, [currentIndex, isHovered, isCopied, handleNextQuote]);
 
   // 复制金句（防抖保护，处于复制反馈态时忽略重复点击）
   const handleCopyQuote = useCallback(() => {
     if (isCopied) return;
 
-    const textToCopy = `“${currentQuote.text}” —— ${currentQuote.author}`;
+    const textToCopy = formatQuoteForCopy(currentQuote);
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(textToCopy).then(() => {
         setIsCopied(true);
@@ -326,13 +338,13 @@ export default function CheerPage() {
               </TextEffect>
             </div>
             <motion.div
-              key={`author-${currentQuote.author}-${quoteIndex}`}
+              key={`author-${currentQuote.author}-${currentQuote.source || ''}-${currentIndex}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.35, delay: 0.15 }}
-              className="mt-1 text-right text-[11px] sm:text-xs text-gray-400 dark:text-gray-500 shrink-0"
+              className="mt-1 text-right text-[11px] sm:text-xs text-gray-400 dark:text-gray-500 shrink-0 select-text"
             >
-              —— {currentQuote.author}
+              —— {displayAuthor}
             </motion.div>
           </div>
         </motion.div>

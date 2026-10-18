@@ -9,3 +9,4 @@ export * from './notificationManager';
 export * from './notifications';
 export * from './sharing';
 export * from './storage';
+export * from './quotes';

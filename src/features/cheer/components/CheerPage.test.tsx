@@ -139,4 +139,34 @@ describe('CheerPage quote carousel', () => {
       });
     }
   });
+
+  it('renders author and book source when available and copies with full attribution', async () => {
+    const { useQuotesStore } = await import('@/stores/useQuotesStore');
+    act(() => {
+      useQuotesStore.setState({
+        quotes: [
+          {
+            text: '满地都是六便士，他却抬头看见了月亮。心有所向，平凡亦有光芒。',
+            author: '毛姆',
+            source: '月亮与六便士',
+          },
+        ],
+        currentIndex: 0,
+      });
+    });
+
+    render(<CheerPage />);
+
+    // Check author and source rendered together
+    expect(screen.getByText(/毛姆 · 《月亮与六便士》/)).toBeDefined();
+
+    const copyButton = screen.getByTitle('复制此句');
+    await act(async () => {
+      fireEvent.click(copyButton);
+    });
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      '“满地都是六便士，他却抬头看见了月亮。心有所向，平凡亦有光芒。” —— 毛姆 · 《月亮与六便士》'
+    );
+  });
 });

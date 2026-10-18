@@ -231,23 +231,31 @@ export const TIME_SLOTS: TimeSlotConfig[] = [
   },
 ];
 
-export const INSPIRATIONAL_QUOTES = [
-  { text: '生活不在别处，脚下即是前方。心怀浪漫与热烈，把平凡的日子过得热气腾腾。', author: '汪曾祺' },
-  { text: '行动是治愈恐惧的良药，而犹豫、拖延将不断滋养恐惧。', author: '爱默生' },
-  { text: '人生没有白走的路，每一步都算数。你经历的所有波折，都是未来闪光的伏笔。', author: '李宗盛' },
-  { text: '愿你历经千帆，归来仍是少年。在时间的河流里，永远保持纯粹与好奇。', author: '心之所向' },
-  { text: '不是所有的坚持都有结果，但总有一些坚持，能从冰封的土地里培育出怒放的蔷薇。', author: '纪伯伦' },
-  { text: '世界上只有一种真正的英雄主义，那就是认清生活的真相后依然热爱生活。', author: '罗曼·罗兰' },
-  { text: '把每一次日出都当作生命的新序章，带着澄澈的心灵，勇敢前行。', author: '梭罗' },
-  { text: '不要等待机会，而要创造机会。你专注当下的每一秒，都在塑造明天的自己。', author: '歌德' },
-  { text: '山高自有可行路，海深自有渡人舟。只要心怀向往，全世界都会为你让路。', author: '泰戈尔' },
-  { text: '慢慢来，谁不是翻山越岭去相遇；别气馁，好运往往就藏在下一次坚持里。', author: '治愈物语' },
-  { text: '满地都是六便士，他却抬头看见了月亮。心有所向，平凡亦有光芒。', author: '毛姆' },
-  { text: '每一个不曾起舞的日子，都是对生命的辜负。愿你热烈而赤诚。', author: '尼采' },
-  { text: '向着月亮出发，即使不能到达，也能置身于群星之中。', author: '莱斯·布朗' },
-  { text: '去生活，去犯错，去跌倒，去胜利，去用生命重新塑造生命。', author: '詹姆斯·乔伊斯' },
-  { text: '在最黑暗的夜里，才能看见最明亮的星光。心怀微光，终至破晓。', author: '马丁·路德·金' },
-  { text: '你走过的路、看过的风景，都会化作你的底气。心有山海，静而不争。', author: '治愈语录' },
+export interface InspirationalQuote {
+  id?: string;
+  text: string;
+  author: string;
+  source?: string;
+  category?: string;
+}
+
+export const INSPIRATIONAL_QUOTES: InspirationalQuote[] = [
+  { text: '生活不在别处，脚下即是前方。心怀浪漫与热烈，把平凡的日子过得热气腾腾。', author: '汪曾祺', source: '人间草木', category: 'life' },
+  { text: '行动是治愈恐惧的良药，而犹豫、拖延将不断滋养恐惧。', author: '爱默生', source: '自立', category: 'inspiration' },
+  { text: '人生没有白走的路，每一步都算数。你经历的所有波折，都是未来闪光的伏笔。', author: '李宗盛', source: '致匠心', category: 'growth' },
+  { text: '愿你历经千帆，归来仍是少年。在时间的河流里，永远保持纯粹与好奇。', author: '苏轼', source: '定风波', category: 'poetry' },
+  { text: '不是所有的坚持都有结果，但总有一些坚持，能从冰封的土地里培育出怒放的蔷薇。', author: '纪伯伦', source: '沙与沫', category: 'inspiration' },
+  { text: '世界上只有一种真正的英雄主义，那就是认清生活的真相后依然热爱生活。', author: '罗曼·罗兰', source: '米开朗琪罗传', category: 'philosophy' },
+  { text: '把每一次日出都当作生命的新序章，带着澄澈的心灵，勇敢前行。', author: '梭罗', source: '瓦尔登湖', category: 'life' },
+  { text: '不要等待机会，而要创造机会。你专注当下的每一秒，都在塑造明天的自己。', author: '歌德', source: '浮士德', category: 'growth' },
+  { text: '山高自有可行路，海深自有渡人舟。只要心怀向往，全世界都会为你让路。', author: '泰戈尔', source: '飞鸟集', category: 'poetry' },
+  { text: '慢慢来，谁不是翻山越岭去相遇；别气馁，好运往往就藏在下一次坚持里。', author: '林清玄', source: '人间有味是清欢', category: 'life' },
+  { text: '满地都是六便士，他却抬头看见了月亮。心有所向，平凡亦有光芒。', author: '毛姆', source: '月亮与六便士', category: 'literature' },
+  { text: '每一个不曾起舞的日子，都是对生命的辜负。愿你热烈而赤诚。', author: '尼采', source: '查拉图斯特拉如是说', category: 'philosophy' },
+  { text: '向着月亮出发，即使不能到达，也能置身于群星之中。', author: '莱斯·布朗', source: '追梦演讲', category: 'inspiration' },
+  { text: '去生活，去犯错，去跌倒，去胜利，去用生命重新塑造生命。', author: '詹姆斯·乔伊斯', source: '青年艺术家的肖像', category: 'growth' },
+  { text: '在最黑暗的夜里，才能看见最明亮的星光。心怀微光，终至破晓。', author: '马丁·路德·金', source: '力量的源泉', category: 'courage' },
+  { text: '你走过的路、看过的风景，都会化作你的底气。心有山海，静而不争。', author: '木心', source: '文学回忆录', category: 'philosophy' },
 ];
 
 export function getCurrentTimeSlot(date: Date = new Date()): TimeSlotConfig {

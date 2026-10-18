@@ -8,3 +8,4 @@ export * from './useUIStore';
 export * from './useVersionStore';
 export * from './usePersonalSettingsStore';
 export * from './useAuthStore';
+export * from './useQuotesStore';
