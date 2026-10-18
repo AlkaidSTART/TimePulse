@@ -346,7 +346,7 @@ export default function MobileTabBar({
       {/* Floating Bottom TabBar Container - VisionOS / Dynamic Island Style Floating Dock */}
       <motion.nav
         data-page-transition-ignore="true"
-        aria-label="移动端底部导航"
+        aria-label={t('mobileNav.ariaLabel', '移动端底部导航')}
         initial={false}
         animate={{
           y: isVisible ? 0 : 96,
@@ -371,7 +371,7 @@ export default function MobileTabBar({
                     onClick={handleAddClick}
                     whileTap={{ scale: 0.92 }}
                     className="liquid-droplet-button relative flex size-12.5 sm:size-14 landscape:size-9.5 items-center justify-center rounded-full text-gray-950 dark:text-white cursor-pointer transition-all focus:outline-none overflow-hidden select-none"
-                    aria-label="新建计时器"
+                    aria-label={t('mobileNav.newTimerAria', '新建计时器')}
                   >
                     <FiPlus className="size-6 sm:size-7 landscape:size-4.5 stroke-[2.4] text-gray-950 dark:text-white relative z-10" />
                   </motion.button>
@@ -466,7 +466,7 @@ export default function MobileTabBar({
               <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.06] cream:border-stone-200/60 dark:border-white/[0.06]">
                 <div className="flex items-center gap-2">
                   <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white font-display tracking-tight">
-                    全部计时器
+                    {t('mobileNav.allTimers', '全部计时器')}
                   </h3>
                   <span
                     className="text-[11px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full"
@@ -475,7 +475,7 @@ export default function MobileTabBar({
                       color: accentColor || '#0ea5e9',
                     }}
                   >
-                    {timers.length} 个
+                    {t('mobileNav.timersCount', '{count} 个').replace('{count}', String(timers.length))}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-2.5">
@@ -488,13 +488,13 @@ export default function MobileTabBar({
                     style={{ backgroundColor: accentColor || '#0ea5e9' }}
                   >
                     <FiPlus className="size-4 sm:size-4.5 stroke-[2.4]" />
-                    新建
+                    {t('mobileNav.new', '新建')}
                   </button>
                   <button
                     type="button"
                     onClick={handleCloseSheet}
                     className="size-8.5 sm:size-9.5 inline-flex items-center justify-center rounded-full bg-black/[0.04] dark:bg-white/[0.08] text-gray-500 dark:text-gray-300 hover:bg-black/[0.08] dark:hover:bg-white/[0.14] cursor-pointer active:scale-95 transition-all"
-                    aria-label="关闭"
+                    aria-label={t('mobileNav.close', '关闭')}
                   >
                     <FiX className="size-4.5 sm:size-5" />
                   </button>
@@ -508,23 +508,23 @@ export default function MobileTabBar({
                     <div className="flex items-center justify-between pb-1">
                       <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
                         {editingTimer.isLimitedEdit
-                          ? '编辑计时器'
+                          ? t('mobileNav.editTimer', '编辑计时器')
                           : editingTimer.countdownType === 'short'
-                          ? '编辑短期倒计时'
-                          : '编辑长期倒计时'}
+                          ? t('mobileNav.editShort', '编辑短期倒计时')
+                          : t('mobileNav.editLong', '编辑长期倒计时')}
                       </h4>
                       <button
                         type="button"
                         onClick={() => setEditingTimer(null)}
                         className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                       >
-                        返回列表
+                        {t('mobileNav.backToList', '返回列表')}
                       </button>
                     </div>
 
                     <div>
                       <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        名称
+                        {t('mobileNav.name', '名称')}
                       </label>
                       <input
                         type="text"
@@ -540,11 +540,11 @@ export default function MobileTabBar({
                       editingTimer.countdownType === 'short' ? (
                         <div>
                           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            倒计时时长
+                            {t('mobileNav.countdownDuration', '倒计时时长')}
                           </label>
                           <div className="grid grid-cols-3 gap-2">
                             <div>
-                              <span className="text-[10px] text-gray-400 block mb-0.5">小时</span>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">{t('time.hours', '小时')}</span>
                               <input
                                 type="number"
                                 min={0}
@@ -560,7 +560,7 @@ export default function MobileTabBar({
                               />
                             </div>
                             <div>
-                              <span className="text-[10px] text-gray-400 block mb-0.5">分钟</span>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">{t('time.minutes', '分钟')}</span>
                               <input
                                 type="number"
                                 min={0}
@@ -576,7 +576,7 @@ export default function MobileTabBar({
                               />
                             </div>
                             <div>
-                              <span className="text-[10px] text-gray-400 block mb-0.5">秒</span>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">{t('time.seconds', '秒')}</span>
                               <input
                                 type="number"
                                 min={0}
@@ -597,7 +597,7 @@ export default function MobileTabBar({
                         <div className="flex flex-col gap-3">
                           <div>
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              目标日期
+                              {t('mobileNav.targetDate', '目标日期')}
                             </label>
                             <Suspense fallback={null}>
                               <DatePicker
@@ -611,7 +611,7 @@ export default function MobileTabBar({
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              目标时间
+                              {t('mobileNav.targetTime', '目标时间')}
                             </label>
                             <input
                               type="time"
@@ -628,7 +628,7 @@ export default function MobileTabBar({
 
                     <div>
                       <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        主题颜色
+                        {t('mobileNav.themeColor', '主题颜色')}
                       </label>
                       <div
                         className="h-9 w-full rounded-xl cursor-pointer border border-white/20 shadow-xs"
@@ -665,7 +665,7 @@ export default function MobileTabBar({
                         onClick={() => setEditingTimer(null)}
                         className="flex-1 py-2.5 rounded-xl border border-gray-200/60 dark:border-white/10 text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        取消
+                        {t('mobileNav.cancel', '取消')}
                       </button>
                       <button
                         type="button"
@@ -673,7 +673,7 @@ export default function MobileTabBar({
                         className="flex-1 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold shadow-xs flex items-center justify-center gap-1.5"
                       >
                         <FiSave className="size-4" />
-                        保存更改
+                        {t('mobileNav.saveChanges', '保存更改')}
                       </button>
                     </div>
                   </div>
@@ -692,12 +692,13 @@ export default function MobileTabBar({
                         <MobileTimerRow
                           key={timer.id}
                           timer={timer}
+                          t={t}
                           isActive={timer.id === activeTimerId}
                           summary={
                             timer.type === 'stopwatch'
-                              ? '秒表 / 正计时'
+                              ? t('mobileNav.stopwatchDesc', '秒表 / 正计时')
                               : timer.type === 'worldclock'
-                              ? `${timer.country || '世界时钟'} · ${timer.timezone || ''}`
+                              ? `${(timer.country ? t(`country.${timer.country}`, timer.country) : t('mobileNav.worldClockDesc', '世界时钟'))} · ${timer.timezone || ''}`
                               : new Date(timer.targetDate).toLocaleString()
                           }
                           onSelect={() => {

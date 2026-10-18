@@ -153,8 +153,8 @@ html[data-mobile-landscape="true"]:not([data-desktop="true"]) .personal-settings
 
 /* 认证登录/注册页面：紧凑自适应避让与滚动 */
 .auth-page {
-  --auth-pt: max(1.25rem, calc(0.75rem + var(--tp-safe-top)));
-  --auth-pb: max(6.5rem, calc(5.5rem + var(--tp-safe-bottom)));
+  --auth-pt: max(0.75rem, calc(0.5rem + var(--tp-safe-top)));
+  --auth-pb: max(1rem, calc(0.75rem + var(--tp-safe-bottom)));
   padding-top: var(--auth-pt);
   padding-bottom: var(--auth-pb);
   padding-left: max(0.75rem, var(--tp-safe-left));
@@ -164,8 +164,8 @@ html[data-mobile-landscape="true"]:not([data-desktop="true"]) .personal-settings
 
 @media (min-width: 1024px) {
   .auth-page {
-    --auth-pt: max(5.5rem, calc(4.5rem + var(--tp-safe-top)));
-    --auth-pb: max(3.5rem, calc(2.5rem + var(--tp-safe-bottom)));
+    --auth-pt: max(1rem, calc(0.75rem + var(--tp-safe-top)));
+    --auth-pb: max(1.25rem, calc(1rem + var(--tp-safe-bottom)));
     padding-left: max(1.5rem, var(--tp-safe-left));
     padding-right: max(1.5rem, var(--tp-safe-right));
   }
@@ -173,20 +173,20 @@ html[data-mobile-landscape="true"]:not([data-desktop="true"]) .personal-settings
 
 @media (orientation: landscape) and (max-height: 640px) and (max-width: 1023px) {
   .auth-page {
-    --auth-pt: max(1rem, calc(0.5rem + var(--tp-safe-top)));
-    --auth-pb: max(4.25rem, calc(3.25rem + var(--tp-safe-bottom)));
+    --auth-pt: max(0.5rem, calc(0.25rem + var(--tp-safe-top)));
+    --auth-pb: max(0.75rem, calc(0.5rem + var(--tp-safe-bottom)));
   }
 }
 
 html[data-mobile-landscape="true"]:not([data-desktop="true"]) .auth-page {
-  --auth-pt: max(1rem, calc(0.5rem + var(--tp-safe-top)));
-  --auth-pb: max(4.25rem, calc(3.25rem + var(--tp-safe-bottom)));
+  --auth-pt: max(0.5rem, calc(0.25rem + var(--tp-safe-top)));
+  --auth-pb: max(0.75rem, calc(0.5rem + var(--tp-safe-bottom)));
 }
 
 @media (min-width: 1024px) {
   html[data-mobile-landscape="true"] .auth-page {
-    --auth-pt: max(5.5rem, calc(4.5rem + var(--tp-safe-top)));
-    --auth-pb: max(3.5rem, calc(2.5rem + var(--tp-safe-bottom)));
+    --auth-pt: max(1rem, calc(0.75rem + var(--tp-safe-top)));
+    --auth-pb: max(1.25rem, calc(1rem + var(--tp-safe-bottom)));
   }
 }
 

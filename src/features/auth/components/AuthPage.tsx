@@ -353,13 +353,7 @@ export default function AuthPage() {
   return (
     <div
       data-page-view="auth"
-      className="auth-page relative min-h-screen w-full flex flex-col justify-between overflow-x-hidden overflow-y-auto select-none bg-background-light dark:bg-background-dark cream:bg-background-cream text-gray-900 dark:text-gray-100 transition-colors duration-500"
-      style={{
-        paddingLeft: 'max(1rem, var(--tp-safe-left, env(safe-area-inset-left, 0px)))',
-        paddingRight: 'max(1rem, var(--tp-safe-right, env(safe-area-inset-right, 0px)))',
-        paddingTop: 'max(1rem, env(safe-area-inset-top, 0px))',
-        paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))',
-      }}
+      className="auth-page relative h-full min-h-0 w-full flex flex-col justify-between overflow-x-hidden overflow-y-auto select-none bg-background-light dark:bg-background-dark cream:bg-background-cream text-gray-900 dark:text-gray-100 transition-colors duration-500"
     >
       {/* 1. 简约温和的背景氛围 */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">

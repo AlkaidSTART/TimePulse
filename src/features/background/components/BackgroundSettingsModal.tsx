@@ -32,7 +32,7 @@ const getErrorMessage = (error: unknown): string => (
 );
 
 export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsModalProps) {
-  const { t: _t } = useTranslation();
+  const { t } = useTranslation();
   const { accentColor } = useTheme();
   const {
     customBackgroundId,
@@ -96,7 +96,7 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
   // 处理 URL 上传
   const handleUrlUpload = async (): Promise<void> => {
     if (!imageUrl.trim()) {
-      setError('请输入图片 URL');
+      setError(t('background.urlRequired', '请输入图片 URL'));
       return;
     }
 
@@ -107,12 +107,12 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
     try {
       const id = await imageStorage.saveImageFromUrl(imageUrl.trim());
       setCustomBackgroundId(id);
-      setSuccess('背景图片设置成功！');
+      setSuccess(t('background.setSuccess', '背景图片设置成功！'));
       setImageUrl('');
       setActiveTab('preview');
       track('background_set_url');
 
-      // 3秒后自动关闭
+      // 2秒后自动关闭
       setTimeout(() => {
         onClose();
       }, 2000);
@@ -135,14 +135,14 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
     try {
       const id = await imageStorage.saveImage(file);
       setCustomBackgroundId(id);
-      setSuccess('背景图片上传成功！');
+      setSuccess(t('background.uploadSuccess', '背景图片上传成功！'));
       setActiveTab('preview');
       track('background_set_file', {
         size_bucket: bucketFileSize(file.size),
         mime: file.type || 'unknown',
       });
 
-      // 3秒后自动关闭
+      // 2秒后自动关闭
       setTimeout(() => {
         onClose();
       }, 2000);
@@ -167,10 +167,10 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
 
     clearCustomBackground();
     setPreviewUrl(null);
-    setSuccess('已清除自定义背景');
+    setSuccess(t('background.clearSuccess', '已清除自定义背景'));
     track('background_clear');
 
-    // 3秒后自动关闭
+    // 1.5秒后自动关闭
     setTimeout(() => {
       onClose();
     }, 1500);
@@ -178,9 +178,9 @@ export default function BackgroundSettingsModal({ onClose }: BackgroundSettingsM
 
   // 背景模式选项
   const backgroundModes: BackgroundModeOption[] = [
-    { value: 'cover', label: '覆盖', icon: FiMonitor, description: '铺满整个屏幕' },
-    { value: 'contain', label: '包含', icon: FiEye, description: '完整显示图片' },
-    { value: 'repeat', label: '重复', icon: FiLink, description: '平铺图片' },
+    { value: 'cover', label: t('background.modeCover', '覆盖'), icon: FiMonitor, description: t('background.modeCoverDesc', '铺满整个屏幕') },
+    { value: 'contain', label: t('background.modeContain', '包含'), icon: FiEye, description: t('background.modeContainDesc', '完整显示图片') },
+    { value: 'repeat', label: t('background.modeRepeat', '重复'), icon: FiLink, description: t('background.modeRepeatDesc', '平铺图片') },
   ];
 
   const handleContentClick = (event: MouseEvent<HTMLDivElement>): void => {
