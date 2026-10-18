@@ -7,6 +7,36 @@ type TranslationFunction = (key: string, defaultValue?: string) => string;
 const translationDataCache = new Map<string, TranslationTree>();
 const pendingRequests = new Map<string, Promise<TranslationTree | null>>();
 
+type EarlyLocaleGlobals = {
+  __TIMEPULSE_EARLY_LOCALE__?: string;
+  __TIMEPULSE_EARLY_LOCALE_PROMISE__?: Promise<unknown>;
+};
+
+/**
+ * 消费 index.html 内联脚本提前发起的语言包请求（若有），只取一次
+ */
+function takeEarlyLocalePromise(locale: string): Promise<unknown> | null {
+  if (typeof window === 'undefined') return null;
+  const globals = window as unknown as EarlyLocaleGlobals;
+  if (globals.__TIMEPULSE_EARLY_LOCALE__ !== locale) return null;
+  const promise = globals.__TIMEPULSE_EARLY_LOCALE_PROMISE__ ?? null;
+  delete globals.__TIMEPULSE_EARLY_LOCALE__;
+  delete globals.__TIMEPULSE_EARLY_LOCALE_PROMISE__;
+  return promise;
+}
+
+async function loadLocalePayload(locale: string): Promise<unknown> {
+  const earlyPromise = takeEarlyLocalePromise(locale);
+  if (earlyPromise) {
+    const earlyValue = await earlyPromise;
+    if (earlyValue !== null && earlyValue !== undefined) return earlyValue;
+  }
+
+  const response = await fetch(`/locales/${locale}/common.json`);
+  if (!response.ok) throw new Error(`Failed to load ${locale} translations`);
+  return response.json();
+}
+
 function getLanguage(): Language {
   if (typeof window === 'undefined') return 'zh-CN';
   return normalizeLanguage(new URLSearchParams(window.location.search).get('lang'));
@@ -23,9 +53,7 @@ async function loadLanguageFile(language: Language): Promise<TranslationTree | n
 
   const request = (async () => {
     try {
-      const response = await fetch(`/locales/${locale}/common.json`);
-      if (!response.ok) throw new Error(`Failed to load ${locale} translations`);
-      const value: unknown = await response.json();
+      const value: unknown = await loadLocalePayload(locale);
       if (typeof value === 'object' && value !== null) {
         const tree = value as TranslationTree;
         translationDataCache.set(locale, tree);

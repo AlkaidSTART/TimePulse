@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { FiClock, FiCheckSquare, FiUser } from 'react-icons/fi';
-import { LuSparkles } from 'react-icons/lu';
+import { LuSmile } from 'react-icons/lu';
 import { usePageTransition, type PageView } from '@/hooks/usePageTransition';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTranslation } from '@/i18n/useTranslation';
@@ -61,40 +61,40 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
       id: 'cheer',
       label: t('header.cheerTab', '元气打气'),
       shortLabel: t('header.cheerShort', '打气'),
-      icon: LuSparkles,
-      title: '元气打气与时光问候',
-      description: '时间问候、元气充能与今日灵感',
+      icon: LuSmile,
+      title: t('routeNav.cheerTitle', '元气打气与时光问候'),
+      description: t('routeNav.cheerDesc', '时间问候、元气充能与今日灵感'),
     },
     {
       id: 'main',
       label: t('header.timers', '计时器'),
       shortLabel: t('header.timersShort', '计时'),
       icon: FiClock,
-      title: '当前时间与计时器',
-      description: '时钟、倒计时、正计时与世界时区',
+      title: t('routeNav.timersTitle', '当前时间与计时器'),
+      description: t('routeNav.timersDesc', '时钟、倒计时、正计时与世界时区'),
     },
     {
       id: 'todo',
       label: t('header.todoTab', '待办清单'),
-      shortLabel: '待办',
+      shortLabel: t('header.todoShort', '待办'),
       icon: FiCheckSquare,
-      title: '待办与核对清单',
-      description: '每日待办事项与任务打卡清单',
+      title: t('routeNav.todoTitle', '待办与核对清单'),
+      description: t('routeNav.todoDesc', '每日待办事项与任务打卡清单'),
     },
     {
       id: 'settings',
       label: t('header.settingsTab', '个人设置'),
-      shortLabel: '设置',
+      shortLabel: t('header.settingsShort', '设置'),
       icon: FiUser,
-      title: '个人设置中心',
-      description: '个性昵称、问候语气与界面偏好',
+      title: t('routeNav.settingsTitle', '个人设置中心'),
+      description: t('routeNav.settingsDesc', '个性昵称、问候语气与界面偏好'),
     },
   ];
 
   return (
     <div className="relative inline-flex flex-col items-center">
       <nav
-        aria-label="页面路由导航"
+        aria-label={t('routeNav.navAria', '页面路由导航')}
         role="tablist"
         className={`relative inline-flex items-center gap-1 rounded-full border border-black/10 bg-white/50 p-1 shadow-[0_2px_12px_-2px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-white/15 dark:bg-black/40 dark:shadow-[0_2px_14px_-2px_rgba(0,0,0,0.5)] ${className}`}
       >
@@ -113,8 +113,8 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               aria-current={isActive ? 'page' : undefined}
               title={
                 isActive
-                  ? `${route.title}（正在此页面）`
-                  : `切换至 ${route.title} - ${route.description}`
+                  ? `${route.title}（${t('routeNav.currentStay', '正在此页面')}）`
+                  : `${t('routeNav.switchTo', '切换至')} ${route.title} - ${route.description}`
               }
               onClick={() => {
                 if (view !== route.id) {
@@ -219,7 +219,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                       ? 'bg-black/10 text-gray-900 dark:bg-white/15 dark:text-white'
                       : 'bg-black/5 text-gray-600 dark:bg-white/10 dark:text-gray-300'
                   }`}
-                  title={`${pendingTodoCount} 个待办事项待完成`}
+                  title={t('routeNav.todoBadge', '{count} 个待办事项待完成').replace('{count}', String(pendingTodoCount))}
                 >
                   {pendingTodoCount}
                 </span>
@@ -233,7 +233,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                       ? 'bg-amber-500/20 text-amber-900 dark:text-amber-200'
                       : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
                   }`}
-                  title={`今日已打气 ${cheerCount} 次`}
+                  title={t('routeNav.cheerBadge', '今日已打气 {count} 次').replace('{count}', String(cheerCount))}
                 >
                   {cheerCount}
                 </span>
@@ -269,7 +269,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               <div className="flex items-center gap-1.5">
                 <span className="p-1 rounded-lg bg-black/5 dark:bg-white/10 text-gray-800 dark:text-gray-200">
                   {hoveredRoute === 'cheer' ? (
-                    <LuSparkles className="size-3.5 text-amber-500" />
+                    <LuSmile className="size-3.5 text-amber-500" />
                   ) : hoveredRoute === 'main' ? (
                     <FiClock className="size-3.5" />
                   ) : hoveredRoute === 'todo' ? (
@@ -280,12 +280,12 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                 </span>
                 <span className="font-bold text-xs text-gray-900 dark:text-white">
                   {hoveredRoute === 'cheer'
-                    ? '元气打气路由'
+                    ? t('routeNav.cheerRoute', '元气打气路由')
                     : hoveredRoute === 'main'
-                    ? '当前时间与时钟'
+                    ? t('routeNav.timersRoute', '当前时间与时钟')
                     : hoveredRoute === 'todo'
-                    ? '待办清单路由'
-                    : '个人设置中心'}
+                    ? t('routeNav.todoRoute', '待办清单路由')
+                    : t('routeNav.settingsRoute', '个人设置中心')}
                 </span>
               </div>
               <span
@@ -295,7 +295,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
                     : 'bg-black/5 dark:bg-white/10 text-gray-500 dark:text-gray-400'
                 }`}
               >
-                {view === hoveredRoute ? '正在此页' : '点击前往'}
+                {view === hoveredRoute ? t('routeNav.stayingHere', '正在此页') : t('routeNav.clickToGo', '点击前往')}
               </span>
             </div>
 
@@ -304,45 +304,45 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               {hoveredRoute === 'cheer' ? (
                 <>
                   <p className="font-medium text-gray-800 dark:text-gray-200">
-                    按当前时间送上温暖励志问候
+                    {t('routeNav.cheerCardLine1', '按当前时间送上温暖励志问候')}
                   </p>
                   <p className="text-gray-500 dark:text-gray-400 truncate">
-                    为今天打气充能，展示每日治愈灵感一言
+                    {t('routeNav.cheerCardLine2', '为今天打气充能，展示每日治愈灵感一言')}
                   </p>
                 </>
               ) : hoveredRoute === 'main' ? (
                 <>
                   <p className="font-medium text-gray-800 dark:text-gray-200">
-                    时钟、倒计时、正计时与世界时区
+                    {t('routeNav.timersCardLine1', '时钟、倒计时、正计时与世界时区')}
                   </p>
                   <p className="text-gray-500 dark:text-gray-400 truncate">
-                    活动计时: <span className="font-semibold text-gray-700 dark:text-gray-300">{activeTimer?.name || '本地时间'}</span>
-                    <span className="ml-1 text-[10px] text-gray-400">（共 {timers.length} 个计时器）</span>
+                    {t('routeNav.timersCardLine2', '活动计时')}: <span className="font-semibold text-gray-700 dark:text-gray-300">{activeTimer?.name || t('timer.localTime', '本地时间')}</span>
+                    <span className="ml-1 text-[10px] text-gray-400">{t('routeNav.timersCount', '（共 {count} 个计时器）').replace('{count}', String(timers.length))}</span>
                   </p>
                 </>
               ) : hoveredRoute === 'todo' ? (
                 <>
                   <p className="font-medium text-gray-800 dark:text-gray-200">
-                    今日待办清单与任务专注核对
+                    {t('routeNav.todoCardLine1', '今日待办清单与任务专注核对')}
                   </p>
                   <p className="text-gray-500 dark:text-gray-400 truncate">
                     {pendingTodoCount > 0 ? (
                       <>
-                        待办状态: <span className="font-semibold text-gray-900 dark:text-white">{pendingTodoCount} 项未完成</span>
-                        {firstPendingText ? ` · 下一项: "${firstPendingText}"` : ''}
+                        {t('routeNav.todoStatus', '待办状态')}: <span className="font-semibold text-gray-900 dark:text-white">{t('routeNav.todoUnfinished', '{count} 项未完成').replace('{count}', String(pendingTodoCount))}</span>
+                        {firstPendingText ? ` · ${t('routeNav.nextTask', '下一项')}: "${firstPendingText}"` : ''}
                       </>
                     ) : (
-                      <span className="text-gray-600 dark:text-gray-300 font-medium">所有事项均已完成</span>
+                      <span className="text-gray-600 dark:text-gray-300 font-medium">{t('routeNav.allDone', '所有事项均已完成')}</span>
                     )}
                   </p>
                 </>
               ) : (
                 <>
                   <p className="font-medium text-gray-800 dark:text-gray-200">
-                    个人称呼、问候语气与显示偏好
+                    {t('routeNav.settingsCardLine1', '个人称呼、问候语气与显示偏好')}
                   </p>
                   <p className="text-gray-500 dark:text-gray-400 truncate">
-                    当前称呼: <span className="font-semibold text-gray-900 dark:text-white">{nickname || '未设置'}</span>
+                    {t('routeNav.currentNickname', '当前称呼')}: <span className="font-semibold text-gray-900 dark:text-white">{nickname || t('routeNav.notSet', '未设置')}</span>
                   </p>
                 </>
               )}

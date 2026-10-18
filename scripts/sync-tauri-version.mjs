@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// 将 package.json 的版本号同步到 Tauri 配置，保证桌面/移动安装包版本与前端版本一致。
+// 将 package.json 的版本号同步到 Tauri 配置、Cargo 以及前端常量，保证全栈版本完全一致。
 // 用法: node scripts/sync-tauri-version.mjs
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -15,33 +15,69 @@ if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
 
 // 1) src-tauri/tauri.conf.json
 const confPath = resolve(root, 'src-tauri/tauri.conf.json');
-const conf = JSON.parse(readFileSync(confPath, 'utf8'));
-if (conf.version !== version) {
-  conf.version = version;
-  writeFileSync(confPath, `${JSON.stringify(conf, null, 2)}\n`);
-  console.log(`[sync-tauri-version] src-tauri/tauri.conf.json -> ${version}`);
-} else {
-  console.log(`[sync-tauri-version] src-tauri/tauri.conf.json 已是 ${version}`);
+if (existsSync(confPath)) {
+  const conf = JSON.parse(readFileSync(confPath, 'utf8'));
+  if (conf.version !== version) {
+    conf.version = version;
+    writeFileSync(confPath, `${JSON.stringify(conf, null, 2)}\n`);
+    console.log(`[sync-tauri-version] src-tauri/tauri.conf.json -> ${version}`);
+  } else {
+    console.log(`[sync-tauri-version] src-tauri/tauri.conf.json 已是 ${version}`);
+  }
 }
 
 // 2) src-tauri/Cargo.toml（只改 [package] 段的 version）
 const cargoPath = resolve(root, 'src-tauri/Cargo.toml');
-const cargo = readFileSync(cargoPath, 'utf8');
-const libIndex = cargo.indexOf('[lib]');
-if (libIndex === -1) {
-  console.error('[sync-tauri-version] src-tauri/Cargo.toml 中未找到 [lib] 段');
-  process.exit(1);
+if (existsSync(cargoPath)) {
+  const cargo = readFileSync(cargoPath, 'utf8');
+  const libIndex = cargo.indexOf('[lib]');
+  if (libIndex === -1) {
+    console.error('[sync-tauri-version] src-tauri/Cargo.toml 中未找到 [lib] 段');
+    process.exit(1);
+  }
+  const head = cargo.slice(0, libIndex);
+  const versionPattern = /^version = "[^"]*"$/m;
+  if (!versionPattern.test(head)) {
+    console.error('[sync-tauri-version] src-tauri/Cargo.toml 的 [package] 段中未找到 version 字段');
+    process.exit(1);
+  }
+  const updatedHead = head.replace(versionPattern, `version = "${version}"`);
+  if (updatedHead !== head) {
+    writeFileSync(cargoPath, updatedHead + cargo.slice(libIndex));
+    console.log(`[sync-tauri-version] src-tauri/Cargo.toml -> ${version}`);
+  } else {
+    console.log(`[sync-tauri-version] src-tauri/Cargo.toml 已是 ${version}`);
+  }
 }
-const head = cargo.slice(0, libIndex);
-const versionPattern = /^version = "[^"]*"$/m;
-if (!versionPattern.test(head)) {
-  console.error('[sync-tauri-version] src-tauri/Cargo.toml 的 [package] 段中未找到 version 字段');
-  process.exit(1);
+
+// 3) src/constants/version.ts
+const versionTsPath = resolve(root, 'src/constants/version.ts');
+if (existsSync(versionTsPath)) {
+  const tsContent = readFileSync(versionTsPath, 'utf8');
+  const appVersionPattern = /export const APP_VERSION = '[^']*';/;
+  if (appVersionPattern.test(tsContent)) {
+    const updatedTs = tsContent.replace(appVersionPattern, `export const APP_VERSION = '${version}';`);
+    if (updatedTs !== tsContent) {
+      writeFileSync(versionTsPath, updatedTs);
+      console.log(`[sync-tauri-version] src/constants/version.ts -> ${version}`);
+    } else {
+      console.log(`[sync-tauri-version] src/constants/version.ts 已是 ${version}`);
+    }
+  }
 }
-const updatedHead = head.replace(versionPattern, `version = "${version}"`);
-if (updatedHead !== head) {
-  writeFileSync(cargoPath, updatedHead + cargo.slice(libIndex));
-  console.log(`[sync-tauri-version] src-tauri/Cargo.toml -> ${version}`);
-} else {
-  console.log(`[sync-tauri-version] src-tauri/Cargo.toml 已是 ${version}`);
+
+// 4) src-tauri/Cargo.lock (锁定 time-pulse 包的版本)
+const lockPath = resolve(root, 'src-tauri/Cargo.lock');
+if (existsSync(lockPath)) {
+  const lock = readFileSync(lockPath, 'utf8');
+  const lockPattern = /(\[\[package\]\]\s+name = "time-pulse"\s+version = )"[^"]*"/;
+  if (lockPattern.test(lock)) {
+    const updatedLock = lock.replace(lockPattern, `$1"${version}"`);
+    if (updatedLock !== lock) {
+      writeFileSync(lockPath, updatedLock);
+      console.log(`[sync-tauri-version] src-tauri/Cargo.lock -> ${version}`);
+    } else {
+      console.log(`[sync-tauri-version] src-tauri/Cargo.lock 已是 ${version}`);
+    }
+  }
 }

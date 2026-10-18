@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useBackground } from '@/app/providers/BackgroundProvider';
 import imageStorage from '@/services/imageStorage';
 import type { BackgroundMode } from '../settings';
-import { AutoTransition } from '@/components/ui';
+import { AutoTransition } from '@/components/ui/auto-transition';
 
 type StoredImage = {
   url: string;

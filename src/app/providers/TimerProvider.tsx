@@ -6,6 +6,7 @@ import {
   type TimerInput,
   type TimerUpdate,
 } from '@/stores/useTimerStore';
+import { initTimerSync } from '@/services/timerSync';
 
 export type { TimerInput, TimerUpdate };
 
@@ -35,6 +36,10 @@ export function TimerProvider({ children }: { children: ReactNode }) {
       void initTimers();
     }
   }, [isLoaded, initTimers]);
+
+  useEffect(() => {
+    return initTimerSync();
+  }, []);
 
   return (
     <TimerContext.Provider value={value}>

@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { flushSync } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { useTranslation } from '@/i18n/useTranslation';
 import type { Timer } from '@/domain/timer';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { getCompactTimerItems, type CompactTimerItem } from './timerTabsLayout';
@@ -25,6 +26,7 @@ function transformBetween(from: CapsuleRect, base: CapsuleRect): string {
 }
 
 export default function TimerTabs({ timers, activeTimerId, setActiveTimerId, className = '' }: TimerTabsProps) {
+  const { t, currentLang } = useTranslation();
   const { accentColor } = useTheme();
   const reducedMotion = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -276,7 +278,7 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId, cla
           pointerEvents: isExpanded ? 'none' : 'auto',
         }}
       >
-        <div ref={compactRowRef} role="group" aria-label="计时器" className="relative flex items-center justify-center gap-1 min-[900px]:gap-1.5">
+        <div ref={compactRowRef} role="group" aria-label={t('common.timers', '计时器')} className="relative flex items-center justify-center gap-1 min-[900px]:gap-1.5">
           <AnimatePresence key={presenceEpoch} initial={false} mode="popLayout">
             {compactItems.map((item) => {
               const key = itemKey(item);
@@ -305,7 +307,11 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId, cla
                       tabIndex={isExpanded ? -1 : 0}
                       aria-hidden={isExpanded}
                       className="relative rounded-full px-2 py-1 text-sm font-medium text-gray-800 shadow-sm backdrop-blur-sm outline-none hover:brightness-110 focus-visible:ring-2 focus-visible:ring-sky-500 min-[900px]:px-2.5 dark:text-white"
-                      aria-label={`${item.side === 'left' ? '左侧' : '右侧'}还有 ${item.count} 个计时器，展开全部`}
+                      aria-label={
+                        currentLang === 'en-US'
+                          ? `${item.count} more timers on the ${item.side === 'left' ? 'left' : 'right'}, expand all`
+                          : `${item.side === 'left' ? '左侧' : '右侧'}还有 ${item.count} 个计时器，展开全部`
+                      }
                       aria-haspopup="menu"
                       aria-controls={menuId}
                       aria-expanded={isExpanded}
@@ -432,7 +438,7 @@ export default function TimerTabs({ timers, activeTimerId, setActiveTimerId, cla
           ref={expandedRef}
           id={menuId}
           role="menu"
-          aria-label="计时器"
+          aria-label={t('common.timers', '计时器')}
           className="timer-island-scroll pointer-events-none absolute left-1/2 z-50 flex max-h-64 w-[min(860px,calc(100vw-32px))] -translate-x-1/2 flex-wrap items-center justify-center gap-2 py-2"
           style={{ top: 'calc(100% + 28px)', overflow: isOpening || isClosing ? 'visible' : undefined }}
         >

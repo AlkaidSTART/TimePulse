@@ -79,7 +79,11 @@ function loadInitialSettings(): PersistedData {
       ...DEFAULT_SETTINGS,
       ...parsed,
     };
-    saveSettings(merged);
+    // 只在迁移/清洗确实改变了数据时写回，并推迟到启动帧之后，
+    // 避免在模块初始化（首屏最敏感时刻）同步写 localStorage。
+    if (JSON.stringify(merged) !== raw) {
+      setTimeout(() => saveSettings(merged), 0);
+    }
     return merged;
   } catch {
     return DEFAULT_SETTINGS;

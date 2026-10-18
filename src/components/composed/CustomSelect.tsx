@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { FiCheck, FiChevronDown } from 'react-icons/fi';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useTranslation } from '@/i18n/useTranslation';
-import { AutoResizer, AutoTransition } from '@/components/ui';
+import { AutoResizer } from '@/components/ui/auto-resizer';
+import { AutoTransition } from '@/components/ui/auto-transition';
 
 export type CustomSelectOption = {
   value: string;

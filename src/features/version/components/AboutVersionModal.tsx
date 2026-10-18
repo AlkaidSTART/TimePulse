@@ -29,20 +29,18 @@ interface AboutVersionModalProps {
 
 export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
   const { t } = useTranslation();
-  const {
-    currentVersion,
-    latestVersion,
-    hasUpdate,
-    isChecking,
-    lastCheckError,
-    releaseInfo,
-    downloadUrl,
-    isAboutModalOpen,
-    activeAboutTab,
-    setActiveAboutTab,
-    closeAboutModal,
-    checkUpdate,
-  } = useVersionStore();
+  const currentVersion = useVersionStore((s) => s.currentVersion);
+  const latestVersion = useVersionStore((s) => s.latestVersion);
+  const hasUpdate = useVersionStore((s) => s.hasUpdate);
+  const isChecking = useVersionStore((s) => s.isChecking);
+  const lastCheckError = useVersionStore((s) => s.lastCheckError);
+  const releaseInfo = useVersionStore((s) => s.releaseInfo);
+  const downloadUrl = useVersionStore((s) => s.downloadUrl);
+  const isAboutModalOpen = useVersionStore((s) => s.isAboutModalOpen);
+  const activeAboutTab = useVersionStore((s) => s.activeAboutTab);
+  const setActiveAboutTab = useVersionStore((s) => s.setActiveAboutTab);
+  const closeAboutModal = useVersionStore((s) => s.closeAboutModal);
+  const checkUpdate = useVersionStore((s) => s.checkUpdate);
 
   const [copiedText, setCopiedText] = useState(false);
 
@@ -324,8 +322,8 @@ export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
                     {/* QR Code Card */}
                     <div className="relative mx-auto w-fit p-3.5 rounded-2xl bg-white dark:bg-black/40 border border-amber-500/20 shadow-md">
                       <img
-                        src="/buy-me-a-coffee.png"
-                        alt="Buy Me a Coffee - Alkaid 的赞赏码"
+                        src="/buy-me-a-coffee.webp"
+                        alt={t('version.coffeeAlt', 'Buy Me a Coffee - Alkaid 的赞赏码')}
                         className="size-52 sm:size-56 object-contain rounded-xl mx-auto"
                         loading="eager"
                         decoding="async"
@@ -346,7 +344,7 @@ export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
                     <div className="pt-1 flex items-center justify-center gap-2">
                       <button
                         type="button"
-                        onClick={() => handleDownloadFile('/buy-me-a-coffee.png', 'Alkaid-BuyMeACoffee.png')}
+                        onClick={() => handleDownloadFile('/buy-me-a-coffee.webp', 'Alkaid-BuyMeACoffee.webp')}
                         className="inline-flex items-center justify-center gap-1.5 py-2 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                       >
                         <FiDownload className="size-3.5" />
@@ -378,7 +376,7 @@ export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
                     {/* WeChat QR Card */}
                     <div className="relative mx-auto w-fit p-3 rounded-2xl bg-white dark:bg-black/40 border border-emerald-500/20 shadow-md">
                       <img
-                        src="/author-wechat.jpg"
+                        src="/author-wechat.webp"
                         alt="Contact Author Alkaid - WeChat QR Code"
                         className="w-48 sm:w-52 max-h-64 object-contain rounded-xl mx-auto"
                         loading="eager"
@@ -393,7 +391,7 @@ export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
                     <div className="pt-1 flex flex-wrap items-center justify-center gap-2">
                       <button
                         type="button"
-                        onClick={() => handleDownloadFile('/author-wechat.jpg', 'Alkaid-WeChat-Contact.jpg')}
+                        onClick={() => handleDownloadFile('/author-wechat.webp', 'Alkaid-WeChat-Contact.webp')}
                         className="inline-flex items-center justify-center gap-1.5 py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                       >
                         <FiDownload className="size-3.5" />
@@ -408,12 +406,12 @@ export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
                         {copiedText ? (
                           <>
                             <FiCheck className="size-3.5 text-emerald-600" />
-                            <span>已复制微信号</span>
+                            <span>{t('version.wechatCopied', '已复制微信号')}</span>
                           </>
                         ) : (
                           <>
                             <FiCopy className="size-3.5" />
-                            <span>复制微信号 Alkaid</span>
+                            <span>{t('version.copyWechat', '复制微信号 Alkaid')}</span>
                           </>
                         )}
                       </button>

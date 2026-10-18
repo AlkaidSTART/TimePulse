@@ -1,11 +1,9 @@
 import { preloadTranslations } from '@/i18n/useTranslation';
+import { warmUpDatabase } from './db';
 import imageStorage from './imageStorage';
-import { openTimePulseDatabase } from './storage';
 
 const CRITICAL_IMAGES = [
-  '/logo.png',
   '/website-qr.png',
-  '/qrcode.png',
   '/favicon-32x32.png',
 ];
 
@@ -69,8 +67,10 @@ function preloadLazyComponents(): void {
     void import('@/features/todo/components/TodoPage');
   }, 2200);
 
-  // Step 2: Preload secondary modals gradually
+  // Step 2: Preload the main-view widgets and secondary modals gradually
   runIdle(() => {
+    void import('@/features/countdown/components/TimerDisplay');
+    void import('@/features/timer-management/components/TimerTabs');
     void import('@/features/todo/components/TodoListWidget');
     void import('@/features/background/components/BackgroundSettingsModal');
   }, 3800);
@@ -84,8 +84,8 @@ export function preloadCriticalResources(): void {
   if (isPreloaded || typeof window === 'undefined') return;
   isPreloaded = true;
 
-  // 1. Warm up IndexedDB connection non-blockingly
-  void openTimePulseDatabase().catch(() => {});
+  // 1. Warm up the platform database connection non-blockingly (IndexedDB / SQLite)
+  void warmUpDatabase().catch(() => {});
 
   // 2. Preload i18n translations
   void preloadTranslations('zh-CN');

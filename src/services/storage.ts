@@ -1,16 +1,10 @@
 import type { BackgroundSettings, FullscreenSettings } from '../domain/settings';
 import type { Timer } from '../domain/timer';
 import { parseTimers } from '../domain/timer';
-
-const DATABASE_NAME = 'TimePulseDB';
-const DATABASE_VERSION = 2;
-const BACKGROUND_STORE = 'custom_backgrounds';
-const TIMERS_STORE = 'timers';
-const STATE_STORE = 'state';
-const ACTIVE_TIMER_ID_KEY = 'activeTimerId';
+import { getDatabase } from './db';
 
 export const STORAGE_KEYS = {
-  // 计时器数据主存储已迁移至 IndexedDB；这两个键作为旧数据迁移来源与降级备份保留
+  // 计时器数据主存储位于平台数据库；这两个键作为旧数据迁移来源与降级备份保留
   timers: 'timers',
   activeTimerId: 'activeTimerId',
   theme: 'theme',
@@ -20,70 +14,7 @@ export const STORAGE_KEYS = {
   notificationPreference: 'timepulse_notification_preference',
 } as const;
 
-let databasePromise: Promise<IDBDatabase> | null = null;
-
-/**
- * 打开共享的 TimePulseDB 连接（v2）。
- * 所有经过 IndexedDB 的模块都必须使用这个 opener，避免版本号不一致导致 VersionError。
- */
-export function openTimePulseDatabase(): Promise<IDBDatabase> {
-  if (typeof indexedDB === 'undefined') {
-    return Promise.reject(new Error('IndexedDB is not supported in this environment'));
-  }
-
-  if (!databasePromise) {
-    databasePromise = new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
-      request.onerror = () => reject(request.error ?? new Error('无法打开 TimePulseDB'));
-      request.onblocked = () => {
-        console.warn('[存储] TimePulseDB 升级被其他标签页阻塞，请关闭旧标签页');
-      };
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains(BACKGROUND_STORE)) {
-          const store = db.createObjectStore(BACKGROUND_STORE, { keyPath: 'id' });
-          store.createIndex('type', 'type', { unique: false });
-        }
-        if (!db.objectStoreNames.contains(TIMERS_STORE)) {
-          db.createObjectStore(TIMERS_STORE, { keyPath: 'id' });
-        }
-        if (!db.objectStoreNames.contains(STATE_STORE)) {
-          db.createObjectStore(STATE_STORE);
-        }
-      };
-      request.onsuccess = () => {
-        const db = request.result;
-        db.onversionchange = () => {
-          db.close();
-          databasePromise = null;
-        };
-        db.onclose = () => {
-          databasePromise = null;
-        };
-        resolve(db);
-      };
-    }).catch((error: unknown) => {
-      databasePromise = null;
-      throw error;
-    });
-  }
-  return databasePromise;
-}
-
-function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error('IndexedDB 请求失败'));
-  });
-}
-
-function transactionDone(transaction: IDBTransaction): Promise<void> {
-  return new Promise((resolve, reject) => {
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error ?? new Error('IndexedDB 事务失败'));
-    transaction.onabort = () => reject(transaction.error ?? new Error('IndexedDB 事务已中止'));
-  });
-}
+const ACTIVE_TIMER_ID_KEY = 'activeTimerId';
 
 function readLegacyTimers(storage: Storage = localStorage): Timer[] {
   try {
@@ -142,55 +73,84 @@ export function readSettings<T extends BackgroundSettings | FullscreenSettings>(
 }
 
 /**
- * 读取全部计时器。
- * IDB 为空时执行一次性迁移：从 localStorage 旧键导入，同时返回导入结果。
+ * 读取全部计时器（Web: IndexedDB / 原生: SQLite）。
+ * 数据库为空时执行一次性迁移：从 localStorage 旧键导入，同时返回导入结果。
  */
 export async function readTimers(): Promise<Timer[]> {
   try {
-    const db = await openTimePulseDatabase();
-    const stored = await requestToPromise(
-      db.transaction(TIMERS_STORE, 'readonly').objectStore(TIMERS_STORE).getAll(),
-    );
+    const stored = await getDatabase().readTimers();
     const timers = parseTimers(stored);
     if (timers.length > 0) return timers;
 
     const legacyTimers = readLegacyTimers();
     if (legacyTimers.length > 0) {
-      console.log(`[存储] 迁移 ${legacyTimers.length} 个旧版 localStorage 计时器到 IndexedDB`);
+      console.log(`[存储] 迁移 ${legacyTimers.length} 个旧版 localStorage 计时器到数据库`);
       await writeTimers(legacyTimers);
       return legacyTimers;
     }
     return [];
   } catch (error) {
-    console.error('[存储] IndexedDB 读取计时器失败，回退到 localStorage:', error);
+    console.error('[存储] 数据库读取计时器失败，回退到 localStorage:', error);
     return readLegacyTimers();
   }
 }
 
 /**
- * 覆盖写入全部计时器。IDB 为唯一数据源，localStorage 仅保留降级备份。
+ * 覆盖写入全部计时器。数据库为唯一数据源，localStorage 仅保留降级备份。
  */
 export async function writeTimers(timers: Timer[]): Promise<void> {
   try {
-    const db = await openTimePulseDatabase();
-    const transaction = db.transaction(TIMERS_STORE, 'readwrite');
-    const store = transaction.objectStore(TIMERS_STORE);
-    store.clear();
-    timers.forEach((timer) => store.put(timer));
-    await transactionDone(transaction);
+    await getDatabase().writeTimers(timers);
   } catch (error) {
-    console.error('[存储] 写入 IndexedDB 计时器失败，回退到 localStorage:', error);
+    console.error('[存储] 数据库写入计时器失败，回退到 localStorage:', error);
   } finally {
     writeLegacyValue(STORAGE_KEYS.timers, JSON.stringify(timers));
   }
 }
 
+const TIMERS_WRITE_DEBOUNCE_MS = 300;
+
+let pendingTimersWrite: Timer[] | null = null;
+let pendingTimersWriteTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * 合并高频计时器写入（例如拖动颜色滑杆时的连续更新）：
+ * 至多每 300ms 落库一次，最后一批数据等待防抖窗口结束后写入。
+ */
+export function scheduleTimersWrite(timers: Timer[]): void {
+  pendingTimersWrite = timers;
+  if (pendingTimersWriteTimer !== null) return;
+  pendingTimersWriteTimer = setTimeout(() => {
+    flushTimersWrite();
+  }, TIMERS_WRITE_DEBOUNCE_MS);
+}
+
+/**
+ * 立即冲刷尚未写入的计时器数据（页面隐藏/关闭前调用，避免数据丢失）。
+ */
+export function flushTimersWrite(): void {
+  if (pendingTimersWriteTimer !== null) {
+    clearTimeout(pendingTimersWriteTimer);
+    pendingTimersWriteTimer = null;
+  }
+  const timers = pendingTimersWrite;
+  if (!timers) return;
+  pendingTimersWrite = null;
+  void writeTimers(timers);
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', flushTimersWrite);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      flushTimersWrite();
+    }
+  });
+}
+
 export async function readActiveTimerId(): Promise<string | null> {
   try {
-    const db = await openTimePulseDatabase();
-    const value: unknown = await requestToPromise(
-      db.transaction(STATE_STORE, 'readonly').objectStore(STATE_STORE).get(ACTIVE_TIMER_ID_KEY),
-    );
+    const value = await getDatabase().readState<unknown>(ACTIVE_TIMER_ID_KEY);
     if (typeof value === 'string') return value;
 
     const legacyId = localStorage.getItem(STORAGE_KEYS.activeTimerId);
@@ -200,21 +160,16 @@ export async function readActiveTimerId(): Promise<string | null> {
     }
     return null;
   } catch (error) {
-    console.error('[存储] IndexedDB 读取活动计时器失败，回退到 localStorage:', error);
+    console.error('[存储] 数据库读取活动计时器失败，回退到 localStorage:', error);
     return localStorage.getItem(STORAGE_KEYS.activeTimerId);
   }
 }
 
 export async function writeActiveTimerId(id: string | null): Promise<void> {
   try {
-    const db = await openTimePulseDatabase();
-    const transaction = db.transaction(STATE_STORE, 'readwrite');
-    const store = transaction.objectStore(STATE_STORE);
-    if (id === null) store.delete(ACTIVE_TIMER_ID_KEY);
-    else store.put(id, ACTIVE_TIMER_ID_KEY);
-    await transactionDone(transaction);
+    await getDatabase().writeState(ACTIVE_TIMER_ID_KEY, id);
   } catch (error) {
-    console.error('[存储] 写入 IndexedDB 活动计时器失败，回退到 localStorage:', error);
+    console.error('[存储] 数据库写入活动计时器失败，回退到 localStorage:', error);
   } finally {
     writeLegacyValue(ACTIVE_TIMER_ID_KEY, id);
   }

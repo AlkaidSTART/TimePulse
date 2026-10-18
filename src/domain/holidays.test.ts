@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findNextHoliday, getHolidaysList } from './holidays';
+import { findNextHoliday, getHolidaysList, getLocalizedHolidayName } from './holidays';
 
 describe('holiday domain rules', () => {
   it('returns future holidays in chronological order', () => {
@@ -15,4 +15,13 @@ describe('holiday domain rules', () => {
     const holiday = findNextHoliday(new Date('2099-12-31T23:59:59.000Z'));
     expect(holiday).toMatchObject({ name: expect.any(String), color: expect.any(String) });
   });
+
+  it('localizes holiday names correctly according to language', () => {
+    expect(getLocalizedHolidayName('2026年春节', 'zh-CN')).toBe('2026年春节');
+    expect(getLocalizedHolidayName('2026年春节', 'en-US')).toBe('Spring Festival 2026');
+    expect(getLocalizedHolidayName('2026年元旦', 'en-US')).toBe("New Year's Day 2026");
+    expect(getLocalizedHolidayName('2026年圣诞节', 'en-US')).toBe('Christmas Day 2026');
+    expect(getLocalizedHolidayName('Custom Event', 'en-US')).toBe('Custom Event');
+  });
 });
+

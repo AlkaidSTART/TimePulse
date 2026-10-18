@@ -105,3 +105,44 @@ export function findNextHoliday(now = new Date()): Holiday {
     color: '#0EA5E9',
   };
 }
+
+export const HOLIDAY_NAME_MAP: Record<string, string> = {
+  '元旦': "New Year's Day",
+  '情人节': "Valentine's Day",
+  '妇女节': "Women's Day",
+  '植树节': "Arbor Day",
+  '愚人节': "April Fools' Day",
+  '青年节': "Youth Day",
+  '劳动节': "Labor Day",
+  '清明节': "Qingming Festival",
+  '儿童节': "Children's Day",
+  '建党节': "CPC Founding Day",
+  '建军节': "Army Day",
+  '教师节': "Teachers' Day",
+  '国庆节': "National Day",
+  '万圣节': "Halloween",
+  '平安夜': "Christmas Eve",
+  '圣诞节': "Christmas Day",
+  '母亲节': "Mother's Day",
+  '父亲节': "Father's Day",
+  '感恩节': "Thanksgiving Day",
+  '春节': "Spring Festival",
+  '元宵节': "Lantern Festival",
+  '端午节': "Dragon Boat Festival",
+  '七夕节': "Qixi Festival",
+  '中元节': "Ghost Festival",
+  '中秋节': "Mid-Autumn Festival",
+  '重阳节': "Double Ninth Festival",
+  '腊八节': "Laba Festival",
+};
+
+export function getLocalizedHolidayName(name: string, lang = 'zh-CN'): string {
+  if (lang !== 'en-US') return name;
+  const match = name.match(/^(\d{4})年(.+)$/);
+  if (!match) return name;
+  const [, year, festival] = match;
+  const enFestival = HOLIDAY_NAME_MAP[festival];
+  if (!enFestival) return name;
+  return `${enFestival} ${year}`;
+}
+

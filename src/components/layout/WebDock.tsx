@@ -11,7 +11,7 @@ import {
   SunMoon,
   Maximize,
   Minimize,
-  Sparkles,
+  Smile,
   User,
 } from 'lucide-react';
 import { Dock, DockIcon, DockItem, DockLabel, DockBadge } from '@/components/core/dock';
@@ -19,8 +19,11 @@ import { usePageTransition } from '@/hooks/usePageTransition';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useVersionStore } from '@/stores/useVersionStore';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import { useTranslation } from '@/i18n/useTranslation';
 import { readTodoItems, TODO_STORAGE_EVENT } from '@/features/todo/todoStorage';
+import { getEffectiveAvatarUrl } from '@/utils/avatar';
 import { cn } from '@/lib/utils';
 
 export interface WebDockProps {
@@ -47,6 +50,9 @@ export default function WebDock({
   const currentVersion = useVersionStore((s) => s.currentVersion);
   const hasUpdate = useVersionStore((s) => s.hasUpdate);
   const openAboutModal = useVersionStore((s) => s.openAboutModal);
+  const user = useAuthStore((s) => s.user);
+  const avatar = usePersonalSettingsStore((s) => s.avatar);
+  const userAvatarUrl = getEffectiveAvatarUrl(user, avatar);
   const { t } = useTranslation();
 
   const [pendingTodoCount, setPendingTodoCount] = useState(0);
@@ -111,7 +117,7 @@ export default function WebDock({
     {
       id: 'cheer',
       title: t('header.cheerTab', '元气打气'),
-      icon: <Sparkles className="size-full text-neutral-700 dark:text-neutral-200" />,
+      icon: <Smile className="size-full text-neutral-700 dark:text-neutral-200" />,
       onClick: () => {
         if (view !== 'cheer') transitionTo('cheer');
       },
@@ -175,18 +181,26 @@ export default function WebDock({
     },
     {
       id: 'theme',
-      title: `${t('theme.title', '切换主题')} (${theme === 'cream' ? '米白模式' : '浅白模式'})`,
+      title: `${t('theme.title', '切换主题')} (${theme === 'cream' ? t('personalSettings.themeCream', '米白模式') : t('personalSettings.themeLight', '白色模式')})`,
       icon: <SunMoon className="size-full text-neutral-700 dark:text-neutral-200" />,
       onClick: toggleTheme,
     },
     {
       id: 'settings',
-      title: t('header.settingsTab', '个人设置中心'),
-      icon: <User className="size-full text-neutral-700 dark:text-neutral-200" />,
+      title: user ? `${t('personalSettings.cloudAccount', '个人账号')}: ${user.user_metadata?.nickname || user.email}` : t('header.settingsTab', '个人设置中心'),
+      icon: userAvatarUrl ? (
+        <img
+          src={userAvatarUrl}
+          alt="Avatar"
+          className="size-full rounded-xl object-cover ring-1 ring-black/10 dark:ring-white/10"
+        />
+      ) : (
+        <User className="size-full text-neutral-700 dark:text-neutral-200" />
+      ),
       onClick: () => {
         if (view !== 'settings') transitionTo('settings');
       },
-      isActive: view === 'settings',
+      isActive: view === 'settings' || view === 'auth',
     },
     {
       id: 'fullscreen',
@@ -203,7 +217,7 @@ export default function WebDock({
 
   return (
     <motion.aside
-      aria-label="Web端桌面快捷栏"
+      aria-label={t('header.dockBar', 'Web端桌面快捷栏')}
       initial={false}
       animate={{
         y: isFullscreen && !isHeaderVisible ? 100 : 0,
@@ -215,12 +229,7 @@ export default function WebDock({
         className
       )}
     >
-      <Dock className="relative items-end pb-3 rounded-2xl border border-black/[0.08] bg-white/70 shadow-[0_16px_48px_-8px_rgba(0,0,0,0.12),0_4px_16px_-2px_rgba(0,0,0,0.06)] backdrop-blur-2xl cream:bg-[#faf7ee]/85 cream:border-stone-300/60 dark:border-white/12 dark:bg-[#141416]/85 dark:shadow-[0_16px_48px_rgba(0,0,0,0.7)] px-3.5">
-        {/* Top 1px Specular Light Shelf */}
-        <div
-          className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 cream:via-white/95 dark:via-white/20 to-transparent"
-          aria-hidden="true"
-        />
+      <Dock className="ios-liquid-glass-dock relative items-end pb-3 rounded-2xl px-3.5">
 
         {dockItems.map((item) => (
           <DockItem

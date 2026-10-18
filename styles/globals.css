@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "overlayscrollbars/styles/overlayscrollbars.css";
 @source "../src";
 @custom-variant cream (&:where(.cream, .cream *));
 @custom-variant dark (&:where(.dark, .dark *));
@@ -34,7 +33,7 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
   --color-primary-700: rgba(var(--color-primary), 0.8);
   --color-primary-800: rgba(var(--color-primary), 0.7);
   --color-primary-900: rgba(var(--color-primary), 0.6);
-  --color-background-light: #fafbfd;
+  --color-background-light: #ffffff;
   --color-background-cream: #f7f4eb;
   --font-sans: Inter, ui-sans-serif, system-ui;
   --font-display: Poppins, sans-serif;
@@ -152,6 +151,45 @@ html[data-mobile-landscape="true"]:not([data-desktop="true"]) .personal-settings
   }
 }
 
+/* 认证登录/注册页面：紧凑自适应避让与滚动 */
+.auth-page {
+  --auth-pt: max(0.75rem, calc(0.5rem + var(--tp-safe-top)));
+  --auth-pb: max(1rem, calc(0.75rem + var(--tp-safe-bottom)));
+  padding-top: var(--auth-pt);
+  padding-bottom: var(--auth-pb);
+  padding-left: max(0.75rem, var(--tp-safe-left));
+  padding-right: max(0.75rem, var(--tp-safe-right));
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1024px) {
+  .auth-page {
+    --auth-pt: max(1rem, calc(0.75rem + var(--tp-safe-top)));
+    --auth-pb: max(1.25rem, calc(1rem + var(--tp-safe-bottom)));
+    padding-left: max(1.5rem, var(--tp-safe-left));
+    padding-right: max(1.5rem, var(--tp-safe-right));
+  }
+}
+
+@media (orientation: landscape) and (max-height: 640px) and (max-width: 1023px) {
+  .auth-page {
+    --auth-pt: max(0.5rem, calc(0.25rem + var(--tp-safe-top)));
+    --auth-pb: max(0.75rem, calc(0.5rem + var(--tp-safe-bottom)));
+  }
+}
+
+html[data-mobile-landscape="true"]:not([data-desktop="true"]) .auth-page {
+  --auth-pt: max(0.5rem, calc(0.25rem + var(--tp-safe-top)));
+  --auth-pb: max(0.75rem, calc(0.5rem + var(--tp-safe-bottom)));
+}
+
+@media (min-width: 1024px) {
+  html[data-mobile-landscape="true"] .auth-page {
+    --auth-pt: max(1rem, calc(0.75rem + var(--tp-safe-top)));
+    --auth-pb: max(1.25rem, calc(1rem + var(--tp-safe-bottom)));
+  }
+}
+
 .todo-page-container {
   --todo-pt: max(4.5rem, calc(3.75rem + var(--tp-safe-top)));
   --todo-pb: max(6.5rem, calc(5.5rem + var(--tp-safe-bottom)));
@@ -184,6 +222,24 @@ html[data-mobile-landscape="true"]:not([data-desktop="true"]) .todo-page-contain
   html[data-mobile-landscape="true"] .todo-page-container {
     --todo-pt: max(6.5rem, calc(5.5rem + var(--tp-safe-top)));
     --todo-pb: max(5.5rem, calc(4rem + var(--tp-safe-bottom)));
+  }
+}
+
+/* 拖拽排序流畅动画过渡体系 */
+[data-rfd-droppable-id] [data-rfd-draggable-id] {
+  transition: transform 0.28s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  will-change: transform;
+}
+
+/* 处于被拖拽中的元素跟随指针无额外延时 */
+[data-rfd-droppable-id] [data-rfd-draggable-id][data-rfd-dragging="true"],
+body > [data-rfd-draggable-id] {
+  will-change: transform, box-shadow;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-rfd-droppable-id] [data-rfd-draggable-id] {
+    transition: none !important;
   }
 }
 
@@ -268,8 +324,9 @@ select,
   }
 
   .cream .modal-content {
-    background: rgba(255, 252, 245, 0.75) !important;
-    border: 1px solid rgba(220, 212, 198, 0.6) !important;
+    background: rgba(249, 244, 233, 0.94) !important;
+    border: 1px solid rgba(215, 202, 178, 0.6) !important;
+    box-shadow: 0 16px 40px -8px rgba(135, 110, 75, 0.12) !important;
   }
 
   /* 覆盖所有可能的glass-card相关样式 */
@@ -280,8 +337,9 @@ select,
   }
 
   .cream .modal-content.glass-card {
-    background: rgba(255, 252, 245, 0.75) !important;
-    border: 1px solid rgba(220, 212, 198, 0.6) !important;
+    background: rgba(249, 244, 233, 0.92) !important;
+    border: 1px solid rgba(215, 202, 178, 0.6) !important;
+    box-shadow: 0 16px 40px -8px rgba(135, 110, 75, 0.12) !important;
   }
 
   /* Firefox中禁用某些可能导致闪烁的效果 */
@@ -317,17 +375,18 @@ select,
 
   .cream .glass-effect,
   .cream .glass-card {
-    background: rgba(255, 252, 245, 0.72) !important;
-    border: 1px solid rgba(220, 212, 198, 0.6) !important;
+    background: rgba(249, 244, 233, 0.90) !important;
+    border: 1px solid rgba(215, 202, 178, 0.55) !important;
+    box-shadow: 0 8px 30px -4px rgba(135, 110, 80, 0.08) !important;
   }
 
   /* 强制覆盖Tailwind的背景透明度设置 */
   .bg-white\/70 {
-    background: rgba(255, 255, 255, 0.75) !important;
+    background: rgba(255, 255, 255, 0.88) !important;
   }
 
   .cream .bg-white\/70 {
-    background: rgba(255, 252, 245, 0.75) !important;
+    background: rgba(249, 244, 233, 0.88) !important;
   }
 
   /* Firefox专用：强制禁用所有可能导致闪烁的动画属性 */
@@ -695,120 +754,155 @@ select,
     }
   }
 
-  /* 移动端底部导航 - 苹果液态玻璃纯透明水滴指示器 (Apple Liquid Glass Water Droplet) */
+  /* 高透明纯净底栏 (Ultra-Transparent Minimal Glass Dock - 高透明感、无反光) */
+  .ios-liquid-glass-dock {
+    position: relative;
+    background: rgba(255, 255, 255, 0.15);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .cream .ios-liquid-glass-dock {
+    background: rgba(255, 255, 255, 0.18);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 20px -2px rgba(120, 95, 65, 0.05);
+  }
+
+  .dark .ios-liquid-glass-dock {
+    background: rgba(0, 0, 0, 0.28);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.35);
+  }
+
+  /* 移动端底部导航 - 高透明激活态胶囊 (Ultra-Transparent Active Pill - 外层精致细线轮廓) */
   .liquid-droplet-pill {
     position: absolute;
     border-radius: 9999px;
     overflow: hidden;
     pointer-events: none;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.45) 0%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0.3) 100%
-    );
-    -webkit-backdrop-filter: blur(18px) saturate(180%) contrast(105%);
-    backdrop-filter: blur(18px) saturate(180%) contrast(105%);
-    border: 1px solid rgba(0, 0, 0, 0.32);
-    box-shadow:
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.95),
-      inset 1px 0 1px 0 rgba(255, 255, 255, 0.35),
-      inset -1px 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.35),
-      inset 0 0 12px 0 rgba(255, 255, 255, 0.14),
-      0 4px 14px -1px rgba(0, 0, 0, 0.08),
-      0 2px 6px -1px rgba(0, 0, 0, 0.04);
+    background: rgba(0, 0, 0, 0.05);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 0, 0, 0.16);
+    box-shadow: none;
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
   }
 
   .cream .liquid-droplet-pill {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.55) 0%,
-      rgba(255, 252, 245, 0.16) 50%,
-      rgba(255, 250, 240, 0.38) 100%
-    );
-    border: 1px solid rgba(0, 0, 0, 0.32);
-    box-shadow:
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.98),
-      inset 1px 0 1px 0 rgba(255, 255, 255, 0.4),
-      inset -1px 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.4),
-      inset 0 0 12px 0 rgba(255, 250, 240, 0.16),
-      0 4px 14px -1px rgba(120, 95, 65, 0.09),
-      0 2px 6px -1px rgba(120, 95, 65, 0.04);
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.16);
+    box-shadow: none;
   }
 
   .dark .liquid-droplet-pill {
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.15) 0%,
-      rgba(255, 255, 255, 0.03) 50%,
-      rgba(255, 255, 255, 0.09) 100%
-    );
-    border: 1px solid rgba(0, 0, 0, 0.65);
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.2),
-      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.45),
-      inset 1px 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset -1px 0 1px 0 rgba(255, 255, 255, 0.1),
-      inset 0 -1px 1px 0 rgba(255, 255, 255, 0.18),
-      inset 0 0 12px 0 rgba(255, 255, 255, 0.05),
-      0 4px 16px -2px rgba(0, 0, 0, 0.45),
-      0 2px 6px -1px rgba(0, 0, 0, 0.25);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: none;
   }
 
-  /* 移动端独立液态水滴按钮（可交互、不带 absolute/inset） */
+  /* 移动端独立新建按钮 - 高透明简约按钮 (Ultra-Transparent Button - 无反光、精致细线) */
   .liquid-droplet-button {
     position: relative;
     border-radius: 9999px;
     overflow: hidden;
     pointer-events: auto;
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.85) 0%,
-      rgba(255, 255, 255, 0.5) 100%
-    );
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(0, 0, 0, 0.28);
-    box-shadow:
-      0 4px 16px -2px rgba(0, 0, 0, 0.08),
-      0 2px 6px -1px rgba(0, 0, 0, 0.04),
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
-      inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04);
+    background: rgba(255, 255, 255, 0.22);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.04);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
   }
 
   .cream .liquid-droplet-button {
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.88) 0%,
-      rgba(250, 244, 232, 0.6) 100%
-    );
-    border: 1px solid rgba(0, 0, 0, 0.28);
-    box-shadow:
-      0 4px 16px -2px rgba(130, 105, 75, 0.14),
-      0 2px 6px -1px rgba(130, 105, 75, 0.07),
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
-      inset 0 -1px 1.5px 0 rgba(190, 170, 140, 0.25);
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(120, 105, 85, 0.22);
+    box-shadow: 0 2px 8px -1px rgba(130, 105, 75, 0.04);
   }
 
   .dark .liquid-droplet-button {
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.16) 0%,
-      rgba(255, 255, 255, 0.06) 100%
-    );
-    border: 1px solid rgba(0, 0, 0, 0.55);
-    box-shadow:
-      0 4px 16px -2px rgba(0, 0, 0, 0.45),
-      0 2px 6px -1px rgba(0, 0, 0, 0.25),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
-      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.45),
-      inset 0 -1px 1px 0 rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.2);
+  }
+
+  /* 高透明圆形图标按钮 - 透明 + 细线包裹 (Ultra-Transparent Outlined Glass Button) */
+  .glass-circle-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+    color: rgb(68, 64, 60); /* stone-700 */
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-circle-button:hover {
+    background: rgba(255, 255, 255, 0.35);
+    border-color: rgba(0, 0, 0, 0.2);
+    color: rgb(28, 25, 23); /* stone-900 */
+  }
+
+  .glass-circle-button:active {
+    transform: scale(0.95);
+  }
+
+  .cream .glass-circle-button {
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(120, 105, 85, 0.22);
+    box-shadow: 0 2px 8px -2px rgba(120, 95, 65, 0.06);
+    color: rgb(68, 64, 60);
+  }
+
+  .cream .glass-circle-button:hover {
+    background: rgba(255, 255, 255, 0.38);
+    border-color: rgba(120, 105, 85, 0.35);
+    color: rgb(28, 25, 23);
+  }
+
+  .dark .glass-circle-button {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.3);
+    color: rgb(231, 229, 228); /* stone-200 */
+  }
+
+  .dark .glass-circle-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: rgb(255, 255, 255);
+  }
+
+  .glass-circle-button.is-active {
+    background: rgba(255, 255, 255, 0.38);
+    border-color: rgba(0, 0, 0, 0.22);
+    color: rgb(28, 25, 23);
+  }
+
+  .cream .glass-circle-button.is-active {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(120, 105, 85, 0.32);
+    color: rgb(28, 25, 23);
+  }
+
+  .dark .glass-circle-button.is-active {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.32);
+    color: rgb(255, 255, 255);
   }
 
   .btn {
@@ -1155,7 +1249,7 @@ select,
   }
 
   .cream .glass-effect {
-    background-color: rgba(255, 252, 245, 0.95);
+    background-color: rgba(249, 244, 233, 0.92);
   }
 
   .glass-card {
@@ -1163,13 +1257,13 @@ select,
   }
 
   .cream .glass-card {
-    background-color: rgba(255, 252, 245, 0.95) !important;
+    background-color: rgba(249, 244, 233, 0.92) !important;
   }
 }
 
 .cream .glass-effect {
-  background-color: rgba(255, 252, 245, 0.78);
-  border: 1px solid rgba(220, 212, 198, 0.6);
+  background-color: rgba(249, 244, 233, 0.88);
+  border: 1px solid rgba(215, 202, 178, 0.55);
   color: #2c2825;
 }
 
@@ -1489,7 +1583,7 @@ body {
   }
 
   .cream .modal-content[class*="bg-"] {
-    background: rgba(255, 252, 245, 0.75) !important;
+    background: rgba(249, 244, 233, 0.94) !important;
   }
 
   /* 使用transform代替opacity变化 */
@@ -1505,7 +1599,7 @@ body {
   }
 
   .cream .glass-card[class*="bg-"] {
-    background: rgba(255, 252, 245, 0.75) !important;
+    background: rgba(249, 244, 233, 0.90) !important;
   }
 
   /* 禁用所有可能的opacity相关动画 */
@@ -1523,13 +1617,106 @@ body {
   }
 }
 
+/* ==========================================================================
+   米白模式 (Cream) 全局温润纸感与组件配色细微调整
+   注意：严格保护底部 tab bar 与高透明组件（.ios-liquid-glass-dock, 
+   .liquid-droplet-pill, .liquid-droplet-button, .liquid-glass-digit, 
+   .liquid-glass-control 等）保持原始高透与纯净感，绝不作不透明或变色覆盖。
+   ========================================================================== */
+
+/* 1. 卡片与各页面内容容器（设置中心、待办卡片、问候卡片、弹窗面板等） */
+html.cream section:not(.ios-liquid-glass-dock):not(.ios-liquid-glass-dock *),
+html.cream [data-page-view="settings"] section,
+html.cream [data-page-view="auth"] section,
+html.cream .card-cream {
+  background-color: rgba(250, 245, 234, 0.88);
+  border-color: rgba(218, 204, 182, 0.55);
+  box-shadow: 0 4px 20px -2px rgba(125, 100, 70, 0.06);
+}
 
 html.cream .glass-card {
   box-shadow: 0 8px 30px -4px rgba(140, 120, 95, 0.08);
 }
 
-html.cream input,
-html.cream select,
-html.cream textarea {
+/* 2. 表单输入控件（输入框、选择框、文本域） */
+html.cream input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(.bg-transparent):not(.ios-liquid-glass-dock *),
+html.cream select:not(.bg-transparent):not(.ios-liquid-glass-dock *),
+html.cream textarea:not(.bg-transparent):not(.ios-liquid-glass-dock *) {
+  background-color: rgba(245, 239, 228, 0.85);
+  border-color: rgba(210, 196, 175, 0.6);
+  color: #26211e;
+}
+html.cream input::placeholder,
+html.cream textarea::placeholder {
+  color: #988c7f;
+}
+
+html.cream input.bg-transparent,
+html.cream textarea.bg-transparent {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+/* 规范化输入框自动填充背景，防止浏览器原生黄色/蓝色高亮色块遮挡或溢出圆角边框 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: inherit !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* 3. 次级按钮与轻量胶囊按钮（排除底部 Dock 与高透组件内部） */
+html.cream button.btn-secondary,
+html.cream [data-page-view="settings"] button:not([style*="background-color"]):not(.glass-circle-button):not([class*="text-red"]):not([class*="bg-primary"]):not([class*="bg-white"]):not(.btn-ghost):not([class*="bg-emerald"]):not([class*="bg-amber"]),
+html.cream .bg-black\/\[0\.02\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *):not(.liquid-glass-digit *),
+html.cream .bg-black\/\[0\.03\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *):not(.liquid-glass-digit *),
+html.cream .bg-black\/\[0\.04\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *):not(.liquid-glass-digit *),
+html.cream .bg-black\/\[0\.05\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *):not(.liquid-glass-digit *),
+html.cream .bg-black\/5:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *):not(.liquid-glass-digit *) {
+  background-color: rgba(234, 225, 210, 0.65);
+  border-color: rgba(205, 192, 172, 0.5);
   color: #2c2825;
+}
+
+html.cream button:hover.bg-black\/\[0\.03\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *),
+html.cream button:hover.bg-black\/\[0\.06\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *),
+html.cream .hover\:bg-black\/\[0\.06\]:hover:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *),
+html.cream .hover\:bg-black\/5:hover:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *),
+html.cream .hover\:bg-black\/10:hover:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *) {
+  background-color: rgba(222, 211, 194, 0.85);
+  border-color: rgba(195, 180, 158, 0.65);
+}
+
+/* 4. 分割线与下边框（排除高透底栏） */
+html.cream [class*="border-t"]:not(.border-t-white):not(.ios-liquid-glass-dock *):not(.liquid-glass-control *),
+html.cream [class*="border-b"]:not(.border-b-white):not(.ios-liquid-glass-dock *):not(.liquid-glass-control *) {
+  border-color: rgba(215, 202, 180, 0.45);
+}
+
+/* 5. 分段选择器（Segmented Controller）与标签底衬 */
+html.cream .bg-black\/\[0\.04\].rounded-xl:not(.ios-liquid-glass-dock *),
+html.cream .bg-black\/5.rounded-xl:not(.ios-liquid-glass-dock *),
+html.cream .bg-black\/5.rounded-2xl:not(.ios-liquid-glass-dock *) {
+  background-color: rgba(232, 222, 207, 0.7);
+  border-color: rgba(212, 198, 178, 0.5);
+}
+
+/* 6. 米白模式下的文字色彩微调 */
+html.cream .text-gray-950,
+html.cream .text-gray-900,
+html.cream .text-gray-800 {
+  color: #26211e;
+}
+html.cream .text-gray-700,
+html.cream .text-gray-600 {
+  color: #4a423a;
+}
+html.cream .text-gray-500 {
+  color: #72685d;
+}
+html.cream .text-gray-400 {
+  color: #928678;
 }

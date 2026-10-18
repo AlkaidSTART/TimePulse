@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { AutoResizer, AutoTransition } from '@/components/ui';
+import { AutoResizer } from '@/components/ui/auto-resizer';
+import { AutoTransition } from '@/components/ui/auto-transition';
 import Layout from '@/components/layout/Layout';
 import CustomBackground from '@/features/background/components/CustomBackground';
 import GradientBackground from '@/features/background/components/GradientBackground';
-import TimerDisplay from '@/features/countdown/components/TimerDisplay';
 import { useTimers } from './providers/TimerProvider';
 import { useTheme } from './providers/ThemeProvider';
 import { useFullscreen } from './providers/FullscreenProvider';
@@ -17,6 +17,8 @@ import {
   writeTodoWidgetVisible,
   TODO_STORAGE_EVENT,
 } from '@/features/todo/todoStorage';
+import { useAuthStore } from '@/stores/useAuthStore';
+import AnimatedLogo from '@/components/layout/AnimatedLogo';
 import type { Timer } from '../domain/timer';
 
 const BackgroundSettingsModal = lazy(() => import('@/features/background/components/BackgroundSettingsModal'));
@@ -25,6 +27,8 @@ const CheerPage = lazy(() => import('@/features/cheer/components/CheerPage'));
 const TodoPage = lazy(() => import('@/features/todo/components/TodoPage'));
 const TodoListWidget = lazy(() => import('@/features/todo/components/TodoListWidget'));
 const PersonalSettingsPage = lazy(() => import('@/features/settings/components/PersonalSettingsPage'));
+const TimerDisplay = lazy(() => import('@/features/countdown/components/TimerDisplay'));
+const AuthPage = lazy(() => import('@/features/auth/components/AuthPage'));
 
 export default function Home() {
   const shouldReduceMotion = useReducedMotion();
@@ -32,6 +36,8 @@ export default function Home() {
   const { theme, accentColor } = useTheme();
   const { isFullscreen, isHeaderVisible } = useFullscreen();
   const { view, direction, transitionTo } = usePageTransition();
+  const user = useAuthStore((s) => s.user);
+  const isAuthInitialized = useAuthStore((s) => s.isInitialized);
   const { t } = useTranslation();
   const showCheerPage = view === 'cheer';
   const showTodoPage = view === 'todo';
@@ -115,6 +121,41 @@ export default function Home() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // 1. 首屏初始化认证检查未完成：呈现温润禅意的 TimePulse 呼吸光环加载态，避免受保护内容产生任何泄露或闪烁
+  if (!isAuthInitialized) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background-light dark:bg-background-dark cream:bg-background-cream select-none transition-colors duration-300">
+        <div className="relative flex flex-col items-center gap-6">
+          <div className="relative">
+            <div
+              className="absolute -inset-4 rounded-full blur-xl opacity-25 animate-pulse"
+              style={{ backgroundColor: accentColor || '#10A37F' }}
+            />
+            <AnimatedLogo accentColor={accentColor} size="lg" />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="relative flex size-2 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider font-mono">
+              {t('common.connectingSpace', '正在连接时光空间...')}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. 独立登录注册路由与未登录拦截（未登录禁止放行，直接展示独立美化后的登录注册页）
+  if (view === 'auth' || !user) {
+    return (
+      <Suspense fallback={null}>
+        <AuthPage />
+      </Suspense>
+    );
+  }
+
   return (
     <>
       <Layout onHeaderHeightChange={setHeaderHeight}>
@@ -197,7 +238,9 @@ export default function Home() {
                 data-page-view="main"
               >
                 <AutoResizer className="flex w-full items-center justify-center" initial={false} overflow="visible">
-                  <TimerDisplay />
+                  <Suspense fallback={<div className="min-h-[160px] w-full" aria-hidden="true" />}>
+                    <TimerDisplay />
+                  </Suspense>
                 </AutoResizer>
               </motion.main>
             </motion.div>

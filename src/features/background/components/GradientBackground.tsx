@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useBackground } from '@/app/providers/BackgroundProvider';
-import { AutoTransition } from '@/components/ui';
+import { AutoTransition } from '@/components/ui/auto-transition';
 
 /**
  * 简洁清新的动态背景 (Clean Minimal Canvas)

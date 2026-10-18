@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { FiBell, FiX, FiCheck, FiAlertCircle } from 'react-icons/fi';
 import { useTranslation } from '@/i18n/useTranslation';
 import { track } from '@/services/analytics';
-import { AutoResizer, AutoTransition } from '@/components/ui';
-import { LinearDialogTransition } from '@/components/composed';
+import { AutoResizer } from '@/components/ui/auto-resizer';
+import { AutoTransition } from '@/components/ui/auto-transition';
+import { LinearDialogTransition } from '@/components/composed/linear-dialog-transition';
 import { requestNotificationPermission, isTauriEnvironment } from '@/services/notifications';
 
 type NotificationPermissionModalProps = {

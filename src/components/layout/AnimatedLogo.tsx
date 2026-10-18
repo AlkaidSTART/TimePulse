@@ -8,7 +8,7 @@ type AnimatedLogoProps = {
   color?: string;
   /** 兼容旧的 accentColor 属性名 */
   accentColor?: string;
-  size?: 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
   onClick?: (e: ReactMouseEvent<HTMLHeadingElement>) => void;
   onLinkClick?: (e: ReactMouseEvent<HTMLAnchorElement>) => void;
@@ -38,7 +38,8 @@ export default function AnimatedLogo({
     if (shouldReduceMotion) return;
 
     const interval = setInterval(() => {
-      if (!isHoveredRef.current) {
+      // 标签页不可见时跳过更新，避免后台空转触发无意义重渲染
+      if (!isHoveredRef.current && !document.hidden) {
         setWaveKey((k) => k + 1);
       }
     }, 8000);
@@ -60,7 +61,7 @@ export default function AnimatedLogo({
     isHoveredRef.current = false;
   };
 
-  const sizeClass = size === 'md' ? 'text-lg' : 'text-xl';
+  const sizeClass = size === 'sm' ? 'text-base' : size === 'md' ? 'text-lg' : 'text-xl';
 
   return (
     <h1

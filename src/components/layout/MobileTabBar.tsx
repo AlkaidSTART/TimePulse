@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import type { ChangeEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls, useReducedMotion } from 'framer-motion';
 import {
@@ -11,13 +11,15 @@ import {
   FiCheck,
   FiCheckSquare,
 } from 'react-icons/fi';
-import { LuSparkles } from 'react-icons/lu';
+import { LuSmile } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { CountdownTimer, Timer, TimerType } from '@/domain/timer';
 import { useTranslation } from '@/i18n/useTranslation';
-import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
-import DatePicker from '@/components/composed/DatePicker';
+
+// 日期选择器与取色器仅在编辑计时器时用到：懒加载以移出首屏
+const DatePicker = lazy(() => import('@/components/composed/DatePicker'));
+const HexColorPicker = lazy(() => import('react-colorful').then((m) => ({ default: m.HexColorPicker })));
 
 export type MobileTab = 'cheer' | 'timer' | 'todo' | 'list' | 'background' | 'settings';
 
@@ -62,6 +64,7 @@ function MobileTimerRow({
   timer,
   isActive,
   summary,
+  t,
   onSelect,
   onEdit,
   onDelete,
@@ -70,6 +73,7 @@ function MobileTimerRow({
   timer: Timer;
   isActive: boolean;
   summary: string;
+  t: (key: string, defaultValue?: string) => string;
   onSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -84,6 +88,8 @@ function MobileTimerRow({
       dragListener={false}
       dragControls={dragControls}
       onDragEnd={onDragEnd}
+      whileDrag={{ scale: 1.02, boxShadow: '0 16px 32px -4px rgba(0, 0, 0, 0.15)', zIndex: 50 }}
+      transition={{ type: 'spring', damping: 26, stiffness: 320 }}
       className={`group relative flex items-center justify-between gap-3 rounded-2xl border p-3 transition-all duration-200 ${
         isActive
           ? 'border-black/15 bg-white/95 cream:bg-white/90 cream:border-stone-400/50 dark:border-white/20 dark:bg-white/[0.12] shadow-xs'
@@ -92,18 +98,18 @@ function MobileTimerRow({
     >
       {/* Visual Accent Pill on Left */}
       <span
-        className="shrink-0 w-1.5 h-9 rounded-full shadow-xs"
+        className="shrink-0 w-2 h-10 sm:h-11 rounded-full shadow-xs"
         style={{ backgroundColor: timer.color || '#0ea5e9' }}
       />
 
       {/* Drag handle */}
       <button
         type="button"
-        className="inline-flex size-7 shrink-0 touch-none cursor-grab items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 active:cursor-grabbing dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+        className="inline-flex size-8.5 sm:size-9.5 shrink-0 touch-none cursor-grab items-center justify-center rounded-xl text-gray-400 hover:text-gray-600 active:cursor-grabbing dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
         onPointerDown={(e) => dragControls.start(e)}
-        aria-label="拖动排序"
+        aria-label={t('mobileNav.dragToReorder', '拖动排序')}
       >
-        <RxDragHandleDots2 className="size-4.5 text-current" />
+        <RxDragHandleDots2 className="size-5 text-current" />
       </button>
 
       {/* Timer Info - Tap to select */}
@@ -113,41 +119,41 @@ function MobileTimerRow({
         className="flex-1 min-w-0 text-left cursor-pointer focus:outline-none"
       >
         <div className="flex items-center gap-2">
-          <h4 className="truncate font-semibold text-sm text-gray-900 dark:text-gray-100 tracking-tight">
+          <h4 className="truncate font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100 tracking-tight">
             {timer.name}
           </h4>
           {isActive && (
             <span
-              className="flex items-center gap-1 text-[10px] font-semibold text-white px-2 py-0.5 rounded-full shadow-xs"
+              className="flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-white px-2.5 py-0.5 rounded-full shadow-xs"
               style={{ backgroundColor: timer.color || '#0ea5e9' }}
             >
-              <FiCheck className="size-2.5 stroke-[2.8]" />
-              当前
+              <FiCheck className="size-3 stroke-[2.8]" />
+              {t('mobileNav.current', '当前')}
             </span>
           )}
         </div>
-        <p className="truncate text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+        <p className="truncate text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
           {summary}
         </p>
       </button>
 
       {/* Actions: Subtle frosted icon buttons */}
-      <div className="flex shrink-0 items-center gap-1.5">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
         <button
           type="button"
           onClick={onEdit}
-          className="inline-flex size-7.5 items-center justify-center rounded-full bg-black/[0.04] text-gray-600 hover:bg-black/[0.08] dark:bg-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.14] cursor-pointer transition-colors"
-          title="编辑"
+          className="inline-flex size-8.5 sm:size-9.5 items-center justify-center rounded-full bg-black/[0.04] text-gray-600 hover:bg-black/[0.08] dark:bg-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.14] cursor-pointer active:scale-95 transition-all"
+          title={t('mobileNav.edit', '编辑')}
         >
-          <FiEdit className="size-3.5" />
+          <FiEdit className="size-4 sm:size-4.5" />
         </button>
         <button
           type="button"
           onClick={onDelete}
-          className="inline-flex size-7.5 items-center justify-center rounded-full bg-black/[0.04] text-gray-600 hover:bg-red-500/10 hover:text-red-500 dark:bg-white/[0.08] dark:text-gray-300 dark:hover:bg-red-500/20 dark:hover:text-red-400 cursor-pointer transition-colors"
-          title="删除"
+          className="inline-flex size-8.5 sm:size-9.5 items-center justify-center rounded-full bg-black/[0.04] text-gray-600 hover:bg-red-500/10 hover:text-red-500 dark:bg-white/[0.08] dark:text-gray-300 dark:hover:bg-red-500/20 dark:hover:text-red-400 cursor-pointer active:scale-95 transition-all"
+          title={t('mobileNav.delete', '删除')}
         >
-          <FiX className="size-3.5" />
+          <FiX className="size-4 sm:size-4.5" />
         </button>
       </div>
     </Reorder.Item>
@@ -176,7 +182,6 @@ export default function MobileTabBar({
 }: MobileTabBarProps) {
   const { t } = useTranslation();
   const [prevTab, setPrevTab] = useState<MobileTab>(activeTab);
-  const [clickedTab, setClickedTab] = useState<string | null>(null);
   const [editingTimer, setEditingTimer] = useState<TimerEditState | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [timerOrder, setTimerOrder] = useState(() => timers.map((t) => t.id));
@@ -189,8 +194,9 @@ export default function MobileTabBar({
   }, [activeTab]);
 
   useEffect(() => {
+    const previousOrder = timerOrderRef.current;
     const availableIds = new Set(timers.map((timer) => timer.id));
-    const nextOrder = timerOrderRef.current.filter((id) => availableIds.has(id));
+    const nextOrder = previousOrder.filter((id) => availableIds.has(id));
     const orderedIds = new Set(nextOrder);
     for (const timer of timers) {
       if (!orderedIds.has(timer.id)) {
@@ -199,7 +205,13 @@ export default function MobileTabBar({
       }
     }
     timerOrderRef.current = nextOrder;
-    setTimerOrder(nextOrder);
+    // 顺序没有实际变化时跳过 setState，避免每次 timers 引用变化都触发重渲染
+    const orderChanged =
+      nextOrder.length !== previousOrder.length ||
+      nextOrder.some((id, index) => id !== previousOrder[index]);
+    if (orderChanged) {
+      setTimerOrder(nextOrder);
+    }
   }, [timers]);
 
   const handleTimerReorder = (nextOrder: string[]) => {
@@ -213,8 +225,6 @@ export default function MobileTabBar({
 
   const handleTabClick = (tab: MobileTab) => {
     setPrevTab(activeTab);
-    setClickedTab(tab);
-    setTimeout(() => setClickedTab(null), 500);
 
     if (tab === 'background') {
       onOpenBackground();
@@ -225,8 +235,6 @@ export default function MobileTabBar({
   };
 
   const handleAddClick = () => {
-    setClickedTab('add');
-    setTimeout(() => setClickedTab(null), 500);
     onOpenAdd();
   };
 
@@ -320,7 +328,7 @@ export default function MobileTabBar({
       };
 
   const tabsConfig = [
-    { id: 'cheer' as MobileTab, label: t('header.cheerShort', '打气'), icon: LuSparkles },
+    { id: 'cheer' as MobileTab, label: t('header.cheerShort', '打气'), icon: LuSmile },
     { id: 'timer' as MobileTab, label: t('header.timersShort', '计时'), icon: FiClock },
     { id: 'add' as const, label: t('header.newTimer', '新建'), icon: FiPlus, isAction: true },
     { id: 'todo' as MobileTab, label: t('header.todoShort', '待办'), icon: FiCheckSquare },
@@ -338,58 +346,34 @@ export default function MobileTabBar({
       {/* Floating Bottom TabBar Container - VisionOS / Dynamic Island Style Floating Dock */}
       <motion.nav
         data-page-transition-ignore="true"
-        aria-label="移动端底部导航"
+        aria-label={t('mobileNav.ariaLabel', '移动端底部导航')}
         initial={false}
         animate={{
           y: isVisible ? 0 : 96,
           opacity: isVisible ? 1 : 0,
         }}
         transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed bottom-3 landscape:bottom-1.5 inset-x-3 z-40 lg:hidden max-w-[400px] sm:max-w-[440px] landscape:max-w-[360px] mx-auto pointer-events-auto"
+        className="fixed bottom-3 sm:bottom-4 landscape:bottom-1.5 inset-x-3 z-40 lg:hidden max-w-[420px] sm:max-w-[500px] md:max-w-[560px] landscape:max-w-[380px] mx-auto pointer-events-auto"
         style={{
           paddingBottom: 'max(0px, var(--tp-safe-bottom, env(safe-area-inset-bottom, 0px)))',
           paddingLeft: 'var(--tp-safe-left, env(safe-area-inset-left, 0px))',
           paddingRight: 'var(--tp-safe-right, env(safe-area-inset-right, 0px))',
         }}
       >
-        <div className="relative mx-auto flex h-[64px] landscape:h-[46px] w-full items-center justify-around rounded-full border border-black/[0.06] bg-white/80 p-1 shadow-[0_12px_36px_-6px_rgba(0,0,0,0.08),0_4px_12px_-2px_rgba(0,0,0,0.04)] backdrop-blur-2xl cream:bg-[#faf7ee]/90 cream:border-stone-300/50 cream:shadow-[0_12px_36px_-6px_rgba(120,95,65,0.12),0_4px_12px_-2px_rgba(120,95,65,0.05)] dark:border-white/[0.1] dark:bg-[#141416]/90 dark:shadow-[0_12px_36px_rgba(0,0,0,0.65)] overflow-hidden">
-          {/* Top 1px Specular Light Shelf */}
-          <div
-            className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 cream:via-white/95 dark:via-white/20 to-transparent"
-            aria-hidden="true"
-          />
-
+        <div className="ios-liquid-glass-dock relative mx-auto flex h-[70px] sm:h-[76px] landscape:h-[48px] w-full items-center justify-around rounded-full p-1.5 overflow-hidden">
           {tabsConfig.map((item) => {
             if (item.isAction) {
-              // Center Action: "+" Button - Apple Liquid Glass Transparent Water Droplet (Strictly Zero Blue)
+              // Center Action: "+" Button - Clean Ultra-Transparent Button (No Reflections)
               return (
                 <div key={item.id} className="relative flex flex-1 h-full items-center justify-center px-0.5">
                   <motion.button
                     type="button"
                     onClick={handleAddClick}
                     whileTap={{ scale: 0.92 }}
-                    className="liquid-droplet-button relative flex size-11 landscape:size-9 items-center justify-center rounded-full text-gray-900 dark:text-white cursor-pointer transition-all focus:outline-none overflow-hidden select-none"
-                    aria-label="新建计时器"
+                    className="liquid-droplet-button relative flex size-12.5 sm:size-14 landscape:size-9.5 items-center justify-center rounded-full text-gray-950 dark:text-white cursor-pointer transition-all focus:outline-none overflow-hidden select-none"
+                    aria-label={t('mobileNav.newTimerAria', '新建计时器')}
                   >
-                    {/* Top Specular Lens Dome Highlight */}
-                    <div
-                      className="pointer-events-none absolute inset-x-0 top-0 h-[50%] overflow-hidden rounded-t-full"
-                      aria-hidden="true"
-                    >
-                      <div
-                        className="w-full h-full"
-                        style={{
-                          background:
-                            'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.1) 60%, transparent 100%)',
-                        }}
-                      />
-                    </div>
-                    {/* Bottom Meniscus Surface Tension Line */}
-                    <div
-                      className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/50 dark:via-white/20 to-transparent"
-                      aria-hidden="true"
-                    />
-                    <FiPlus className="size-5 landscape:size-4 stroke-[2.6] text-gray-900 dark:text-white relative z-10 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]" />
+                    <FiPlus className="size-6 sm:size-7 landscape:size-4.5 stroke-[2.4] text-gray-950 dark:text-white relative z-10" />
                   </motion.button>
                 </div>
               );
@@ -409,55 +393,38 @@ export default function MobileTabBar({
                   aria-selected={isActive}
                   role="tab"
                 >
-                  {/* Apple Liquid Glass Transparent Water Droplet Active Indicator (Strictly Zero Blue) */}
+                  {/* Ultra-Transparent Active Indicator (Zero Reflections) */}
                   {isActive && (
                     <motion.div
                       layoutId="mobile-active-tab-indicator"
                       className="liquid-droplet-pill absolute inset-y-0.5 inset-x-0.5 rounded-full pointer-events-none overflow-hidden"
                       transition={tabSpring}
                     >
-                      {/* Top Specular Lens Dome Highlight */}
-                      <div
-                        className="pointer-events-none absolute inset-x-0 top-0 h-[48%] overflow-hidden rounded-t-full"
-                        aria-hidden="true"
-                      >
-                        <div
-                          className="w-full h-full"
-                          style={{
-                            background:
-                              'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.65) 0%, rgba(255, 255, 255, 0.08) 60%, transparent 100%)',
-                          }}
-                        />
-                      </div>
-
-                      {/* Bottom Meniscus Surface Tension Line */}
-                      <div
-                        className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/45 dark:via-white/20 to-transparent"
-                        aria-hidden="true"
-                      />
+                      <div className="hidden" aria-hidden="true" />
+                      <div className="hidden" aria-hidden="true" />
                     </motion.div>
                   )}
 
-                  {/* Content: Icon + Label (Strictly Transparent Achromatic Liquid Glass Contrast, Zero Blue) */}
+                  {/* Content: Icon + Label (Clean & High Contrast, Zero Reflections) */}
                   <motion.div
-                    className="relative z-10 flex flex-col items-center justify-center gap-1 landscape:gap-0.5"
+                    className="relative z-10 flex flex-col items-center justify-center gap-1 sm:gap-1.5 landscape:gap-0.5"
                     animate={isActive ? { scale: [0.96, 1.04, 1] } : { scale: 1 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                   >
                     <div className="relative">
                       <Icon
-                        className={`size-[18px] landscape:size-[15px] transition-colors duration-200 ${
+                        className={`size-5 sm:size-6 landscape:size-[16px] transition-colors duration-200 ${
                           isActive
-                            ? 'stroke-[2.4] text-gray-950 dark:text-white drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
-                            : 'stroke-[1.8] text-stone-500 hover:text-stone-700 dark:text-gray-400 dark:hover:text-gray-200'
+                            ? 'stroke-[2.4] text-gray-950 dark:text-white'
+                            : 'stroke-[1.8] text-stone-600 hover:text-stone-900 dark:text-gray-300 dark:hover:text-white'
                         }`}
                       />
                     </div>
                     <span
-                      className={`text-[10px] landscape:text-[9px] tracking-tight transition-colors duration-200 whitespace-nowrap ${
+                      className={`text-[11px] sm:text-xs landscape:text-[9px] tracking-tight transition-colors duration-200 whitespace-nowrap ${
                         isActive
-                          ? 'font-bold text-gray-950 dark:text-white drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]'
-                          : 'font-medium text-stone-500 dark:text-gray-400'
+                          ? 'font-bold text-gray-950 dark:text-white'
+                          : 'font-medium text-stone-600 dark:text-gray-300'
                       }`}
                     >
                       {item.label}
@@ -498,38 +465,38 @@ export default function MobileTabBar({
               {/* Sheet Header */}
               <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.06] cream:border-stone-200/60 dark:border-white/[0.06]">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white font-display tracking-tight">
-                    全部计时器
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white font-display tracking-tight">
+                    {t('mobileNav.allTimers', '全部计时器')}
                   </h3>
                   <span
-                    className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                    className="text-[11px] sm:text-xs font-semibold px-2.5 py-0.5 rounded-full"
                     style={{
                       backgroundColor: `color-mix(in srgb, ${accentColor || '#0ea5e9'} 14%, transparent)`,
                       color: accentColor || '#0ea5e9',
                     }}
                   >
-                    {timers.length} 个
+                    {t('mobileNav.timersCount', '{count} 个').replace('{count}', String(timers.length))}
                   </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 sm:gap-2.5">
                   <button
                     type="button"
                     onClick={() => {
                       onOpenAdd();
                     }}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-full text-white text-xs font-semibold shadow-xs cursor-pointer active:scale-95 transition-all"
+                    className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full text-white text-xs sm:text-sm font-semibold shadow-xs cursor-pointer active:scale-95 transition-all"
                     style={{ backgroundColor: accentColor || '#0ea5e9' }}
                   >
-                    <FiPlus className="size-3.5 stroke-[2.4]" />
-                    新建
+                    <FiPlus className="size-4 sm:size-4.5 stroke-[2.4]" />
+                    {t('mobileNav.new', '新建')}
                   </button>
                   <button
                     type="button"
                     onClick={handleCloseSheet}
-                    className="size-7.5 inline-flex items-center justify-center rounded-full bg-black/[0.04] dark:bg-white/[0.08] text-gray-500 dark:text-gray-300 hover:bg-black/[0.08] dark:hover:bg-white/[0.14] cursor-pointer transition-colors"
-                    aria-label="关闭"
+                    className="size-8.5 sm:size-9.5 inline-flex items-center justify-center rounded-full bg-black/[0.04] dark:bg-white/[0.08] text-gray-500 dark:text-gray-300 hover:bg-black/[0.08] dark:hover:bg-white/[0.14] cursor-pointer active:scale-95 transition-all"
+                    aria-label={t('mobileNav.close', '关闭')}
                   >
-                    <FiX className="size-4" />
+                    <FiX className="size-4.5 sm:size-5" />
                   </button>
                 </div>
               </div>
@@ -541,23 +508,23 @@ export default function MobileTabBar({
                     <div className="flex items-center justify-between pb-1">
                       <h4 className="font-semibold text-sm text-gray-900 dark:text-white">
                         {editingTimer.isLimitedEdit
-                          ? '编辑计时器'
+                          ? t('mobileNav.editTimer', '编辑计时器')
                           : editingTimer.countdownType === 'short'
-                          ? '编辑短期倒计时'
-                          : '编辑长期倒计时'}
+                          ? t('mobileNav.editShort', '编辑短期倒计时')
+                          : t('mobileNav.editLong', '编辑长期倒计时')}
                       </h4>
                       <button
                         type="button"
                         onClick={() => setEditingTimer(null)}
                         className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                       >
-                        返回列表
+                        {t('mobileNav.backToList', '返回列表')}
                       </button>
                     </div>
 
                     <div>
                       <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        名称
+                        {t('mobileNav.name', '名称')}
                       </label>
                       <input
                         type="text"
@@ -573,11 +540,11 @@ export default function MobileTabBar({
                       editingTimer.countdownType === 'short' ? (
                         <div>
                           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            倒计时时长
+                            {t('mobileNav.countdownDuration', '倒计时时长')}
                           </label>
                           <div className="grid grid-cols-3 gap-2">
                             <div>
-                              <span className="text-[10px] text-gray-400 block mb-0.5">小时</span>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">{t('time.hours', '小时')}</span>
                               <input
                                 type="number"
                                 min={0}
@@ -593,7 +560,7 @@ export default function MobileTabBar({
                               />
                             </div>
                             <div>
-                              <span className="text-[10px] text-gray-400 block mb-0.5">分钟</span>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">{t('time.minutes', '分钟')}</span>
                               <input
                                 type="number"
                                 min={0}
@@ -609,7 +576,7 @@ export default function MobileTabBar({
                               />
                             </div>
                             <div>
-                              <span className="text-[10px] text-gray-400 block mb-0.5">秒</span>
+                              <span className="text-[10px] text-gray-400 block mb-0.5">{t('time.seconds', '秒')}</span>
                               <input
                                 type="number"
                                 min={0}
@@ -630,19 +597,21 @@ export default function MobileTabBar({
                         <div className="flex flex-col gap-3">
                           <div>
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              目标日期
+                              {t('mobileNav.targetDate', '目标日期')}
                             </label>
-                            <DatePicker
-                              value={editingTimer.targetDate}
-                              onChange={(e) =>
-                                setEditingTimer({ ...editingTimer, targetDate: e.target.value })
-                              }
-                              triggerClassName="rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm h-auto py-2 px-3"
-                            />
+                            <Suspense fallback={null}>
+                              <DatePicker
+                                value={editingTimer.targetDate}
+                                onChange={(e) =>
+                                  setEditingTimer({ ...editingTimer, targetDate: e.target.value })
+                                }
+                                triggerClassName="rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm h-auto py-2 px-3"
+                              />
+                            </Suspense>
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              目标时间
+                              {t('mobileNav.targetTime', '目标时间')}
                             </label>
                             <input
                               type="time"
@@ -659,7 +628,7 @@ export default function MobileTabBar({
 
                     <div>
                       <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        主题颜色
+                        {t('mobileNav.themeColor', '主题颜色')}
                       </label>
                       <div
                         className="h-9 w-full rounded-xl cursor-pointer border border-white/20 shadow-xs"
@@ -668,11 +637,13 @@ export default function MobileTabBar({
                       />
                       {showColorPicker && (
                         <div className="pt-2 space-y-3">
-                          <HexColorPicker
-                            color={editingTimer.color}
-                            onChange={(color) => setEditingTimer({ ...editingTimer, color })}
-                            className="w-full !w-full"
-                          />
+                          <Suspense fallback={null}>
+                            <HexColorPicker
+                              color={editingTimer.color}
+                              onChange={(color) => setEditingTimer({ ...editingTimer, color })}
+                              className="w-full !w-full"
+                            />
+                          </Suspense>
                           <div className="grid grid-cols-5 gap-2 pt-1">
                             {PRESET_COLORS.map((color) => (
                               <button
@@ -694,7 +665,7 @@ export default function MobileTabBar({
                         onClick={() => setEditingTimer(null)}
                         className="flex-1 py-2.5 rounded-xl border border-gray-200/60 dark:border-white/10 text-sm font-medium text-gray-700 dark:text-gray-300"
                       >
-                        取消
+                        {t('mobileNav.cancel', '取消')}
                       </button>
                       <button
                         type="button"
@@ -702,7 +673,7 @@ export default function MobileTabBar({
                         className="flex-1 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold shadow-xs flex items-center justify-center gap-1.5"
                       >
                         <FiSave className="size-4" />
-                        保存更改
+                        {t('mobileNav.saveChanges', '保存更改')}
                       </button>
                     </div>
                   </div>
@@ -721,12 +692,13 @@ export default function MobileTabBar({
                         <MobileTimerRow
                           key={timer.id}
                           timer={timer}
+                          t={t}
                           isActive={timer.id === activeTimerId}
                           summary={
                             timer.type === 'stopwatch'
-                              ? '秒表 / 正计时'
+                              ? t('mobileNav.stopwatchDesc', '秒表 / 正计时')
                               : timer.type === 'worldclock'
-                              ? `${timer.country || '世界时钟'} · ${timer.timezone || ''}`
+                              ? `${(timer.country ? t(`country.${timer.country}`, timer.country) : t('mobileNav.worldClockDesc', '世界时钟'))} · ${timer.timezone || ''}`
                               : new Date(timer.targetDate).toLocaleString()
                           }
                           onSelect={() => {

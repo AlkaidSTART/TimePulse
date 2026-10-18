@@ -72,3 +72,4 @@ lerna-debug.log*
 *.tsbuildinfo
 vite.config.ts.timestamp-*
 vitest.config.ts.timestamp-*
+supabase/.temp/

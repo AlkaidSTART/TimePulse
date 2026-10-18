@@ -10,6 +10,8 @@ import GlobalScrollbars from '@/components/layout/GlobalScrollbars';
 import OpeningAnimation from '@/components/layout/OpeningAnimation';
 import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
 
+import { useAuthStore } from '@/stores/useAuthStore';
+
 declare global {
   interface Window {
     testNotification?: typeof testNotification;
@@ -21,6 +23,7 @@ function useViteAppLifecycle() {
   useEffect(() => {
     console.log(`TimePulse 初始化完成 - ${new Date().toLocaleString()}`);
     void setupTauriNotificationChannel();
+    void useAuthStore.getState().initialize();
 
     const onControllerChange = () => {
       console.log('Service Worker已接管页面，可以发送通知');

@@ -36,22 +36,18 @@ describe('PersonalSettingsPage component', () => {
 
     const headings = screen.getAllByRole('heading', { name: /个人设置中心/ });
     expect(headings.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('定制你的称呼、专属座右铭与主题外观')).toBeInTheDocument();
+    expect(screen.getByText('定制主题外观、语言偏好与系统设置')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '返回' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '恢复默认' })).toBeInTheDocument();
     expect(screen.queryByText('选择专注风格标签')).not.toBeInTheDocument();
   });
 
-  it('allows editing nickname and motto, and shows save toast', () => {
+  it('does not render duplicate nickname/motto profile inputs in personal settings', () => {
     renderComponent();
 
-    const nicknameInput = screen.getAllByLabelText('你的称呼 / 昵称')[0];
-    fireEvent.change(nicknameInput, { target: { value: '测试昵称' } });
-    expect(nicknameInput).toHaveValue('测试昵称');
-
-    const saveButton = screen.getByRole('button', { name: '保存个人资料' });
-    fireEvent.click(saveButton);
-
-    expect(screen.getByText('设置保存成功！个人资料已实时同步更新。')).toBeInTheDocument();
+    expect(screen.queryByText('个人称谓与签名')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('你的称呼 / 昵称')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('个性座右铭 / 专属签名')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '立即登录 / 注册' })).toBeInTheDocument();
   });
 });

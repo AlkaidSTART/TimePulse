@@ -1,3 +1,4 @@
+import { getDatabase } from '@/services/db';
 import type { TodoItem, TodoType } from './types';
 
 const TODO_STORAGE_KEY = 'timepulse_todo_items_v1';
@@ -5,29 +6,44 @@ const TODO_ACTIVE_TAB_KEY = 'timepulse_todo_active_tab_v1';
 
 export const DEFAULT_PRESET_ITEMS: TodoItem[] = [];
 
+/** 过滤非法数据与历史预置项，数据库与本地缓存共用同一套校验 */
+function sanitizeTodoItems(value: unknown): TodoItem[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(
+      (item): item is TodoItem =>
+        typeof item === 'object' &&
+        item !== null &&
+        typeof (item as TodoItem).id === 'string' &&
+        typeof (item as TodoItem).text === 'string' &&
+        typeof (item as TodoItem).completed === 'boolean' &&
+        ((item as TodoItem).type === 'todo' || (item as TodoItem).type === 'checklist'),
+    )
+    .filter((item) => !item.id.startsWith('preset-'));
+}
+
 /**
- * 读取本地存储的所有待办/清单项，默认返回空数组
+ * 读取本地缓存的所有待办/清单项，默认返回空数组。
+ * 同步读取保证首屏即时渲染，数据库水合由 hydrateTodoItemsFromDatabase 完成。
  */
+let cachedReadRaw: string | null = null;
+let cachedReadItems: TodoItem[] = [];
+
 export function readTodoItems(): TodoItem[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(TODO_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      return parsed
-        .filter(
-          (item): item is TodoItem =>
-            typeof item === 'object' &&
-            item !== null &&
-            typeof item.id === 'string' &&
-            typeof item.text === 'string' &&
-            typeof item.completed === 'boolean' &&
-            (item.type === 'todo' || item.type === 'checklist'),
-        )
-        .filter((item) => !item.id.startsWith('preset-'));
+    if (!raw) {
+      cachedReadRaw = null;
+      cachedReadItems = [];
+      return cachedReadItems;
     }
-    return [];
+    // 多个订阅者会在同一轮事件里各读一次；按原始字符串缓存解析结果，
+    // 一次写入只付一次 JSON.parse + 清洗的成本。
+    if (raw === cachedReadRaw) return cachedReadItems;
+    cachedReadItems = sanitizeTodoItems(JSON.parse(raw));
+    cachedReadRaw = raw;
+    return cachedReadItems;
   } catch (error) {
     console.error('[TodoStorage] 读取待办项失败:', error);
     return [];
@@ -37,22 +53,84 @@ export function readTodoItems(): TodoItem[] {
 export const TODO_STORAGE_EVENT = 'timepulse_todo_storage_updated';
 
 let lastWrittenItemsJson = '';
-let lastWrittenTab: TodoType | '' = '';
+let lastWrittenTab: TodoType | '';
+/** 写入版本号：用于避免水合期间覆盖用户刚产生的新数据 */
+let writeRevision = 0;
+
+/** 数据库写穿（Web: IndexedDB / 原生: SQLite），失败仅告警，不影响本地缓存 */
+async function persistTodoItems(items: TodoItem[]): Promise<void> {
+  try {
+    await getDatabase().writeTodoItems(items);
+  } catch (error) {
+    console.warn('[TodoStorage] 待办项写入数据库失败:', error);
+  }
+}
+
+function dispatchTodoStorageEvent(type: string, detail: Record<string, unknown> = {}): void {
+  window.dispatchEvent(new CustomEvent(TODO_STORAGE_EVENT, { detail: { type, ...detail } }));
+}
 
 /**
- * 保存待办/清单项到本地存储
+ * 保存待办/清单项到本地缓存（同步）并写穿数据库（异步）。
  */
 export function writeTodoItems(items: TodoItem[]): void {
   if (typeof window === 'undefined') return;
   try {
+    writeRevision += 1;
     const json = JSON.stringify(items);
-    if (json === lastWrittenItemsJson) return;
-    lastWrittenItemsJson = json;
-    localStorage.setItem(TODO_STORAGE_KEY, json);
-    window.dispatchEvent(new CustomEvent(TODO_STORAGE_EVENT, { detail: { type: 'items' } }));
+    if (json !== lastWrittenItemsJson) {
+      lastWrittenItemsJson = json;
+      localStorage.setItem(TODO_STORAGE_KEY, json);
+      dispatchTodoStorageEvent('items');
+      // 仅在内容真正变化时写穿数据库，避免 reducer 空转带来的重复写入
+      void persistTodoItems(items);
+    }
   } catch (error) {
     console.warn('[TodoStorage] 保存待办项失败:', error);
   }
+}
+
+let hydrationPromise: Promise<void> | null = null;
+
+/**
+ * 从数据库水合待办项（幂等）。
+ * - 数据库为空时：把本地缓存中的旧数据一次性迁移进数据库
+ * - 数据库有数据时：刷新本地缓存并广播更新事件，供各视图重载
+ */
+export function hydrateTodoItemsFromDatabase(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.resolve();
+  if (!hydrationPromise) {
+    hydrationPromise = (async () => {
+      const revisionAtStart = writeRevision;
+      try {
+        const stored = sanitizeTodoItems(await getDatabase().readTodoItems());
+
+        // 水合期间用户已写入新数据（或已写穿数据库），放弃覆盖本地缓存
+        if (writeRevision !== revisionAtStart) return;
+
+        if (stored.length === 0) {
+          const cached = readTodoItems();
+          if (cached.length > 0) {
+            console.log(`[TodoStorage] 迁移 ${cached.length} 条本地待办项到数据库`);
+            await persistTodoItems(cached);
+          }
+          return;
+        }
+
+        const nextJson = JSON.stringify(stored);
+        if (localStorage.getItem(TODO_STORAGE_KEY) !== nextJson) {
+          localStorage.setItem(TODO_STORAGE_KEY, nextJson);
+          lastWrittenItemsJson = nextJson;
+          dispatchTodoStorageEvent('items');
+        }
+      } catch (error) {
+        console.warn('[TodoStorage] 数据库水合待办项失败，继续使用本地缓存:', error);
+      }
+    })().catch(() => {
+      hydrationPromise = null;
+    });
+  }
+  return hydrationPromise;
 }
 
 /**
@@ -79,7 +157,7 @@ export function writeActiveTodoTab(tab: TodoType): void {
     if (tab === lastWrittenTab) return;
     lastWrittenTab = tab;
     localStorage.setItem(TODO_ACTIVE_TAB_KEY, tab);
-    window.dispatchEvent(new CustomEvent(TODO_STORAGE_EVENT, { detail: { type: 'tab' } }));
+    dispatchTodoStorageEvent('tab');
   } catch (error) {
     console.warn('[TodoStorage] 保存活动标签页失败:', error);
   }
@@ -106,11 +184,7 @@ export function writeTodoWidgetVisible(visible: boolean): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(TODO_WIDGET_VISIBLE_KEY, String(visible));
-    window.dispatchEvent(
-      new CustomEvent(TODO_STORAGE_EVENT, {
-        detail: { type: 'widget_visible', visible },
-      }),
-    );
+    dispatchTodoStorageEvent('widget_visible', { visible });
   } catch (error) {
     console.warn('[TodoStorage] 保存悬浮挂件可见性设置失败:', error);
   }
@@ -139,14 +213,8 @@ export function writeTodoAutoSort(enabled: boolean): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(TODO_AUTO_SORT_KEY, String(enabled));
-    window.dispatchEvent(
-      new CustomEvent(TODO_STORAGE_EVENT, {
-        detail: { type: 'auto_sort', enabled },
-      }),
-    );
+    dispatchTodoStorageEvent('auto_sort', { enabled });
   } catch (error) {
     console.warn('[TodoStorage] 保存自动排序配置失败:', error);
   }
 }
-
-

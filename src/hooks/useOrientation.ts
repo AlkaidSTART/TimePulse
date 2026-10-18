@@ -89,14 +89,24 @@ export function useOrientation(): OrientationState {
     const orientation: OrientationType = isLandscape ? 'landscape' : 'portrait';
     const mobileLandscape = isLandscape && (window.innerHeight <= 640 || mobile);
 
-    setState({
-      orientation,
-      angle: sys.angle,
-      isLandscape,
-      isPortrait: !isLandscape,
-      isMobile: mobile,
-      isMobileLandscape: mobileLandscape,
-    });
+    // 仅在字段真正变化时更新 state，避免 resize 期间的无谓重渲染
+    setState((prev) => (
+      prev.orientation === orientation &&
+      prev.angle === sys.angle &&
+      prev.isLandscape === isLandscape &&
+      prev.isPortrait === !isLandscape &&
+      prev.isMobile === mobile &&
+      prev.isMobileLandscape === mobileLandscape
+        ? prev
+        : {
+            orientation,
+            angle: sys.angle,
+            isLandscape,
+            isPortrait: !isLandscape,
+            isMobile: mobile,
+            isMobileLandscape: mobileLandscape,
+          }
+    ));
 
     if (typeof document !== 'undefined') {
       document.documentElement.dataset.orientation = orientation;
@@ -160,12 +170,21 @@ export function useOrientation(): OrientationState {
   useEffect(() => {
     updateOrientation();
 
+    let rafId: number | null = null;
+    const scheduleOrientationUpdate = () => {
+      if (rafId !== null) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        updateOrientation();
+      });
+    };
+
     const screenOrientation = window.screen?.orientation;
     const handleOrientationChangeEvent = () => {
       // Orientation change might take a few milliseconds for viewport dimensions to settle
-      updateOrientation();
-      setTimeout(updateOrientation, 100);
-      setTimeout(updateOrientation, 300);
+      scheduleOrientationUpdate();
+      setTimeout(scheduleOrientationUpdate, 100);
+      setTimeout(scheduleOrientationUpdate, 300);
     };
 
     if (screenOrientation && 'addEventListener' in screenOrientation) {
@@ -180,9 +199,13 @@ export function useOrientation(): OrientationState {
     }
 
     window.addEventListener('orientationchange', handleOrientationChangeEvent);
-    window.addEventListener('resize', handleOrientationChangeEvent);
+    window.addEventListener('resize', scheduleOrientationUpdate);
 
     return () => {
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       if (screenOrientation && 'removeEventListener' in screenOrientation) {
         screenOrientation.removeEventListener('change', handleOrientationChangeEvent);
       }
@@ -192,7 +215,7 @@ export function useOrientation(): OrientationState {
         (mql as any).removeListener(handleOrientationChangeEvent);
       }
       window.removeEventListener('orientationchange', handleOrientationChangeEvent);
-      window.removeEventListener('resize', handleOrientationChangeEvent);
+      window.removeEventListener('resize', scheduleOrientationUpdate);
     };
   }, [updateOrientation]);
 

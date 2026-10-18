@@ -1,5 +1,6 @@
 allowBuilds:
   esbuild: true
+  workerd: true
 minimumReleaseAgeExclude:
   - react-dom@19.3.0
   - react@19.3.0

@@ -27,16 +27,16 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
 
   // 字体大小选项
   const fontSizes: Array<{ value: FontSize; label: string; description: string }> = [
-    { value: 'small', label: '小', description: '紧凑显示' },
-    { value: 'medium', label: '中', description: '标准大小' },
-    { value: 'large', label: '大', description: '醒目显示' }
+    { value: 'small', label: t('fullscreenSettings.sizeSmall', '小'), description: t('fullscreenSettings.sizeSmallDesc', '紧凑显示') },
+    { value: 'medium', label: t('fullscreenSettings.sizeMedium', '中'), description: t('fullscreenSettings.sizeMediumDesc', '标准大小') },
+    { value: 'large', label: t('fullscreenSettings.sizeLarge', '大'), description: t('fullscreenSettings.sizeLargeDesc', '醒目显示') }
   ];
 
   // 隐藏延迟选项
   const delayOptions = [
-    { value: 2000, label: '2 秒' },
-    { value: 3000, label: '3 秒' },
-    { value: 5000, label: '5 秒' }
+    { value: 2000, label: t('fullscreenSettings.seconds2', '2 秒') },
+    { value: 3000, label: t('fullscreenSettings.seconds3', '3 秒') },
+    { value: 5000, label: t('fullscreenSettings.seconds5', '5 秒') }
   ];
 
   // 监听 Escape 按键关闭弹窗
@@ -76,10 +76,11 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
       >
         {/* 标题栏 */}
         <div className="flex justify-between items-center pb-6">
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">全屏设置</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">{t('fullscreenSettings.title', '全屏设置')}</h2>
           <button
             className="p-2 rounded-full bg-white/10 dark:bg-black/10 hover:bg-white/20 dark:hover:bg-black/20 backdrop-blur-sm cursor-pointer transition-colors border border-white/20 dark:border-white/10"
             onClick={onClose}
+            aria-label={t('common.close', '关闭')}
           >
             <FiX className="text-xl text-gray-700 dark:text-gray-300" />
           </button>
@@ -96,7 +97,7 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
                 className="pb-4"
               >
                 <div className="p-3 bg-green-100/80 dark:bg-green-900/30 backdrop-blur-sm text-green-600 dark:text-green-400 rounded-lg border border-green-200/50 dark:border-green-800/30">
-                  已恢复默认设置
+                  {t('fullscreenSettings.restoredDefault', '已恢复默认设置')}
                 </div>
               </motion.div>
             ) : null}
@@ -106,7 +107,7 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
         <div className="space-y-6">
           {/* 计时器字体大小 */}
           <div>
-            <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">计时器字体大小</label>
+            <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">{t('fullscreenSettings.timerFontSize', '计时器字体大小')}</label>
             <div className="grid grid-cols-3 gap-3">
               {fontSizes.map(size => (
                 <button
@@ -143,7 +144,7 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
 
           {/* 标签字体大小 */}
           <div>
-            <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">标签字体大小</label>
+            <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">{t('fullscreenSettings.labelFontSize', '标签字体大小')}</label>
             <div className="grid grid-cols-3 gap-3">
               {fontSizes.map(size => (
                 <button
@@ -180,7 +181,7 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
 
           {/* 顶部栏隐藏延迟 */}
           <div>
-            <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">顶部栏自动隐藏延迟</label>
+            <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">{t('fullscreenSettings.autoHideDelay', '顶部栏自动隐藏延迟')}</label>
             <div className="grid grid-cols-3 gap-3">
               {delayOptions.map(delay => (
                 <button
@@ -208,13 +209,13 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
                     {delay.label}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    停止操作后
+                    {t('fullscreenSettings.afterInactivity', '停止操作后')}
                   </div>
                 </button>
               ))}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              在全屏模式下，鼠标停止移动后多久自动隐藏顶部栏
+              {t('fullscreenSettings.delayDescription', '在全屏模式下，鼠标停止移动后多久自动隐藏顶部栏')}
             </p>
           </div>
 
@@ -224,7 +225,7 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
             onClick={handleReset}
           >
             <FiRotateCcw className="inline mr-2" />
-            恢复默认设置
+            {t('fullscreenSettings.restoreDefaults', '恢复默认设置')}
           </button>
         </div>
 

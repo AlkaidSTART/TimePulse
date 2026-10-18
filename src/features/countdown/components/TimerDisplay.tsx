@@ -20,7 +20,8 @@ import {
 } from '@/domain/timer';
 import { splitCalendarDuration, getZonedDateTimeParts } from '@/domain/time';
 import { getNextTimerUpdateDelay } from '../timerSchedule';
-import { AutoResizer, AutoTransition, type TransitionType } from '@/components/ui';
+import { AutoResizer } from '@/components/ui/auto-resizer';
+import { AutoTransition, type TransitionType } from '@/components/ui/auto-transition';
 
 const LapTimesModal = lazy(() => import('@/features/stopwatch/components/LapTimesModal'));
 const StopwatchStopConfirmModal = lazy(() => import('@/features/stopwatch/components/StopwatchStopConfirmModal'));
@@ -153,7 +154,7 @@ const CalendarTimeRows = memo(function CalendarTimeRows({
     units: Array<{ key: keyof DisplayTime; label: string; cycleAtSixty?: boolean }>,
   ) => (
     <motion.div
-      className="flex items-center justify-center space-x-2 sm:space-x-4"
+      className="flex items-center justify-center space-x-2.5 sm:space-x-3.5 md:space-x-4"
       layout="position"
       layoutDependency={calendarExitRevision}
       transition={{ layout: { type: 'tween', duration: 0.24, ease: 'easeOut' } }}
@@ -185,7 +186,7 @@ const CalendarTimeRows = memo(function CalendarTimeRows({
         transition={{ layout: { type: 'tween', duration: 0.28, ease: 'easeInOut' } }}
       >
         <motion.div
-          className="flex items-center justify-center space-x-2 sm:space-x-4"
+          className="flex items-center justify-center space-x-2.5 sm:space-x-3.5 md:space-x-4"
           layout="position"
           transition={{ layout: { type: 'tween', duration: 0.28, ease: 'easeInOut' } }}
         >
@@ -551,6 +552,9 @@ export default function TimerDisplay() {
         setIsStopwatchStopDialogOpen(false);
         setIsRunning(timerType === 'stopwatch' && (timer as StopwatchTimer).isRunning === true);
         if (timerType !== 'countdown') setIsFinished(false);
+      } else if (timerType === 'stopwatch') {
+        const swRunning = (timer as StopwatchTimer).isRunning === true;
+        setIsRunning((prev) => (prev !== swRunning ? swRunning : prev));
       }
 
       // Use one timestamp for both the displayed value and its next boundary.
@@ -684,25 +688,25 @@ export default function TimerDisplay() {
     if (isFullscreen) {
       // 全屏模式：使用固定大尺寸
       return {
-        small: 'text-5xl sm:text-6xl md:text-7xl landscape:max-md:text-4xl landscape:max-md:sm:text-5xl',
-        medium: 'text-6xl sm:text-7xl md:text-8xl landscape:max-md:text-5xl landscape:max-md:sm:text-6xl',
+        small: 'text-5xl sm:text-6xl md:text-7xl lg:text-8xl landscape:max-md:text-4xl landscape:max-md:sm:text-5xl',
+        medium: 'text-6xl sm:text-7xl md:text-8xl lg:text-9xl landscape:max-md:text-5xl landscape:max-md:sm:text-6xl',
         large: 'text-7xl sm:text-8xl md:text-9xl landscape:max-md:text-6xl landscape:max-md:sm:text-7xl',
       };
     } else {
       // 普通模式：使用响应式尺寸
       return {
-        small: 'text-4xl sm:text-5xl md:text-6xl landscape:max-md:text-3xl landscape:max-md:sm:text-4xl',
-        medium: 'text-5xl sm:text-6xl md:text-7xl landscape:max-md:text-4xl landscape:max-md:sm:text-5xl',
-        large: 'text-6xl sm:text-7xl md:text-8xl landscape:max-md:text-5xl landscape:max-md:sm:text-6xl',
+        small: 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl landscape:max-md:text-3xl landscape:max-md:sm:text-4xl',
+        medium: 'text-[3.25rem] sm:text-6xl md:text-7xl lg:text-8xl landscape:max-md:text-4xl landscape:max-md:sm:text-5xl',
+        large: 'text-6xl sm:text-7xl md:text-8xl lg:text-9xl landscape:max-md:text-5xl landscape:max-md:sm:text-6xl',
       };
     }
   };
 
   const getLabelFontSizeClasses = (): Record<FontSize, string> => {
     return {
-      small: 'text-sm',
-      medium: 'text-base',
-      large: 'text-lg'
+      small: 'text-sm sm:text-base',
+      medium: 'text-base sm:text-lg',
+      large: 'text-lg sm:text-xl'
     };
   };
 
@@ -867,27 +871,27 @@ export default function TimerDisplay() {
               >
                 <button
                   onClick={() => handleStopwatchControl(isRunning ? 'pause' : 'play')}
-                  className="liquid-glass-control p-4 rounded-full cursor-pointer select-none"
+                  className="liquid-glass-control p-4 sm:p-5 rounded-full cursor-pointer select-none active:scale-95 transition-transform"
                   style={{ color: activeTimer.color, zIndex: 41, position: 'relative', pointerEvents: 'auto', userSelect: 'none' }}
                 >
-                  {isRunning ? <FiPause className="text-xl pointer-events-none" /> : <FiPlay className="text-xl pointer-events-none" />}
+                  {isRunning ? <FiPause className="text-xl sm:text-2xl pointer-events-none" /> : <FiPlay className="text-xl sm:text-2xl pointer-events-none" />}
                 </button>
               </AutoTransition>
               <button
                 onClick={() => handleStopwatchControl('lap')}
                 disabled={!isRunning}
-                className="liquid-glass-control p-4 rounded-full cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed"
+                className="liquid-glass-control p-4 sm:p-5 rounded-full cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-transform"
                 style={{ color: activeTimer.color, zIndex: 41, position: 'relative', pointerEvents: 'auto', userSelect: 'none' }}
               >
-                <FiFlag className="text-xl pointer-events-none" />
+                <FiFlag className="text-xl sm:text-2xl pointer-events-none" />
               </button>
               <button
                 onClick={() => setIsStopwatchStopDialogOpen(true)}
                 aria-label={t('controls.stop')}
-                className="liquid-glass-control p-4 rounded-full cursor-pointer select-none"
+                className="liquid-glass-control p-4 sm:p-5 rounded-full cursor-pointer select-none active:scale-95 transition-transform"
                 style={{ color: activeTimer.color, zIndex: 41, position: 'relative', pointerEvents: 'auto', userSelect: 'none' }}
               >
-                <FiSquare className="text-xl pointer-events-none" />
+                <FiSquare className="text-xl sm:text-2xl pointer-events-none" />
               </button>
             </motion.div>
           ) : null}

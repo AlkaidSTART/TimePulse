@@ -9,8 +9,11 @@ import {
   clearNotifiedVersion,
   checkAppUpdate,
   fetchLatestRelease,
+  fetchLatestReleaseFromDatabase,
+  recordAppVersion,
 } from './version';
 import { APP_VERSION, GITHUB_RELEASES_URL } from '@/constants/version';
+import { supabase } from '@/lib/supabase';
 import packageJson from '../../package.json';
 
 describe('Version Management & Check Service', () => {
@@ -167,105 +170,279 @@ describe('Version Management & Check Service', () => {
     });
   });
 
+  describe('fetchLatestReleaseFromDatabase', () => {
+    it('returns latest version record from database sorted semantically', async () => {
+      const mockDbData = [
+        {
+          id: '1',
+          version: '0.7.0',
+          title: 'TimePulse 0.7.0',
+          release_notes: 'Initial stable release',
+          download_url: GITHUB_RELEASES_URL,
+          is_latest: false,
+          published_at: '2026-10-17T00:00:00Z',
+        },
+        {
+          id: '2',
+          version: '0.8.0',
+          title: 'TimePulse 0.8.0',
+          release_notes: 'Exciting updates',
+          download_url: GITHUB_RELEASES_URL,
+          is_latest: true,
+          published_at: '2026-10-18T00:00:00Z',
+        },
+      ];
+
+      vi.spyOn(supabase, 'from').mockReturnValueOnce({
+        select: () => ({
+          order: () => ({
+            limit: async () => ({ data: mockDbData, error: null }),
+          }),
+        }),
+      } as unknown as ReturnType<typeof supabase.from>);
+
+      const release = await fetchLatestReleaseFromDatabase();
+      expect(release).not.toBeNull();
+      expect(release?.version).toBe('0.8.0');
+      expect(release?.tagName).toBe('v0.8.0');
+      expect(release?.htmlUrl).toBe(GITHUB_RELEASES_URL);
+      expect(release?.source).toBe('database');
+    });
+
+    it('returns null when database returns empty records or error', async () => {
+      vi.spyOn(supabase, 'from').mockReturnValueOnce({
+        select: () => ({
+          order: () => ({
+            limit: async () => ({ data: [], error: null }),
+          }),
+        }),
+      } as unknown as ReturnType<typeof supabase.from>);
+
+      const release = await fetchLatestReleaseFromDatabase();
+      expect(release).toBeNull();
+    });
+  });
+
+  describe('recordAppVersion', () => {
+    it('successfully calls supabase upsert with normalized version payload', async () => {
+      const upsertSpy = vi.fn().mockResolvedValueOnce({ error: null });
+      vi.spyOn(supabase, 'from').mockReturnValueOnce({
+        upsert: upsertSpy,
+      } as unknown as ReturnType<typeof supabase.from>);
+
+      const success = await recordAppVersion({
+        version: 'v0.7.0',
+        title: 'TimePulse 0.7.0',
+        releaseNotes: 'Release notes',
+        downloadUrl: GITHUB_RELEASES_URL,
+      });
+
+      expect(success).toBe(true);
+      expect(upsertSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          version: '0.7.0',
+          title: 'TimePulse 0.7.0',
+          release_notes: 'Release notes',
+          download_url: GITHUB_RELEASES_URL,
+        }),
+        { onConflict: 'version' }
+      );
+    });
+  });
+
   describe('checkAppUpdate', () => {
-    it('prompts optimistic notification when a new version is released and not notified yet', async () => {
-      const mockResponse = {
-        tag_name: 'v0.8.0',
-        name: 'Release v0.8.0',
-        body: 'Update notes',
-        published_at: '2026-10-18T00:00:00Z',
-        html_url: 'https://github.com/AlkaidSTART/TimePulse/releases/tag/v0.8.0',
-      };
+    describe('Database-first strategy', () => {
+      it('detects new update from database and triggers optimistic notification', async () => {
+        const mockDbData = [
+          {
+            id: '1',
+            version: '0.8.0',
+            title: 'TimePulse 0.8.0',
+            release_notes: 'New cloud features',
+            download_url: GITHUB_RELEASES_URL,
+            is_latest: true,
+            published_at: '2026-10-18T00:00:00Z',
+          },
+        ];
 
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      } as Response);
+        vi.spyOn(supabase, 'from').mockReturnValueOnce({
+          select: () => ({
+            order: () => ({
+              limit: async () => ({ data: mockDbData, error: null }),
+            }),
+          }),
+        } as unknown as ReturnType<typeof supabase.from>);
 
-      const result = await checkAppUpdate({ currentVersion: '0.7.0' });
-      expect(result.success).toBe(true);
-      expect(result.hasUpdate).toBe(true);
-      expect(result.shouldNotify).toBe(true); // 首次检测到新版，应当提醒
-      expect(result.latestVersion).toBe('0.8.0');
-      expect(result.downloadUrl).toBe(GITHUB_RELEASES_URL);
+        const result = await checkAppUpdate({ currentVersion: '0.7.0' });
+        expect(result.success).toBe(true);
+        expect(result.hasUpdate).toBe(true);
+        expect(result.shouldNotify).toBe(true);
+        expect(result.latestVersion).toBe('0.8.0');
+        expect(result.downloadUrl).toBe(GITHUB_RELEASES_URL);
+        expect(result.source).toBe('database');
+      });
+
+      it('reports up-to-date when current version matches database latest version', async () => {
+        const mockDbData = [
+          {
+            id: '1',
+            version: '0.7.0',
+            title: 'TimePulse 0.7.0',
+            release_notes: 'Current release',
+            download_url: GITHUB_RELEASES_URL,
+            is_latest: true,
+            published_at: '2026-10-18T00:00:00Z',
+          },
+        ];
+
+        vi.spyOn(supabase, 'from').mockReturnValueOnce({
+          select: () => ({
+            order: () => ({
+              limit: async () => ({ data: mockDbData, error: null }),
+            }),
+          }),
+        } as unknown as ReturnType<typeof supabase.from>);
+
+        const result = await checkAppUpdate({ currentVersion: '0.7.0' });
+        expect(result.success).toBe(true);
+        expect(result.hasUpdate).toBe(false);
+        expect(result.shouldNotify).toBe(false);
+        expect(result.latestVersion).toBe('0.7.0');
+      });
+
+      it('falls back seamlessly to GitHub API when database check returns null or fails', async () => {
+        // 数据库返回空
+        vi.spyOn(supabase, 'from').mockReturnValueOnce({
+          select: () => ({
+            order: () => ({
+              limit: async () => ({ data: null, error: new Error('DB connection failed') }),
+            }),
+          }),
+        } as unknown as ReturnType<typeof supabase.from>);
+
+        // GitHub 返回 0.8.5
+        const mockGithubResponse = {
+          tag_name: 'v0.8.5',
+          name: 'Release v0.8.5',
+          body: 'Fallback release notes',
+          published_at: '2026-10-18T00:00:00Z',
+          html_url: GITHUB_RELEASES_URL,
+        };
+
+        vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockGithubResponse,
+        } as Response);
+
+        const result = await checkAppUpdate({ currentVersion: '0.7.0' });
+        expect(result.success).toBe(true);
+        expect(result.hasUpdate).toBe(true);
+        expect(result.latestVersion).toBe('0.8.5');
+        expect(result.source).toBe('github');
+      });
     });
 
-    it('does NOT prompt notification if already notified for that version ("只提醒一次")', async () => {
-      markVersionAsNotified('0.8.0'); // 模拟之前已经提醒过 0.8.0
+    describe('GitHub Fallback & Notification Logic', () => {
+      it('prompts optimistic notification when a new version is released and not notified yet', async () => {
+        const mockResponse = {
+          tag_name: 'v0.8.0',
+          name: 'Release v0.8.0',
+          body: 'Update notes',
+          published_at: '2026-10-18T00:00:00Z',
+          html_url: GITHUB_RELEASES_URL,
+        };
 
-      const mockResponse = {
-        tag_name: 'v0.8.0',
-        name: 'Release v0.8.0',
-        body: 'Update notes',
-        published_at: '2026-10-18T00:00:00Z',
-        html_url: 'https://github.com/AlkaidSTART/TimePulse/releases/tag/v0.8.0',
-      };
+        vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        } as Response);
 
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      } as Response);
+        const result = await checkAppUpdate({ currentVersion: '0.7.0', preferSource: 'github' });
+        expect(result.success).toBe(true);
+        expect(result.hasUpdate).toBe(true);
+        expect(result.shouldNotify).toBe(true); // 首次检测到新版，应当提醒
+        expect(result.latestVersion).toBe('0.8.0');
+        expect(result.downloadUrl).toBe(GITHUB_RELEASES_URL);
+      });
 
-      const result = await checkAppUpdate({ currentVersion: '0.7.0' });
-      expect(result.success).toBe(true);
-      expect(result.hasUpdate).toBe(true);
-      expect(result.shouldNotify).toBe(false); // 已经提醒过，不再重复弹窗打扰！
-    });
+      it('does NOT prompt notification if already notified for that version ("只提醒一次")', async () => {
+        markVersionAsNotified('0.8.0'); // 模拟之前已经提醒过 0.8.0
 
-    it('prompts again when a subsequent, newer version is released', async () => {
-      markVersionAsNotified('0.8.0'); // 已提醒过 0.8.0
+        const mockResponse = {
+          tag_name: 'v0.8.0',
+          name: 'Release v0.8.0',
+          body: 'Update notes',
+          published_at: '2026-10-18T00:00:00Z',
+          html_url: GITHUB_RELEASES_URL,
+        };
 
-      // 但现在发布了 0.9.0
-      const mockResponse = {
-        tag_name: 'v0.9.0',
-        name: 'Release v0.9.0',
-        body: 'New release',
-        published_at: '2026-11-01T00:00:00Z',
-        html_url: 'https://github.com/AlkaidSTART/TimePulse/releases/tag/v0.9.0',
-      };
+        vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        } as Response);
 
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      } as Response);
+        const result = await checkAppUpdate({ currentVersion: '0.7.0', preferSource: 'github' });
+        expect(result.success).toBe(true);
+        expect(result.hasUpdate).toBe(true);
+        expect(result.shouldNotify).toBe(false); // 已经提醒过，不再重复弹窗打扰！
+      });
 
-      const result = await checkAppUpdate({ currentVersion: '0.7.0' });
-      expect(result.success).toBe(true);
-      expect(result.hasUpdate).toBe(true);
-      expect(result.shouldNotify).toBe(true); // 针对 0.9.0 是第一次，应当提醒一次！
-      expect(result.latestVersion).toBe('0.9.0');
-    });
+      it('prompts again when a subsequent, newer version is released', async () => {
+        markVersionAsNotified('0.8.0'); // 已提醒过 0.8.0
 
-    it('reports no update when local version is up-to-date or newer', async () => {
-      const mockResponse = {
-        tag_name: 'v0.7.0',
-        name: 'Release v0.7.0',
-        body: 'Current release',
-        published_at: '2026-10-17T00:00:00Z',
-        html_url: 'https://github.com/AlkaidSTART/TimePulse/releases/tag/v0.7.0',
-      };
+        // 但现在发布了 0.9.0
+        const mockResponse = {
+          tag_name: 'v0.9.0',
+          name: 'Release v0.9.0',
+          body: 'New release',
+          published_at: '2026-11-01T00:00:00Z',
+          html_url: GITHUB_RELEASES_URL,
+        };
 
-      vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockResponse,
-      } as Response);
+        vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        } as Response);
 
-      const result = await checkAppUpdate({ currentVersion: '0.7.0' });
-      expect(result.success).toBe(true);
-      expect(result.hasUpdate).toBe(false);
-      expect(result.shouldNotify).toBe(false);
-      expect(result.latestVersion).toBe('0.7.0');
-    });
+        const result = await checkAppUpdate({ currentVersion: '0.7.0', preferSource: 'github' });
+        expect(result.success).toBe(true);
+        expect(result.hasUpdate).toBe(true);
+        expect(result.shouldNotify).toBe(true); // 针对 0.9.0 是第一次，应当提醒一次！
+        expect(result.latestVersion).toBe('0.9.0');
+      });
 
-    it('handles network failure gracefully without crashing', async () => {
-      vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Network offline'));
+      it('reports no update when local version is up-to-date or newer', async () => {
+        const mockResponse = {
+          tag_name: 'v0.7.0',
+          name: 'Release v0.7.0',
+          body: 'Current release',
+          published_at: '2026-10-17T00:00:00Z',
+          html_url: GITHUB_RELEASES_URL,
+        };
 
-      const result = await checkAppUpdate({ currentVersion: '0.7.0' });
-      expect(result.success).toBe(false);
-      expect(result.hasUpdate).toBe(false);
-      expect(result.shouldNotify).toBe(false);
-      expect(result.error).toContain('Network offline');
-      expect(result.downloadUrl).toBe(GITHUB_RELEASES_URL);
+        vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse,
+        } as Response);
+
+        const result = await checkAppUpdate({ currentVersion: '0.7.0', preferSource: 'github' });
+        expect(result.success).toBe(true);
+        expect(result.hasUpdate).toBe(false);
+        expect(result.shouldNotify).toBe(false);
+        expect(result.latestVersion).toBe('0.7.0');
+      });
+
+      it('handles network failure gracefully without crashing', async () => {
+        vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Network offline'));
+
+        const result = await checkAppUpdate({ currentVersion: '0.7.0', preferSource: 'github' });
+        expect(result.success).toBe(false);
+        expect(result.hasUpdate).toBe(false);
+        expect(result.shouldNotify).toBe(false);
+        expect(result.error).toContain('Network offline');
+        expect(result.downloadUrl).toBe(GITHUB_RELEASES_URL);
+      });
     });
   });
 });
+
