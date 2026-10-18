@@ -3,8 +3,14 @@ import { resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 const workspaceRoot = fileURLToPath(new URL('./', import.meta.url));
+
+// 仅 `ANALYZE=1` 时生成体积报告（pnpm build:analyze），正常构建零开销
+const analyzeBundle = process.env.ANALYZE === '1'
+  ? visualizer({ filename: 'dist/stats.html', gzipSize: true, brotliSize: true, template: 'treemap' })
+  : null;
 
 const disableDevelopmentServiceWorker: Plugin = {
   name: 'timepulse-disable-service-worker-in-development',
@@ -16,7 +22,7 @@ const disableDevelopmentServiceWorker: Plugin = {
 
 export default defineConfig({
   base: '/',
-  plugins: [react(), tailwindcss(), disableDevelopmentServiceWorker],
+  plugins: [react(), tailwindcss(), disableDevelopmentServiceWorker, ...(analyzeBundle ? [analyzeBundle] : [])],
   resolve: {
     alias: {
       '@': resolve(workspaceRoot, 'src'),

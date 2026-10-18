@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:analyze": "tsc -b && ANALYZE=1 vite build",
     "start": "vite preview",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
@@ -63,6 +64,7 @@
     "postcss": "^8.5.28",
     "prisma": "8.0.0-rc.23",
     "radix-ui": "^1.6.7",
+    "rollup-plugin-visualizer": "^7.1.1",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
