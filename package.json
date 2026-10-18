@@ -21,7 +21,8 @@
     "patch:android-orientation": "node scripts/patch-android-orientation.mjs",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "capture:screenshots": "node scripts/capture-docs-screenshots.mjs"
+    "capture:screenshots": "node scripts/capture-docs-screenshots.mjs",
+    "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
@@ -30,6 +31,7 @@
     "@supabase/supabase-js": "^2.118.0",
     "@tauri-apps/plugin-haptics": "^2.4.2",
     "@tauri-apps/plugin-notification": "^2.7.0",
+    "@tauri-apps/plugin-sql": "^2.6.0",
     "clsx": "^2.1.1",
     "date-fns": "^2.30.0",
     "framer-motion": "^12.43.0",
