@@ -285,8 +285,32 @@ export function getCurrentTimeSlot(date: Date = new Date()): TimeSlotConfig {
 export function getGreetingForUser(
   slot: TimeSlotConfig,
   nickname: string,
-  style: CheerStyle
+  style: CheerStyle,
+  locale = 'zh-CN'
 ): string {
+  if (locale === 'en-US') {
+    const cleanNickname = nickname.trim();
+    const namePart = cleanNickname && cleanNickname !== '阳光旅人' ? `, ${cleanNickname}` : '';
+    switch (slot.id) {
+      case 'early_morning':
+        return `Good morning${namePart}! A fresh day begins with unlimited possibilities.`;
+      case 'morning':
+        return `Good morning${namePart}! Stay focused and keep shining on your journey.`;
+      case 'noon':
+        return `Good day${namePart}! Enjoy a nutritious lunch and recharge your energy.`;
+      case 'afternoon':
+        return `Good afternoon${namePart}! Take a short break, breathe deeply, and carry on.`;
+      case 'evening':
+        return `Good evening${namePart}! You did great today. Unwind and enjoy the dusk.`;
+      case 'night':
+        return `Good evening${namePart}! Savor the quiet and relaxing night.`;
+      case 'late_night':
+        return `It is late${namePart}. Get some rest and recharge for tomorrow.`;
+      default:
+        return `Hello${namePart}! Have a wonderful time.`;
+    }
+  }
+
   const list = slot.messages[style] || slot.messages.energetic;
   const baseMessage = list[0] || slot.defaultMessage;
   const cleanNickname = nickname.trim();

@@ -326,7 +326,7 @@ export default function CheerPage() {
                 type="button"
                 disabled={isCopied}
                 onClick={handleCopyQuote}
-                title="复制此句"
+                title={t('cheer.copyQuote', '复制此句')}
                 className={cn(
                   'flex items-center gap-1.5 text-xs sm:text-sm px-2.5 sm:px-3 py-1 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer active:scale-95',
                   isCopied && 'cursor-default'
@@ -335,12 +335,12 @@ export default function CheerPage() {
                 {isCopied ? (
                   <>
                     <FiCheck className="size-3.5 sm:size-4 text-emerald-500" />
-                    <span className="text-emerald-600 dark:text-emerald-400">已复制</span>
+                    <span className="text-emerald-600 dark:text-emerald-400">{t('cheer.copied', '已复制')}</span>
                   </>
                 ) : (
                   <>
                     <FiCopy className="size-3.5 sm:size-4" />
-                    <span>复制</span>
+                    <span>{t('cheer.copy', '复制')}</span>
                   </>
                 )}
               </button>
@@ -348,14 +348,14 @@ export default function CheerPage() {
                 type="button"
                 disabled={isRefreshing}
                 onClick={() => handleNextQuote(true)}
-                title="换一句"
+                title={t('cheer.newQuote', '换一句')}
                 className={cn(
                   'flex items-center gap-1.5 text-xs sm:text-sm px-2.5 sm:px-3 py-1 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer active:scale-95',
                   isRefreshing && 'opacity-60 cursor-not-allowed'
                 )}
               >
                 <FiRefreshCw className={cn('size-3.5 sm:size-4 transition-transform duration-500', isRefreshing && 'rotate-180')} />
-                <span>换一句</span>
+                <span>{t('cheer.newQuote', '换一句')}</span>
               </button>
             </div>
           </div>
@@ -399,7 +399,7 @@ export default function CheerPage() {
             className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 bg-white/10 dark:bg-white/[0.05] hover:bg-white/20 dark:hover:bg-white/[0.1] border border-black/15 cream:border-stone-400/40 dark:border-white/20 hover:border-black/25 dark:hover:border-white/35 backdrop-blur-md transition-all cursor-pointer active:scale-95"
           >
             <FiClock className="size-4 sm:size-4.5 text-primary-500" />
-            <span>时钟主页</span>
+            <span>{t('cheer.homeNav', '时钟主页')}</span>
             <FiArrowRight className="size-3.5 text-gray-400" />
           </button>
 
@@ -410,7 +410,7 @@ export default function CheerPage() {
             className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 bg-white/10 dark:bg-white/[0.05] hover:bg-white/20 dark:hover:bg-white/[0.1] border border-black/15 cream:border-stone-400/40 dark:border-white/20 hover:border-black/25 dark:hover:border-white/35 backdrop-blur-md transition-all cursor-pointer active:scale-95"
           >
             <FiCheckSquare className="size-4 sm:size-4.5 text-emerald-500" />
-            <span>今日待办</span>
+            <span>{t('cheer.todoNav', '今日待办')}</span>
             {pendingTodosCount > 0 && (
               <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] sm:text-xs font-bold">
                 {pendingTodosCount}
@@ -426,7 +426,7 @@ export default function CheerPage() {
             className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 bg-white/10 dark:bg-white/[0.05] hover:bg-white/20 dark:hover:bg-white/[0.1] border border-black/15 cream:border-stone-400/40 dark:border-white/20 hover:border-black/25 dark:hover:border-white/35 backdrop-blur-md transition-all cursor-pointer active:scale-95"
           >
             <FiUser className="size-4 sm:size-4.5 text-gray-400" />
-            <span>个人设置</span>
+            <span>{t('cheer.settingsNav', '个人设置')}</span>
           </button>
         </motion.div>
 
