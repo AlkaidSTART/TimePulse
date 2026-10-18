@@ -305,11 +305,22 @@ export default function Header({ onHeightChange }: HeaderProps) {
     if (orderChanged) reorderTimers(nextOrder);
   };
 
-  const timersById = new Map(timers.map((timer) => [timer.id, timer]));
-  const orderedTimerIds = [
-    ...timerOrder.filter((id) => timersById.has(id)),
-    ...timers.map((timer) => timer.id).filter((id) => !timerOrder.includes(id)),
-  ];
+  // 计时器 id→实例映射与排序结果只在 timers/timerOrder 变化时重建，
+  // 避免 Header 每次因菜单/悬停等交互重渲染时重复构建。
+  const timersById = useMemo(() => new Map(timers.map((timer) => [timer.id, timer])), [timers]);
+  const orderedTimerIds = useMemo(
+    () => [
+      ...timerOrder.filter((id) => timersById.has(id)),
+      ...timers.map((timer) => timer.id).filter((id) => !timerOrder.includes(id)),
+    ],
+    [timers, timerOrder, timersById],
+  );
+  const orderedTimers = useMemo(
+    () => orderedTimerIds
+      .map((id) => timersById.get(id))
+      .filter((timer): timer is Timer => timer !== undefined),
+    [orderedTimerIds, timersById],
+  );
 
   // 处理语言切换
   const switchLanguage = (lang: Language) => {
@@ -1197,9 +1208,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     onReorder={handleTimerReorder}
                     className="flex flex-col gap-2"
                   >
-                    {orderedTimerIds
-                      .map((id) => timersById.get(id))
-                      .filter((timer): timer is Timer => timer !== undefined)
+                    {orderedTimers
                       .map((timer) => (
                         <TimerManageRow
                           key={timer.id}
