@@ -1225,13 +1225,13 @@ export default function AuthPage() {
       </main>
 
       {/* 4. 独立路由底部版权与极简理念 */}
-      <footer className="relative z-10 w-full max-w-6xl mx-auto py-3 px-4 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 dark:text-gray-500 gap-2">
+      <footer className="relative z-10 w-full max-w-6xl mx-auto py-2 px-4 flex flex-col sm:flex-row items-center justify-between text-[11px] sm:text-xs text-gray-400 dark:text-gray-500 gap-1.5 sm:gap-2">
         <div className="flex items-center gap-2">
           <span>TimePulse · 时光脉搏</span>
           <span>·</span>
           <span>用专注丈量光阴</span>
         </div>
-        <div className="flex items-center gap-1 font-mono text-[11px]">
+        <div className="flex items-center gap-1 font-mono text-[10px] sm:text-[11px]">
           <span>© {new Date().getFullYear()} TimePulse Project. 保留所有权利</span>
         </div>
       </footer>

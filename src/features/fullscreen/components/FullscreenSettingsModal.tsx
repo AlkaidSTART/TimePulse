@@ -144,7 +144,7 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
 
           {/* 标签字体大小 */}
           <div>
-            <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">标签字体大小</label>
+            <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">{t('fullscreenSettings.labelFontSize', '标签字体大小')}</label>
             <div className="grid grid-cols-3 gap-3">
               {fontSizes.map(size => (
                 <button
@@ -181,7 +181,7 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
 
           {/* 顶部栏隐藏延迟 */}
           <div>
-            <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">顶部栏自动隐藏延迟</label>
+            <label className="block text-sm font-medium mb-3 text-gray-700 dark:text-gray-300">{t('fullscreenSettings.autoHideDelay', '顶部栏自动隐藏延迟')}</label>
             <div className="grid grid-cols-3 gap-3">
               {delayOptions.map(delay => (
                 <button
@@ -209,13 +209,13 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
                     {delay.label}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    停止操作后
+                    {t('fullscreenSettings.afterInactivity', '停止操作后')}
                   </div>
                 </button>
               ))}
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              在全屏模式下，鼠标停止移动后多久自动隐藏顶部栏
+              {t('fullscreenSettings.delayDescription', '在全屏模式下，鼠标停止移动后多久自动隐藏顶部栏')}
             </p>
           </div>
 
@@ -225,7 +225,7 @@ export default function FullscreenSettingsModal({ onClose }: FullscreenSettingsM
             onClick={handleReset}
           >
             <FiRotateCcw className="inline mr-2" />
-            恢复默认设置
+            {t('fullscreenSettings.restoreDefaults', '恢复默认设置')}
           </button>
         </div>
 
