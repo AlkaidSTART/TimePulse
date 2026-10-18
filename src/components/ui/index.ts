@@ -12,3 +12,4 @@ export * from './toast';
 export * from './utils';
 export * from './LazyImage';
 export * from './popover';
+export * from './ProgressSubmitButton';
