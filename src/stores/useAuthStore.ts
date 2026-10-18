@@ -1,7 +1,19 @@
 import { create } from 'zustand';
 import type { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
 import { usePersonalSettingsStore } from './usePersonalSettingsStore';
+
+type SupabaseClient = typeof import('@/lib/supabase')['supabase'];
+
+let supabaseClientPromise: Promise<SupabaseClient> | null = null;
+
+/**
+ * 按需加载 Supabase 客户端：首屏不再静态打包 supabase-js，
+ * 只有真正需要认证能力时才拉取对应 chunk。
+ */
+function getSupabaseClient(): Promise<SupabaseClient> {
+  supabaseClientPromise ??= import('@/lib/supabase').then((m) => m.supabase);
+  return supabaseClientPromise;
+}
 
 function formatAuthError(error: unknown): string {
   if (!error) return '操作失败，请重试';
@@ -80,6 +92,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (get().isInitialized) return;
 
     try {
+      const supabase = await getSupabaseClient();
       const { data, error } = await supabase.auth.getSession();
       if (error) {
         console.warn('获取当前会话失败:', error.message);
@@ -144,6 +157,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, error: errorMsg };
       }
 
+      const supabase = await getSupabaseClient();
       const { data, error } = await supabase.auth.signInWithPassword({
         email: trimmedEmail,
         password,
@@ -195,6 +209,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const nickname = metadata?.nickname?.trim();
 
+      const supabase = await getSupabaseClient();
       const { data, error } = await supabase.auth.signUp({
         email: trimmedEmail,
         password,
@@ -241,6 +256,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signOut: async () => {
     set({ isLoading: true, error: null });
     try {
+      const supabase = await getSupabaseClient();
       const { error } = await supabase.auth.signOut();
       if (error) {
         const formatted = formatAuthError(error);
@@ -274,6 +290,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/#auth` : undefined;
+      const supabase = await getSupabaseClient();
       const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
         redirectTo,
       });
