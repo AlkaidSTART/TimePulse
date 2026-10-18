@@ -13,6 +13,7 @@ export interface TodoItemRowProps {
   provided?: DraggableProvided;
   snapshot?: DraggableStateSnapshot;
   accentColor?: string;
+  isDeleting?: boolean;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string, text: string) => void;
@@ -25,6 +26,7 @@ export default function TodoItemRow({
   provided,
   snapshot,
   accentColor = '#0ea5e9',
+  isDeleting: isDeletingProp,
   onToggle,
   onDelete,
   onEdit,
@@ -32,9 +34,41 @@ export default function TodoItemRow({
 }: TodoItemRowProps) {
   const shouldReduceMotion = useReducedMotion();
   const { t, currentLang } = useTranslation();
+  const [localIsDeleting, setLocalIsDeleting] = useState(false);
+  const isDeleting = Boolean(isDeletingProp || localIsDeleting);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(item.text);
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasDeletedRef = useRef(false);
+  const onDeleteRef = useRef(onDelete);
+  onDeleteRef.current = onDelete;
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isDeleting) return;
+    if (shouldReduceMotion) {
+      onDelete(item.id);
+      return;
+    }
+    setLocalIsDeleting(true);
+  };
+
+  useEffect(() => {
+    if (!isDeleting) return;
+    const timer = setTimeout(() => {
+      if (!hasDeletedRef.current) {
+        hasDeletedRef.current = true;
+        onDeleteRef.current(item.id);
+      }
+    }, 350);
+    return () => {
+      clearTimeout(timer);
+      if (isDeleting && !hasDeletedRef.current) {
+        hasDeletedRef.current = true;
+        onDeleteRef.current(item.id);
+      }
+    };
+  }, [isDeleting, item.id]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -71,23 +105,51 @@ export default function TodoItemRow({
     dragTransform = `${dragTransform} scale(1.025)`;
   }
 
+  // 任务被删除时的往右边滚动移出效果（结合向右位移与顺时针微倾角产生滚动质感）
+  const finalTransform = isDeleting
+    ? shouldReduceMotion
+      ? undefined
+      : 'translateX(120%) rotate(8deg)'
+    : dragTransform;
+
   // 区分不同状态下的过渡效果：
-  // 1. 降落阶段(isDropAnimating)：继承 @hello-pangea/dnd 的降落位移动画，同时平滑消退高阴影与外边框
-  // 2. 自由拖拽阶段(isDragging)：transform 实时响应手势指针，仅阴影和颜色平滑过渡
-  // 3. 常态/被推开让位阶段(!isDragging)：使用弹性质感的贝塞尔曲线平滑位移，彻底消除生硬卡顿感
+  // 1. 删除阶段(isDeleting)：向右滚动移出并在延迟后平滑折叠高度与间距，自然吸附下方项目
+  // 2. 降落阶段(isDropAnimating)：继承 @hello-pangea/dnd 的降落位移动画，同时平滑消退高阴影与外边框
+  // 3. 自由拖拽阶段(isDragging)：transform 实时响应手势指针，仅阴影和颜色平滑过渡
+  // 4. 常态/被推开让位阶段(!isDragging)：使用弹性质感的贝塞尔曲线平滑位移，彻底消除生硬卡顿感
   const dndTransition = provided?.draggableProps.style?.transition;
   const cardTransition = shouldReduceMotion
     ? undefined
+    : isDeleting
+    ? 'transform 0.35s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.28s ease, max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, margin 0.28s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, padding 0.28s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, border-color 0.2s ease'
     : isDropAnimating
     ? `${dndTransition || 'transform 0.32s cubic-bezier(0.2, 1, 0.1, 1)'}, box-shadow 0.28s cubic-bezier(0.2, 0, 0, 1), border-color 0.25s ease, background-color 0.25s ease`
     : isDragging
     ? 'box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s ease, background-color 0.2s ease'
-    : 'transform 0.28s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease';
+    : 'transform 0.28s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease, max-height 0.28s ease, margin 0.28s ease, padding 0.28s ease';
 
   const cardStyle: React.CSSProperties = {
     ...provided?.draggableProps.style,
-    ...(dragTransform ? { transform: dragTransform } : {}),
+    ...(finalTransform ? { transform: finalTransform } : {}),
     ...(cardTransition ? { transition: cardTransition } : {}),
+    ...(isDeleting
+      ? {
+          maxHeight: '0px',
+          paddingTop: '0px',
+          paddingBottom: '0px',
+          marginTop: '0px',
+          marginBottom: '-8px',
+          borderTopWidth: '0px',
+          borderBottomWidth: '0px',
+          borderColor: 'transparent',
+          opacity: 0,
+          pointerEvents: 'none',
+          overflow: 'hidden',
+          zIndex: 20,
+        }
+      : {
+          maxHeight: '120px',
+        }),
     ...(item.color
       ? ({
           '--todo-item-color': item.color,
@@ -96,7 +158,7 @@ export default function TodoItemRow({
           '--todo-item-border': item.completed ? `${item.color}20` : `${item.color}3d`,
           '--todo-item-border-hover': item.completed ? `${item.color}30` : `${item.color}60`,
           backgroundColor: 'var(--todo-item-bg)',
-          borderColor: 'var(--todo-item-border)',
+          borderColor: isDeleting ? 'transparent' : 'var(--todo-item-border)',
         } as React.CSSProperties)
       : {}),
   };
@@ -107,7 +169,9 @@ export default function TodoItemRow({
       {...(provided?.draggableProps || {})}
       style={cardStyle}
       className={`group relative flex items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 select-none overflow-visible will-change-transform ${
-        isDragging && !isDropAnimating
+        isDeleting
+          ? 'shadow-md z-20 pointer-events-none'
+          : isDragging && !isDropAnimating
           ? 'shadow-[0_20px_35px_-8px_rgba(0,0,0,0.18),0_10px_16px_-6px_rgba(0,0,0,0.08)] ring-2 ring-primary-500/50 border-primary-500/50 bg-white/95 dark:bg-[#18181b]/95 z-50'
           : isDropAnimating
           ? 'shadow-[0_8px_20px_-4px_rgba(0,0,0,0.1)] ring-1 ring-primary-500/25 border-primary-500/30 bg-white/95 dark:bg-[#18181b]/95 z-40'
@@ -235,8 +299,9 @@ export default function TodoItemRow({
 
         <button
           type="button"
-          onClick={() => onDelete(item.id)}
-          className="size-7 sm:size-7.5 inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 cursor-pointer active:scale-95 transition-all"
+          onClick={handleDeleteClick}
+          disabled={isDeleting}
+          className="size-7 sm:size-7.5 inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 cursor-pointer active:scale-95 transition-all disabled:opacity-40"
           title={t('todo.delete', '删除')}
           aria-label={t('todo.delete', '删除')}
         >
