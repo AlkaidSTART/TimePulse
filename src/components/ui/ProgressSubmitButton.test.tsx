@@ -102,15 +102,15 @@ describe('ProgressSubmitButton', () => {
     expect(button).toHaveTextContent('正在验证...');
   });
 
-  it('supports dynamic loading animation types (pulse-bars, wave-dots, ripple)', () => {
+  it('supports dynamic loading animation types (wave-dots, spinner, orbit, ripple, pulse-bars)', () => {
     const { rerender } = render(
       <ProgressSubmitButton
         status="loading"
-        loadingAnimation="pulse-bars"
         idleText="立即登录"
         loadingText="正在验证..."
       />
     );
+    // Defaults to wave-dots
     expect(screen.getByRole('button')).toHaveTextContent('正在验证...');
 
     rerender(
@@ -126,7 +126,37 @@ describe('ProgressSubmitButton', () => {
     rerender(
       <ProgressSubmitButton
         status="loading"
+        loadingAnimation="spinner"
+        idleText="立即登录"
+        loadingText="正在验证..."
+      />
+    );
+    expect(screen.getByRole('button')).toHaveTextContent('正在验证...');
+
+    rerender(
+      <ProgressSubmitButton
+        status="loading"
+        loadingAnimation="orbit"
+        idleText="立即登录"
+        loadingText="正在验证..."
+      />
+    );
+    expect(screen.getByRole('button')).toHaveTextContent('正在验证...');
+
+    rerender(
+      <ProgressSubmitButton
+        status="loading"
         loadingAnimation="ripple"
+        idleText="立即登录"
+        loadingText="正在验证..."
+      />
+    );
+    expect(screen.getByRole('button')).toHaveTextContent('正在验证...');
+
+    rerender(
+      <ProgressSubmitButton
+        status="loading"
+        loadingAnimation="pulse-bars"
         idleText="立即登录"
         loadingText="正在验证..."
       />
