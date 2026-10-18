@@ -102,7 +102,8 @@
   - 自由定制桌面壁纸（支持本地图片上传与图片 URL），自由调节背景透明度与高斯模糊度。
   - 支持玫瑰粉、翡翠绿、经典蓝、琥珀橙、紫罗兰等多套主题强调色。
 - **💾 高可靠数据本地持久化**：
-  - 采用 IndexedDB 作为主力数据存储，搭配 LocalStorage 多重容灾备份机制。
+  - 按平台自适应数据库后端：Web 端使用 **IndexedDB**，Tauri 桌面 / 移动端使用 **SQLite**（`tauri-plugin-sql`）。
+  - 计时器、待办清单与自定义背景壁纸统一入库，搭配 LocalStorage 多重容灾备份机制。
   - 纯本地运行，数据不出设备，保护个人隐私安全。
 - **📱 跨平台与原生支持**：
   - **PWA (Progressive Web App)**：支持“添加到主屏幕”，离线即开即用。
@@ -119,7 +120,7 @@
 | **构建与样式** | [Vite 6](https://vitejs.dev/) + [Tailwind CSS v4](https://tailwindcss.com/) | 极致的构建速度与原子化现代样式引擎 |
 | **动效库** | [Framer Motion 12](https://www.framer.com/motion/) + [@number-flow/react](https://number-flow.barvian.me/) | 细腻的物理弹性转场与平滑数字滚轮动效 |
 | **交互原语** | Radix UI / shadcn 风格组件 | 高可访问性（a11y）与可维护的交互原语 |
-| **持久化存储** | IndexedDB + LocalStorage | 双轨本地离线存储，数据持久稳固 |
+| **持久化存储** | IndexedDB（Web）/ SQLite（Tauri）+ LocalStorage | 平台自适应数据库后端，双轨离线存储，数据持久稳固 |
 | **跨平台客户端** | [Tauri v2](https://v2.tauri.app/) (Rust) | 超轻量级桌面（macOS / Windows）及移动端（Android）封装 |
 | **日历与实用库** | `solarlunar`, `date-fns`, `qrcode.react`, `lucide-react` | 农历转换、时间计算、二维码生成与精美图标集 |
 
