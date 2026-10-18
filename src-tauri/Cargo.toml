@@ -1,6 +1,6 @@
 [package]
 name = "time-pulse"
-version = "0.10.1"
+version = "0.10.2"
 description = "TimePulse - 现代化计时器应用"
 authors = ["AlkaidSTART"]
 license = "MIT"
