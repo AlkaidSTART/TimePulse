@@ -64,6 +64,7 @@ function MobileTimerRow({
   timer,
   isActive,
   summary,
+  t,
   onSelect,
   onEdit,
   onDelete,
@@ -72,6 +73,7 @@ function MobileTimerRow({
   timer: Timer;
   isActive: boolean;
   summary: string;
+  t: (key: string, defaultValue?: string) => string;
   onSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -105,7 +107,7 @@ function MobileTimerRow({
         type="button"
         className="inline-flex size-8.5 sm:size-9.5 shrink-0 touch-none cursor-grab items-center justify-center rounded-xl text-gray-400 hover:text-gray-600 active:cursor-grabbing dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
         onPointerDown={(e) => dragControls.start(e)}
-        aria-label="拖动排序"
+        aria-label={t('mobileNav.dragToReorder', '拖动排序')}
       >
         <RxDragHandleDots2 className="size-5 text-current" />
       </button>
@@ -126,7 +128,7 @@ function MobileTimerRow({
               style={{ backgroundColor: timer.color || '#0ea5e9' }}
             >
               <FiCheck className="size-3 stroke-[2.8]" />
-              当前
+              {t('mobileNav.current', '当前')}
             </span>
           )}
         </div>
@@ -141,7 +143,7 @@ function MobileTimerRow({
           type="button"
           onClick={onEdit}
           className="inline-flex size-8.5 sm:size-9.5 items-center justify-center rounded-full bg-black/[0.04] text-gray-600 hover:bg-black/[0.08] dark:bg-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.14] cursor-pointer active:scale-95 transition-all"
-          title="编辑"
+          title={t('mobileNav.edit', '编辑')}
         >
           <FiEdit className="size-4 sm:size-4.5" />
         </button>
@@ -149,7 +151,7 @@ function MobileTimerRow({
           type="button"
           onClick={onDelete}
           className="inline-flex size-8.5 sm:size-9.5 items-center justify-center rounded-full bg-black/[0.04] text-gray-600 hover:bg-red-500/10 hover:text-red-500 dark:bg-white/[0.08] dark:text-gray-300 dark:hover:bg-red-500/20 dark:hover:text-red-400 cursor-pointer active:scale-95 transition-all"
-          title="删除"
+          title={t('mobileNav.delete', '删除')}
         >
           <FiX className="size-4 sm:size-4.5" />
         </button>
