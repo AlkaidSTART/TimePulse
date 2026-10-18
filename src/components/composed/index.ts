@@ -9,3 +9,5 @@ export * from './status-panel';
 export { default as DatePicker } from './DatePicker';
 export * from './DatePicker';
 export * from './FieldValidationTooltip';
+export { default as UserAvatar } from './UserAvatar';
+export * from './UserAvatar';

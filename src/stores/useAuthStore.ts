@@ -81,7 +81,9 @@ export interface AuthState {
   ) => Promise<{ success: boolean; message?: string; error?: string; session?: Session | null }>;
   signOut: () => Promise<{ success: boolean; error?: string }>;
   resetPassword: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
-  updateProfile: (profile: { nickname?: string; customMotto?: string }) => Promise<{ success: boolean; error?: string }>;
+  uploadAvatar: (file: File) => Promise<{ success: boolean; avatarUrl?: string; error?: string }>;
+  removeAvatar: () => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (profile: { nickname?: string; customMotto?: string; avatarUrl?: string }) => Promise<{ success: boolean; error?: string }>;
   clearError: () => void;
   clearSuccessMessage: () => void;
   setError: (err: string | null) => void;
@@ -134,6 +136,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           customMotto: String(user.user_metadata.custom_motto),
         });
       }
+      const cloudAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+      if (cloudAvatar) {
+        usePersonalSettingsStore.getState().updateSettings({
+          avatar: String(cloudAvatar),
+        });
+      }
 
       if (!authSubscriptionInitialized) {
         authSubscriptionInitialized = true;
@@ -155,6 +163,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           if (newUser?.user_metadata?.custom_motto) {
             usePersonalSettingsStore.getState().updateSettings({
               customMotto: String(newUser.user_metadata.custom_motto),
+            });
+          }
+          const newCloudAvatar = newUser?.user_metadata?.avatar_url || newUser?.user_metadata?.picture;
+          if (newCloudAvatar) {
+            usePersonalSettingsStore.getState().updateSettings({
+              avatar: String(newCloudAvatar),
             });
           }
         });
@@ -391,13 +405,139 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  updateProfile: async ({ nickname, customMotto }) => {
+  uploadAvatar: async (file: File) => {
+    set({ isLoading: true, error: null, successMessage: null });
+    try {
+      // 1. 验证文件格式
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        const errorMsg = '不支持的图片格式，仅支持 PNG、JPG、WEBP、GIF 格式';
+        set({ isLoading: false, error: errorMsg });
+        return { success: false, error: errorMsg };
+      }
+
+      // 2. 限制文件体积不超过 5MB
+      const MAX_SIZE = 5 * 1024 * 1024;
+      if (file.size > MAX_SIZE) {
+        const errorMsg = '头像图片文件大小不能超过 5MB';
+        set({ isLoading: false, error: errorMsg });
+        return { success: false, error: errorMsg };
+      }
+
+      const supabase = await getSupabaseClient();
+      const currentUser = get().user;
+
+      // 确定存储文件路径：用户登录则存入专属用户目录，访客存入 guest 目录
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
+      const cleanExt = ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(fileExt) ? fileExt : 'png';
+      const folder = currentUser ? currentUser.id : 'guest';
+      const fileName = `avatar-${Date.now()}.${cleanExt}`;
+      const filePath = `${folder}/${fileName}`;
+
+      // 上传至 Supabase Storage touxiang 存储桶
+      const { error: uploadError } = await supabase.storage
+        .from('touxiang')
+        .upload(filePath, file, {
+          contentType: file.type,
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        const formatted = formatAuthError(uploadError);
+        set({ isLoading: false, error: formatted });
+        return { success: false, error: formatted };
+      }
+
+      // 获取公开可访问 URL
+      const { data: publicUrlData } = supabase.storage
+        .from('touxiang')
+        .getPublicUrl(filePath);
+
+      const avatarUrl = publicUrlData.publicUrl;
+
+      // 同步到本地设置 store
+      usePersonalSettingsStore.getState().updateSettings({
+        avatar: avatarUrl,
+      });
+
+      // 如果是云端已登录用户，同步更新 Supabase User Metadata
+      if (currentUser) {
+        const { data: updateData, error: updateError } = await supabase.auth.updateUser({
+          data: {
+            avatar_url: avatarUrl,
+          },
+        });
+
+        if (updateError) {
+          console.warn('更新用户头像元数据异常:', updateError.message);
+        } else if (updateData.user) {
+          set({ user: updateData.user });
+        }
+      }
+
+      set({
+        isLoading: false,
+        error: null,
+        successMessage: '头像上传成功！',
+      });
+
+      return { success: true, avatarUrl };
+    } catch (err) {
+      const formatted = formatAuthError(err);
+      set({ isLoading: false, error: formatted });
+      return { success: false, error: formatted };
+    }
+  },
+
+  removeAvatar: async () => {
+    set({ isLoading: true, error: null, successMessage: null });
+    try {
+      usePersonalSettingsStore.getState().updateSettings({
+        avatar: '',
+      });
+
+      const currentUser = get().user;
+      if (currentUser) {
+        const supabase = await getSupabaseClient();
+        const { data, error } = await supabase.auth.updateUser({
+          data: {
+            avatar_url: '',
+          },
+        });
+
+        if (error) {
+          const formatted = formatAuthError(error);
+          set({ isLoading: false, error: formatted });
+          return { success: false, error: formatted };
+        }
+
+        if (data.user) {
+          set({ user: data.user });
+        }
+      }
+
+      set({
+        isLoading: false,
+        error: null,
+        successMessage: '已恢复默认头像',
+      });
+      return { success: true };
+    } catch (err) {
+      const formatted = formatAuthError(err);
+      set({ isLoading: false, error: formatted });
+      return { success: false, error: formatted };
+    }
+  },
+
+  updateProfile: async ({ nickname, customMotto, avatarUrl }) => {
     set({ isLoading: true, error: null, successMessage: null });
     try {
       // 1. 同步更新本地偏好 Store
       usePersonalSettingsStore.getState().updateSettings({
         ...(nickname !== undefined ? { nickname } : {}),
         ...(customMotto !== undefined ? { customMotto } : {}),
+        ...(avatarUrl !== undefined ? { avatar: avatarUrl } : {}),
       });
 
       // 2. 如果存在云端用户，同步更新 Supabase User Metadata
@@ -408,6 +548,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           data: {
             ...(nickname !== undefined ? { nickname } : {}),
             ...(customMotto !== undefined ? { custom_motto: customMotto } : {}),
+            ...(avatarUrl !== undefined ? { avatar_url: avatarUrl } : {}),
           },
         });
 
@@ -448,3 +589,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   openAuthModal: () => set({ isAuthModalOpen: true }),
   closeAuthModal: () => set({ isAuthModalOpen: false }),
 }));
+
+if (typeof window !== 'undefined') {
+  (window as any).__useAuthStore = useAuthStore;
+}
+

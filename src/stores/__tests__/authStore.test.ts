@@ -211,4 +211,80 @@ describe('useAuthStore', () => {
     useAuthStore.getState().clearSuccessMessage();
     expect(useAuthStore.getState().successMessage).toBeNull();
   });
+
+  it('validates file type and size on uploadAvatar', async () => {
+    const { uploadAvatar } = useAuthStore.getState();
+
+    // 格式不符合
+    const invalidFile = new File(['text'], 'test.txt', { type: 'text/plain' });
+    const res1 = await uploadAvatar(invalidFile);
+    expect(res1.success).toBe(false);
+    expect(res1.error).toBe('不支持的图片格式，仅支持 PNG、JPG、WEBP、GIF 格式');
+
+    // 体积超过 5MB
+    const bigFile = new File([new Uint8Array(6 * 1024 * 1024)], 'big.png', { type: 'image/png' });
+    const res2 = await uploadAvatar(bigFile);
+    expect(res2.success).toBe(false);
+    expect(res2.error).toBe('头像图片文件大小不能超过 5MB');
+  });
+
+  it('handles successful uploadAvatar with Supabase storage', async () => {
+    useAuthStore.setState({
+      user: { id: 'u123', email: 'user@example.com', user_metadata: {} } as any,
+    });
+
+    const mockPublicUrl = 'https://ikdbwkrqlfksmjgrzchm.supabase.co/storage/v1/object/public/touxiang/u123/avatar.png';
+
+    const mockStorageFrom = vi.fn().mockReturnValue({
+      upload: vi.fn().mockResolvedValue({ data: { path: 'u123/avatar.png' }, error: null }),
+      getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: mockPublicUrl } }),
+    });
+    vi.spyOn(supabase.storage, 'from').mockImplementation(mockStorageFrom as any);
+    vi.spyOn(supabase.auth, 'updateUser').mockResolvedValueOnce({
+      data: {
+        user: {
+          id: 'u123',
+          email: 'user@example.com',
+          user_metadata: { avatar_url: mockPublicUrl },
+        } as any,
+      },
+      error: null,
+    });
+
+    const file = new File(['dummy content'], 'avatar.png', { type: 'image/png' });
+    const { uploadAvatar } = useAuthStore.getState();
+    const res = await uploadAvatar(file);
+
+    expect(res.success).toBe(true);
+    expect(res.avatarUrl).toBe(mockPublicUrl);
+    expect(mockStorageFrom).toHaveBeenCalledWith('touxiang');
+    expect(useAuthStore.getState().user?.user_metadata.avatar_url).toBe(mockPublicUrl);
+  });
+
+  it('handles removeAvatar correctly', async () => {
+    useAuthStore.setState({
+      user: {
+        id: 'u123',
+        email: 'user@example.com',
+        user_metadata: { avatar_url: 'https://example.com/avatar.png' },
+      } as any,
+    });
+
+    vi.spyOn(supabase.auth, 'updateUser').mockResolvedValueOnce({
+      data: {
+        user: {
+          id: 'u123',
+          email: 'user@example.com',
+          user_metadata: { avatar_url: '' },
+        } as any,
+      },
+      error: null,
+    });
+
+    const { removeAvatar } = useAuthStore.getState();
+    const res = await removeAvatar();
+
+    expect(res.success).toBe(true);
+    expect(useAuthStore.getState().user?.user_metadata.avatar_url).toBe('');
+  });
 });

@@ -20,6 +20,8 @@ import {
   FiChevronLeft,
   FiSun,
   FiMoon,
+  FiUploadCloud,
+  FiTrash2,
 } from 'react-icons/fi';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { usePageTransition } from '@/hooks/usePageTransition';
@@ -29,6 +31,7 @@ import AnimatedLogo from '@/components/layout/AnimatedLogo';
 import OAuthButtons from './OAuthButtons';
 import { ProgressSubmitButton, type SubmitButtonStatus } from '@/components/ui/ProgressSubmitButton';
 import { FieldValidationTooltip } from '@/components/composed/FieldValidationTooltip';
+import { UserAvatar } from '@/components/composed/UserAvatar';
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
 
@@ -63,9 +66,12 @@ export default function AuthPage() {
   const clearError = useAuthStore((s) => s.clearError);
   const clearSuccessMessage = useAuthStore((s) => s.clearSuccessMessage);
   const updateProfile = useAuthStore((s) => s.updateProfile);
+  const uploadAvatar = useAuthStore((s) => s.uploadAvatar);
+  const removeAvatar = useAuthStore((s) => s.removeAvatar);
 
   const nickname = usePersonalSettingsStore((s) => s.nickname);
   const customMotto = usePersonalSettingsStore((s) => s.customMotto);
+  const avatar = usePersonalSettingsStore((s) => s.avatar);
 
   const [mode, setMode] = useState<AuthMode>('signin');
   const [email, setEmail] = useState('');
@@ -76,6 +82,11 @@ export default function AuthPage() {
   const [copiedId, setCopiedId] = useState(false);
   const [localValidation, setLocalValidation] = useState<string | null>(null);
   const [submitStatus, setSubmitStatus] = useState<SubmitButtonStatus>('idle');
+
+  // 头像上传与操作状态
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarFeedback, setAvatarFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const avatarFileInputRef = useRef<HTMLInputElement>(null);
 
   // 个人资料编辑状态（在管理账号面板中维护）
   const [profileNickname, setProfileNickname] = useState(
@@ -158,6 +169,37 @@ export default function AuthPage() {
     if (res.success) {
       setProfileSaveSuccess(true);
       setTimeout(() => setProfileSaveSuccess(false), 2500);
+    }
+  };
+
+  // 处理自定义头像上传至 Supabase touxiang 存储桶
+  const handleAvatarUpload = async (file: File) => {
+    setIsUploadingAvatar(true);
+    setAvatarFeedback(null);
+    const res = await uploadAvatar(file);
+    setIsUploadingAvatar(false);
+    if (res.success) {
+      setAvatarFeedback({ type: 'success', message: '头像已成功上传至云端并同步！' });
+      setTimeout(() => setAvatarFeedback(null), 3500);
+    } else {
+      setAvatarFeedback({ type: 'error', message: res.error || '头像上传失败，请稍后重试' });
+      setTimeout(() => setAvatarFeedback(null), 4500);
+    }
+  };
+
+  // 处理重置或移除自定义头像
+  const handleRemoveAvatar = async () => {
+    if (!window.confirm('确定要移除当前自定义头像并恢复默认头像吗？')) return;
+    setIsUploadingAvatar(true);
+    setAvatarFeedback(null);
+    const res = await removeAvatar();
+    setIsUploadingAvatar(false);
+    if (res.success) {
+      setAvatarFeedback({ type: 'success', message: '已恢复默认头像' });
+      setTimeout(() => setAvatarFeedback(null), 3000);
+    } else {
+      setAvatarFeedback({ type: 'error', message: res.error || '重置头像失败' });
+      setTimeout(() => setAvatarFeedback(null), 4000);
     }
   };
 
@@ -306,6 +348,7 @@ export default function AuthPage() {
   // 头像与展示昵称提取
   const userDisplayName = profileNickname.trim() || user?.user_metadata?.nickname || (nickname === '阳光旅人' ? '' : nickname) || '时光守护者';
   const avatarLetter = (userDisplayName.trim().charAt(0) || user?.email?.charAt(0) || 'T').toUpperCase();
+  const userAvatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || (avatar && (avatar.startsWith('http') || avatar.startsWith('data:')) ? avatar : null);
 
   return (
     <div
@@ -409,15 +452,31 @@ export default function AuthPage() {
           >
             {/* 1. 顶部用户卡片：纯净头像与账号基本信息 */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-5 border-b border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0]/70">
-              <div
-                className="flex size-14 sm:size-16 shrink-0 items-center justify-center rounded-2xl text-xl sm:text-2xl font-bold transition-transform"
-                style={{
-                  backgroundColor: `${activeColor}15`,
-                  color: activeColor,
-                  border: `1px solid ${activeColor}30`,
-                }}
-              >
-                {avatarLetter}
+              <div className="flex items-center gap-4">
+                <UserAvatar
+                  avatarUrl={userAvatarUrl}
+                  name={userDisplayName}
+                  size="xl"
+                  editable
+                  isUploading={isUploadingAvatar}
+                  onUpload={handleAvatarUpload}
+                  accentColor={activeColor}
+                  showOnlineIndicator
+                />
+
+                {/* 隐藏的专用文件选择 input，供按钮触发 */}
+                <input
+                  ref={avatarFileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleAvatarUpload(file);
+                    e.target.value = '';
+                  }}
+                  aria-hidden="true"
+                />
               </div>
 
               <div className="min-w-0 flex-1">
@@ -433,6 +492,54 @@ export default function AuthPage() {
                 <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#786e63] mt-1 truncate">
                   {user.email}
                 </p>
+
+                {/* 头像快捷操作行与状态提示 */}
+                <div className="flex flex-wrap items-center gap-2 mt-2.5">
+                  <button
+                    type="button"
+                    onClick={() => avatarFileInputRef.current?.click()}
+                    disabled={isUploadingAvatar}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] dark:hover:bg-white/[0.12] cream:bg-[#eee4d4] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-gray-800 dark:text-gray-200 cream:text-[#26211e] shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <FiUploadCloud className="size-3.5 text-primary-500" />
+                    <span>{isUploadingAvatar ? '正在上传...' : '上传自定义头像'}</span>
+                  </button>
+
+                  {userAvatarUrl && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAvatar}
+                      disabled={isUploadingAvatar}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50"
+                      title="重置为默认文字头像"
+                    >
+                      <FiTrash2 className="size-3.5" />
+                      <span>移除</span>
+                    </button>
+                  )}
+
+                  <span className="text-[11px] text-gray-400 cream:text-[#8a7f72]">
+                    支持 JPG/PNG/WEBP/GIF，最大 5MB
+                  </span>
+                </div>
+
+                {/* 头像上传成功或错误提示 */}
+                {avatarFeedback && (
+                  <div
+                    className={`mt-2 text-xs flex items-center gap-1.5 font-medium ${
+                      avatarFeedback.type === 'success'
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-red-500 dark:text-red-400'
+                    }`}
+                  >
+                    {avatarFeedback.type === 'success' ? (
+                      <FiCheck className="size-3.5" />
+                    ) : (
+                      <FiAlertCircle className="size-3.5" />
+                    )}
+                    <span>{avatarFeedback.message}</span>
+                  </div>
+                )}
               </div>
             </div>
 

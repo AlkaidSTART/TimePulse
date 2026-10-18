@@ -20,6 +20,7 @@ import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useVersionStore } from '@/stores/useVersionStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import { useTranslation } from '@/i18n/useTranslation';
 import { readTodoItems, TODO_STORAGE_EVENT } from '@/features/todo/todoStorage';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,8 @@ export default function WebDock({
   const hasUpdate = useVersionStore((s) => s.hasUpdate);
   const openAboutModal = useVersionStore((s) => s.openAboutModal);
   const user = useAuthStore((s) => s.user);
+  const avatar = usePersonalSettingsStore((s) => s.avatar);
+  const userAvatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || (avatar && (avatar.startsWith('http') || avatar.startsWith('data:')) ? avatar : null);
   const { t } = useTranslation();
 
   const [pendingTodoCount, setPendingTodoCount] = useState(0);
@@ -184,7 +187,15 @@ export default function WebDock({
     {
       id: 'settings',
       title: user ? `个人账号: ${user.user_metadata?.nickname || user.email}` : t('header.settingsTab', '个人设置中心'),
-      icon: <User className="size-full text-neutral-700 dark:text-neutral-200" />,
+      icon: userAvatarUrl ? (
+        <img
+          src={userAvatarUrl}
+          alt="Avatar"
+          className="size-full rounded-xl object-cover ring-1 ring-black/10 dark:ring-white/10"
+        />
+      ) : (
+        <User className="size-full text-neutral-700 dark:text-neutral-200" />
+      ),
       onClick: () => {
         if (view !== 'settings') transitionTo('settings');
       },

@@ -24,6 +24,7 @@ import { useOrientation } from '@/hooks/useOrientation';
 import { useTodoStore } from '@/stores/useTodoStore';
 import { useVersionStore } from '@/stores/useVersionStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import { FiList } from 'react-icons/fi';
 import { throttle, debounce } from '@/utils/performance';
 
@@ -178,6 +179,8 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const { isLandscape, toggleOrientation } = useOrientation();
   const { t, currentLang, changeLanguage } = useTranslation();
   const user = useAuthStore((s) => s.user);
+  const avatar = usePersonalSettingsStore((s) => s.avatar);
+  const userAvatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || (avatar && (avatar.startsWith('http') || avatar.startsWith('data:')) ? avatar : null);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>(() => (view === 'main' ? 'timer' : (view as MobileTab)));
   const [isManageOpen, setIsManageOpen] = useState(false);
@@ -855,7 +858,15 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
                   >
                     <div className="flex items-center gap-2.5">
-                      <FiUser className="size-4 text-emerald-500" />
+                      {userAvatarUrl ? (
+                        <img
+                          src={userAvatarUrl}
+                          alt="Avatar"
+                          className="size-5 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10"
+                        />
+                      ) : (
+                        <FiUser className="size-4 text-emerald-500" />
+                      )}
                       <span>{user ? '账号信息' : '登录 / 注册'}</span>
                     </div>
                     {user ? (
@@ -995,7 +1006,15 @@ export default function Header({ onHeightChange }: HeaderProps) {
             aria-label={t('header.settingsTab', '个人设置')}
             title={t('header.settingsTab', '个人设置')}
           >
-            <FiUser className="size-4.5 sm:size-5" />
+            {userAvatarUrl ? (
+              <img
+                src={userAvatarUrl}
+                alt="Avatar"
+                className="size-6 sm:size-7 rounded-full object-cover ring-1 ring-black/10 dark:ring-white/10"
+              />
+            ) : (
+              <FiUser className="size-4.5 sm:size-5" />
+            )}
             {hasUpdate ? (
               <span className="pointer-events-none absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-amber-500 ring-1.5 ring-white/90 dark:ring-stone-900 cream:ring-white/90 animate-pulse" />
             ) : user ? (

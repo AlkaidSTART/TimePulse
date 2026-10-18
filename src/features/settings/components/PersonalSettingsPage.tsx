@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import {
   FiArrowLeft,
@@ -14,6 +15,8 @@ import {
   FiShield,
   FiCheckCircle,
   FiCheck,
+  FiUploadCloud,
+  FiTrash2,
 } from 'react-icons/fi';
 import { SiWechat } from 'react-icons/si';
 import { LuPalette } from 'react-icons/lu';
@@ -23,6 +26,7 @@ import { useTheme } from '@/app/providers/ThemeProvider';
 import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useVersionStore } from '@/stores/useVersionStore';
+import { UserAvatar } from '@/components/composed/UserAvatar';
 import { CHATGPT_THEME_PRESETS } from '@/constants/colors';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Language } from '@/i18n/types';
@@ -40,7 +44,46 @@ export default function PersonalSettingsPage() {
   const signOut = useAuthStore((s) => s.signOut);
 
   const nickname = usePersonalSettingsStore((s) => s.nickname);
+  const avatar = usePersonalSettingsStore((s) => s.avatar);
   const resetSettings = usePersonalSettingsStore((s) => s.resetSettings);
+  const uploadAvatar = useAuthStore((s) => s.uploadAvatar);
+  const removeAvatar = useAuthStore((s) => s.removeAvatar);
+
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarFeedback, setAvatarFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const settingsFileInputRef = useRef<HTMLInputElement>(null);
+
+  const userDisplayName = user?.user_metadata?.nickname || (nickname === '阳光旅人' ? '' : nickname) || (user?.email ? user.email.split('@')[0] : 'TimePulse 会员');
+  const userAvatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || (avatar && (avatar.startsWith('http') || avatar.startsWith('data:')) ? avatar : null);
+
+  const handleAvatarUpload = async (file: File) => {
+    setIsUploadingAvatar(true);
+    setAvatarFeedback(null);
+    const res = await uploadAvatar(file);
+    setIsUploadingAvatar(false);
+    if (res.success) {
+      setAvatarFeedback({ type: 'success', message: '头像已成功上传至云端并同步！' });
+      setTimeout(() => setAvatarFeedback(null), 3500);
+    } else {
+      setAvatarFeedback({ type: 'error', message: res.error || '头像上传失败，请稍后重试' });
+      setTimeout(() => setAvatarFeedback(null), 4500);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!window.confirm('确定要恢复默认头像吗？')) return;
+    setIsUploadingAvatar(true);
+    setAvatarFeedback(null);
+    const res = await removeAvatar();
+    setIsUploadingAvatar(false);
+    if (res.success) {
+      setAvatarFeedback({ type: 'success', message: '已恢复默认头像' });
+      setTimeout(() => setAvatarFeedback(null), 3000);
+    } else {
+      setAvatarFeedback({ type: 'error', message: res.error || '重置头像失败' });
+      setTimeout(() => setAvatarFeedback(null), 4000);
+    }
+  };
 
   return (
     <div
@@ -101,13 +144,20 @@ export default function PersonalSettingsPage() {
           {user ? (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
-                <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/30 ring-2 ring-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold text-base">
-                  {(user.user_metadata?.nickname || user.email || 'U').slice(0, 1).toUpperCase()}
-                </div>
+                <UserAvatar
+                  avatarUrl={userAvatarUrl}
+                  name={userDisplayName}
+                  size="lg"
+                  editable
+                  isUploading={isUploadingAvatar}
+                  onUpload={handleAvatarUpload}
+                  accentColor={accentColor || '#10A37F'}
+                  showOnlineIndicator
+                />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-sm sm:text-base text-gray-900 dark:text-white cream:text-[#26211e] truncate">
-                      {user.user_metadata?.nickname || 'TimePulse 会员'}
+                      {userDisplayName}
                     </span>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
                       <FiCheckCircle className="size-2.5" /> 已登录
@@ -116,10 +166,37 @@ export default function PersonalSettingsPage() {
                   <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#786e63] truncate mt-0.5">
                     {user.email}
                   </p>
+                  {avatarFeedback && (
+                    <p className={`text-xs mt-1 font-medium ${avatarFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                      {avatarFeedback.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 self-end sm:self-center">
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                <button
+                  type="button"
+                  onClick={() => settingsFileInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                  className="px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-gray-800 dark:text-gray-200 cream:text-[#26211e] shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                  title="上传自定义头像到 Supabase touxiang 存储桶"
+                >
+                  <FiUploadCloud className="size-3.5 text-primary-500" />
+                  <span>{isUploadingAvatar ? '上传中...' : '更换头像'}</span>
+                </button>
+                {userAvatarUrl && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveAvatar}
+                    disabled={isUploadingAvatar}
+                    className="px-2.5 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50"
+                    title="恢复默认文字头像"
+                  >
+                    <FiTrash2 className="size-3.5" />
+                    <span>移除</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => transitionTo('auth')}
@@ -138,13 +215,33 @@ export default function PersonalSettingsPage() {
                   <span>退出</span>
                 </button>
               </div>
+
+              {/* 隐藏的文件输入组件 */}
+              <input
+                ref={settingsFileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleAvatarUpload(file);
+                  e.target.value = '';
+                }}
+                aria-hidden="true"
+              />
             </div>
           ) : (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-black/[0.04] dark:bg-white/[0.08] cream:bg-[#eee4d4] text-gray-600 dark:text-gray-300 cream:text-[#52493f]">
-                  <FiShield className="size-5 text-emerald-500" />
-                </div>
+                <UserAvatar
+                  avatarUrl={userAvatarUrl}
+                  name={userDisplayName}
+                  size="lg"
+                  editable
+                  isUploading={isUploadingAvatar}
+                  onUpload={handleAvatarUpload}
+                  accentColor={accentColor || '#10A37F'}
+                />
                 <div>
                   <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-white cream:text-[#26211e]">
                     登录 / 注册 TimePulse 账号
@@ -152,18 +249,49 @@ export default function PersonalSettingsPage() {
                   <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#786e63] mt-0.5">
                     基于 Supabase BaaS 云端身份认证，数据安全有保障
                   </p>
+                  {avatarFeedback && (
+                    <p className={`text-xs mt-1 font-medium ${avatarFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                      {avatarFeedback.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => transitionTo('auth')}
-                className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-xs transition-opacity hover:opacity-90 self-start sm:self-center"
-                style={{ backgroundColor: accentColor || '#10A37F' }}
-              >
-                <FiLogIn className="size-4" />
-                <span>立即登录 / 注册</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                <button
+                  type="button"
+                  onClick={() => settingsFileInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-gray-800 dark:text-gray-200 cream:text-[#26211e] transition-colors cursor-pointer disabled:opacity-50"
+                  title="上传自定义头像到 Supabase touxiang 存储桶"
+                >
+                  <FiUploadCloud className="size-4 text-primary-500" />
+                  <span>{isUploadingAvatar ? '上传中...' : '上传头像'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => transitionTo('auth')}
+                  className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-xs transition-opacity hover:opacity-90 cursor-pointer"
+                  style={{ backgroundColor: accentColor || '#10A37F' }}
+                >
+                  <FiLogIn className="size-4" />
+                  <span>立即登录 / 注册</span>
+                </button>
+              </div>
+
+              {/* 隐藏的文件输入组件 */}
+              <input
+                ref={settingsFileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleAvatarUpload(file);
+                  e.target.value = '';
+                }}
+                aria-hidden="true"
+              />
             </div>
           )}
         </section>
