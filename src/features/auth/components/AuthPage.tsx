@@ -461,7 +461,7 @@ export default function AuthPage() {
   // 头像与展示昵称提取
   const userDisplayName = profileNickname.trim() || user?.user_metadata?.nickname || (nickname === '阳光旅人' ? '' : nickname) || '时光守护者';
   const avatarLetter = (userDisplayName.trim().charAt(0) || user?.email?.charAt(0) || 'T').toUpperCase();
-  const userAvatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || (avatar && (avatar.startsWith('http') || avatar.startsWith('data:')) ? avatar : null);
+  const userAvatarUrl = getEffectiveAvatarUrl(user, avatar);
 
   return (
     <div

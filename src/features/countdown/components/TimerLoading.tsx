@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 export interface TimerLoadingProps {
   color?: string;
@@ -17,6 +18,7 @@ export default function TimerLoading({
   text,
   dataTestId = 'timer-loading',
 }: TimerLoadingProps) {
+  const { t } = useTranslation();
   const shouldReduceMotion = useReducedMotion();
   const activeColor = color || 'rgb(var(--color-primary))';
 
@@ -24,7 +26,7 @@ export default function TimerLoading({
     <div
       className={`flex flex-col items-center justify-center select-none py-6 min-h-[140px] ${className}`.trim()}
       role="status"
-      aria-label={text || '正在加载时间'}
+      aria-label={text || t('common.loadingTime', '正在加载时间')}
       data-testid={dataTestId}
     >
       <div className="relative flex items-center justify-center w-12 h-12">
