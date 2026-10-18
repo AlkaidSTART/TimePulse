@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { User, Session } from '@supabase/supabase-js';
 import { usePersonalSettingsStore } from './usePersonalSettingsStore';
-import { validateAvatarFile, processAndOptimizeAvatar } from '@/utils/avatar';
+import { validateAvatarFile, processAndOptimizeAvatar, getEffectiveAvatarUrl } from '@/utils/avatar';
 
 type SupabaseClient = typeof import('@/lib/supabase')['supabase'];
 

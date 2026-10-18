@@ -1,23 +1,47 @@
 import { test, expect } from '@playwright/test';
 
 test('inspect cheer quote card', async ({ page }) => {
-  await page.addInitScript(() => {
-    const dummySession = {
-      access_token: 'dummy',
-      refresh_token: 'dummy',
-      expires_in: 3600,
-      token_type: 'bearer',
-      user: {
-        id: 'test-user-id',
-        email: 'test@example.com',
-        app_metadata: {},
-        user_metadata: { nickname: '测试用户' },
-        aud: 'authenticated',
-        created_at: new Date().toISOString(),
-      },
-    };
-    localStorage.setItem('sb-ikdbwkrqlfksmjgrzchm-auth-token', JSON.stringify(dummySession));
+  const dummyUser = {
+    id: 'test-user-id',
+    email: 'test@example.com',
+    aud: 'authenticated',
+    role: 'authenticated',
+    email_confirmed_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    user_metadata: { nickname: '测试用户' },
+    app_metadata: { provider: 'email' },
+  };
+  const dummySession = {
+    access_token: 'fake-jwt-token',
+    refresh_token: 'fake-refresh-token',
+    expires_at: Math.floor(Date.now() / 1000) + 360000,
+    expires_in: 360000,
+    token_type: 'bearer',
+    user: dummyUser,
+  };
+
+  await page.route('https://ikdbwkrqlfksmjgrzchm.supabase.co/auth/v1/**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/user')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(dummyUser),
+      });
+    } else {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(dummySession),
+      });
+    }
   });
+
+  await page.addInitScript((session) => {
+    localStorage.setItem('sb-ikdbwkrqlfksmjgrzchm-auth-token', JSON.stringify(session));
+    localStorage.setItem('timepulse_has_registered', 'true');
+  }, dummySession);
 
   await page.goto('/#cheer');
   await page.waitForTimeout(2000);
@@ -50,13 +74,6 @@ test('inspect cheer quote card', async ({ page }) => {
         fontFamily: window.getComputedStyle(textEffect).fontFamily,
         rect: textEffect.getBoundingClientRect(),
         text: textEffect.textContent,
-        spansCount: textEffect.querySelectorAll('span').length,
-        firstFewSpans: Array.from(textEffect.querySelectorAll('span')).slice(0, 5).map(s => ({
-          text: s.textContent,
-          rect: s.getBoundingClientRect(),
-          className: s.className,
-          style: s.getAttribute('style')
-        }))
       } : null,
       author: author ? {
         clientHeight: author.clientHeight,

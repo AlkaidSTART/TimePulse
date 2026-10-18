@@ -76,8 +76,45 @@ export default function AuthPage() {
   const customMotto = usePersonalSettingsStore((s) => s.customMotto);
   const avatar = usePersonalSettingsStore((s) => s.avatar);
 
-  const [mode, setMode] = useState<AuthMode>('signin');
-  const [email, setEmail] = useState('');
+  // 是否已在本地或当前环境注册过账号（未注册时默认强制注册，禁止切换到登录）
+  const [hasRegistered, setHasRegistered] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    if (useAuthStore.getState().user) return true;
+    try {
+      return localStorage.getItem('timepulse_has_registered') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const [unregisteredNotice, setUnregisteredNotice] = useState<string | null>(null);
+
+  const [mode, setMode] = useState<AuthMode>(() => {
+    if (typeof window === 'undefined') return 'signup';
+    const rawHash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
+    let registered = false;
+    try {
+      registered = localStorage.getItem('timepulse_has_registered') === 'true' || Boolean(useAuthStore.getState().user);
+    } catch {
+      registered = false;
+    }
+
+    if (rawHash === 'forgot') return 'forgot';
+    if (rawHash === 'signup' || rawHash === 'register') return 'signup';
+    if (rawHash === 'login' || rawHash === 'signin') {
+      return registered ? 'signin' : 'signup';
+    }
+    return registered ? 'signin' : 'signup';
+  });
+
+  const [email, setEmail] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    try {
+      return localStorage.getItem('timepulse_registered_email') || '';
+    } catch {
+      return '';
+    }
+  });
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [signUpNickname, setSignUpNickname] = useState('');
@@ -215,19 +252,52 @@ export default function AuthPage() {
   // 监听 URL hash 默认定位到登录或注册
   useEffect(() => {
     const rawHash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
+    let registered = false;
+    try {
+      registered = localStorage.getItem('timepulse_has_registered') === 'true' || Boolean(useAuthStore.getState().user);
+    } catch {
+      registered = false;
+    }
+
     if (rawHash === 'register' || rawHash === 'signup') {
       setMode('signup');
     } else if (rawHash === 'forgot') {
       setMode('forgot');
+    } else if (rawHash === 'login' || rawHash === 'signin') {
+      if (registered) {
+        setMode('signin');
+      } else {
+        setMode('signup');
+        if (typeof window !== 'undefined' && window.location.hash !== '#register') {
+          window.location.hash = '#register';
+        }
+      }
     } else {
-      setMode('signin');
+      setMode(registered ? 'signin' : 'signup');
     }
   }, []);
 
-  // 模式切换时清理错误和消息
-  const handleModeChange = (newMode: AuthMode) => {
+  // 监听已登录用户状态，自动标记已注册
+  useEffect(() => {
+    if (user) {
+      setHasRegistered(true);
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('timepulse_has_registered', 'true');
+          if (user.email) {
+            localStorage.setItem('timepulse_registered_email', user.email);
+          }
+        } catch {}
+      }
+    }
+  }, [user]);
+
+  // 模式切换时清理错误和消息（注册成功切换到登录时可选择保留成功提示）
+  const handleModeChange = (newMode: AuthMode, preserveSuccess = false) => {
     clearError();
-    clearSuccessMessage();
+    if (!preserveSuccess) {
+      clearSuccessMessage();
+    }
     setLocalValidation(null);
     setFieldErrors({});
     setShakingField(null);
@@ -317,27 +387,60 @@ export default function AuthPage() {
 
       if (res.success) {
         setSubmitStatus('success');
+        setHasRegistered(true);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('timepulse_has_registered', 'true');
+            localStorage.setItem('timepulse_registered_email', trimmedEmail);
+          } catch {}
+        }
       } else {
         setSubmitStatus('error');
+        if (
+          res.error?.includes('已被注册') ||
+          res.error?.includes('already registered') ||
+          res.error?.includes('already exists')
+        ) {
+          setHasRegistered(true);
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.setItem('timepulse_has_registered', 'true');
+              localStorage.setItem('timepulse_registered_email', trimmedEmail);
+            } catch {}
+          }
+        }
       }
     } else if (mode === 'signin') {
       setSubmitStatus('loading');
       const res = await signInWithEmail(trimmedEmail, password);
       if (res.success) {
         setSubmitStatus('success');
+        setHasRegistered(true);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('timepulse_has_registered', 'true');
+            localStorage.setItem('timepulse_registered_email', trimmedEmail);
+          } catch {}
+        }
       } else {
         setSubmitStatus('error');
       }
     }
   };
 
-  // 成功状态（包括 border 双向滚动动画播放完成）后触发平滑页面跳转
+  // 成功状态（包括 border 双向滚动动画播放完成）后触发平滑页面跳转或切换至登录
   const handleSuccessComplete = () => {
     if (mode === 'signin') {
       transitionTo('main');
     } else if (mode === 'signup') {
       if (useAuthStore.getState().session) {
         transitionTo('main');
+      } else {
+        // 注册账号完成后，允许并自动切换至登录模式，保留邮箱预填
+        handleModeChange('signin', true);
+        setPassword('');
+        setConfirmPassword('');
+        setSubmitStatus('idle');
       }
     }
   };

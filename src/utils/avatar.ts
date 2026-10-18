@@ -162,3 +162,56 @@ export async function processAndOptimizeAvatar(file: File): Promise<File> {
     img.src = objectUrl;
   });
 }
+
+/**
+ * 智能获取当前用户的最终有效头像 URL
+ * 
+ * 优先级顺序设计：
+ * 1. user.user_metadata.custom_avatar_url：用户显式上传至 touxiang 存储桶的专属云端头像（防止第三方 OAuth 覆盖）
+ * 2. localAvatar 包含 /touxiang/：本地 settings store 中同步记录的云存储头像
+ * 3. user.user_metadata.avatar_url 包含 /touxiang/：云端元数据中记录的存储桶头像
+ * 4. localAvatar 有效图片链接 (http/https/data:)：用户自定义的有效网络/本地图片
+ * 5. user.user_metadata.avatar_url：普通/OAuth 提供的头像（如 Google 头像）
+ * 6. user.user_metadata.picture：Google OAuth 头像备用字段
+ * 7. null：无任何头像图片，回退至纯文本首字母 monogram
+ */
+export function getEffectiveAvatarUrl(
+  user?: { user_metadata?: Record<string, any> } | null,
+  localAvatar?: string | null
+): string | null {
+  const metadata = user?.user_metadata;
+
+  // 1. 用户上传在 touxiang 存储桶的专属头像（最高优先级）
+  if (metadata?.custom_avatar_url && typeof metadata.custom_avatar_url === 'string' && metadata.custom_avatar_url.trim()) {
+    return metadata.custom_avatar_url.trim();
+  }
+
+  // 2. 本地 settings store 中如果已缓存/更新了 touxiang 头像
+  if (localAvatar && typeof localAvatar === 'string' && localAvatar.includes('/touxiang/')) {
+    return localAvatar.trim();
+  }
+
+  // 3. 元数据中的 avatar_url 若是指向 touxiang 存储桶
+  if (metadata?.avatar_url && typeof metadata.avatar_url === 'string' && metadata.avatar_url.includes('/touxiang/')) {
+    return metadata.avatar_url.trim();
+  }
+
+  // 4. 本地设置中的自定义有效网络头像 URL / base64
+  if (
+    localAvatar &&
+    typeof localAvatar === 'string' &&
+    (localAvatar.startsWith('http://') || localAvatar.startsWith('https://') || localAvatar.startsWith('data:'))
+  ) {
+    return localAvatar.trim();
+  }
+
+  // 5. OAuth 第三方登录提供的常规头像
+  if (metadata?.avatar_url && typeof metadata.avatar_url === 'string' && metadata.avatar_url.trim()) {
+    return metadata.avatar_url.trim();
+  }
+  if (metadata?.picture && typeof metadata.picture === 'string' && metadata.picture.trim()) {
+    return metadata.picture.trim();
+  }
+
+  return null;
+}

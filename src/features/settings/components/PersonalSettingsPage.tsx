@@ -64,7 +64,7 @@ export default function PersonalSettingsPage() {
       setIsUploadingAvatar(false);
       setAvatarFeedback({
         type: 'error',
-        message: '云端存储空间仅 5MB，请先登录账号后再上传专属头像',
+        message: t('personalSettings.avatarLoginRequired', '云端存储空间仅 5MB，请先登录账号后再上传专属头像'),
       });
       setTimeout(() => setAvatarFeedback(null), 4500);
       return;
@@ -73,7 +73,7 @@ export default function PersonalSettingsPage() {
     const res = await uploadAvatar(file);
     setIsUploadingAvatar(false);
     if (res.success) {
-      setAvatarFeedback({ type: 'success', message: '头像已自动优化至轻量 WebP 并同步至云端！' });
+      setAvatarFeedback({ type: 'success', message: t('personalSettings.avatarUploadSuccess', '头像已自动优化至轻量 WebP 并同步至云端！') });
       setTimeout(() => setAvatarFeedback(null), 3500);
     } else {
       setAvatarFeedback({ type: 'error', message: res.error || t('personalSettings.avatarUploadFailed', '头像上传失败，请稍后重试') });
@@ -179,9 +179,9 @@ export default function PersonalSettingsPage() {
                   </p>
                   <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[11px] text-gray-500 dark:text-gray-400 cream:text-[#786e63]">
                     <span className="inline-block px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 font-mono text-[10px]">
-                      5MB 配额
+                      {t('personalSettings.quota5MB', '5MB 配额')}
                     </span>
-                    <span>限 JPG/PNG/WEBP · 单图 ≤ 2MB · 自动优化为 256×256 WebP · 覆盖防冗余</span>
+                    <span>{t('personalSettings.avatarSpecs', '限 JPG/PNG/WEBP · 单图 ≤ 2MB · 自动优化为 256×256 WebP · 覆盖防冗余')}</span>
                   </div>
                   {avatarFeedback && (
                     <p className={`text-xs mt-1.5 font-medium ${avatarFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
@@ -197,7 +197,7 @@ export default function PersonalSettingsPage() {
                   onClick={() => settingsFileInputRef.current?.click()}
                   disabled={isUploadingAvatar}
                   className="px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-gray-800 dark:text-gray-200 cream:text-[#26211e] shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-                  title="上传自定义头像（自动压缩并覆盖旧头像）"
+                  title={t('personalSettings.changeAvatarTitle', '上传自定义头像（自动压缩并覆盖旧头像）')}
                 >
                   <FiUploadCloud className="size-3.5 text-primary-500" />
                   <span>{isUploadingAvatar ? t('personalSettings.uploading', '上传中...') : t('personalSettings.changeAvatar', '更换头像')}</span>
@@ -259,7 +259,7 @@ export default function PersonalSettingsPage() {
                   onUpload={() => {
                     setAvatarFeedback({
                       type: 'error',
-                      message: '云端存储空间仅 5MB，请先登录账号后再上传专属头像',
+                      message: t('personalSettings.avatarLoginRequired', '云端存储空间仅 5MB，请先登录账号后再上传专属头像'),
                     });
                     setTimeout(() => transitionTo('auth'), 800);
                   }}
@@ -273,7 +273,7 @@ export default function PersonalSettingsPage() {
                     {t('personalSettings.signInPromptDesc', '基于 Supabase BaaS 云端身份认证，数据安全有保障')}
                   </p>
                   <p className="text-[11px] text-gray-400 dark:text-gray-500 cream:text-[#8a7f72] mt-0.5">
-                    登录后可上传个人专属云端头像（配额 5MB，单图≤2MB，覆盖防冗余）
+                    {t('personalSettings.avatarSpecsTip', '登录后可上传个人专属云端头像（配额 5MB，单图≤2MB，覆盖防冗余）')}
                   </p>
                   {avatarFeedback && (
                     <p className={`text-xs mt-1.5 font-medium ${avatarFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
@@ -289,13 +289,13 @@ export default function PersonalSettingsPage() {
                   onClick={() => {
                     setAvatarFeedback({
                       type: 'error',
-                      message: '云端存储空间仅 5MB，请先登录账号后再上传专属头像',
+                      message: t('personalSettings.avatarLoginRequired', '云端存储空间仅 5MB，请先登录账号后再上传专属头像'),
                     });
                     setTimeout(() => transitionTo('auth'), 800);
                   }}
                   disabled={isUploadingAvatar}
                   className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-gray-800 dark:text-gray-200 cream:text-[#26211e] transition-colors cursor-pointer disabled:opacity-50"
-                  title="登录后上传自定义头像到 Supabase touxiang 存储桶"
+                  title={t('personalSettings.uploadAvatarTitle', '登录后上传自定义头像到 Supabase touxiang 存储桶')}
                 >
                   <FiUploadCloud className="size-4 text-primary-500" />
                   <span>{isUploadingAvatar ? t('personalSettings.uploading', '上传中...') : t('personalSettings.uploadAvatar', '上传头像')}</span>

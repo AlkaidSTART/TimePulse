@@ -107,7 +107,7 @@ export default function ThemeLibraryModal({
             type="button"
             onClick={onClose}
             className="size-7 inline-flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white cursor-pointer transition-colors"
-            aria-label="关闭"
+            aria-label={t('common.close', '关闭')}
           >
             <FiX className="size-4" />
           </button>
@@ -115,7 +115,7 @@ export default function ThemeLibraryModal({
       )}
 
       {/* 色彩列表 */}
-      <div className="flex flex-col gap-1 py-1" role="listbox" aria-label="主题配色列表">
+      <div className="flex flex-col gap-1 py-1" role="listbox" aria-label={t('theme.colorListAria', '主题配色列表')}>
         {CHATGPT_THEME_PRESETS.map((preset) => {
           const isSelected =
             !isCustomOpen &&
@@ -225,7 +225,7 @@ export default function ThemeLibraryModal({
               {/* 常用预设快捷色点 */}
               <div>
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 mb-1.5 font-medium">
-                  推荐搭配色
+                  {t('theme.recommendedColors', '推荐搭配色')}
                 </p>
                 <div className="grid grid-cols-5 gap-2 pt-0.5">
                   {PRESET_COLORS.map((color) => (

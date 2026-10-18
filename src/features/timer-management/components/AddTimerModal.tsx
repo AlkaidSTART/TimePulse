@@ -98,8 +98,9 @@ export default function AddTimerModal({
   // 选择节假日
   const handleSelectHoliday = (holiday: Holiday) => {
     const date = new Date(holiday.date);
+    const localizedName = getLocalizedHolidayName(holiday.name, currentLang);
     setFormData({
-      name: holiday.name,
+      name: localizedName,
       targetDate: date.toISOString().slice(0, 10),
       targetTime: date.toTimeString().slice(0, 5),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -488,7 +489,7 @@ export default function AddTimerModal({
                               data-insightflare-event="holiday_select"
                               data-insightflare-event-holiday={holiday.name}
                             >
-                              <span>{holiday.name}</span>
+                              <span>{getLocalizedHolidayName(holiday.name, currentLang)}</span>
                               <span className="w-4 h-4 rounded-full" style={{ backgroundColor: holiday.color }}></span>
                             </button>
                           ))}
