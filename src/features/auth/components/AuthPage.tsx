@@ -1,7 +1,6 @@
 import { useState, useId, useEffect, useMemo, type FormEvent, type CSSProperties } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
-  FiArrowLeft,
   FiMail,
   FiLock,
   FiUser,
@@ -14,7 +13,6 @@ import {
   FiLogOut,
   FiCopy,
   FiShield,
-  FiClock,
   FiCheckCircle,
   FiZap,
   FiSettings,
@@ -23,7 +21,6 @@ import {
   FiSun,
   FiMoon,
 } from 'react-icons/fi';
-import { LuSparkles, LuSmile } from 'react-icons/lu';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { usePageTransition } from '@/hooks/usePageTransition';
 import { useTheme } from '@/app/providers/ThemeProvider';
@@ -48,25 +45,6 @@ function getPasswordStrength(pwd: string): { score: number; label: string; color
   if (score === 3) return { score: 3, label: '良好', color: '#34d399' };
   return { score: 4, label: '安全', color: '#10b981' };
 }
-
-// 亮点特色介绍
-const SHOWCASE_FEATURES = [
-  {
-    icon: FiClock,
-    title: '极简禅意时钟与番茄钟',
-    desc: '正倒计时、番茄工作法、翻页时钟与沉浸声景白噪音',
-  },
-  {
-    icon: FiZap,
-    title: '全端数据秒级云同频',
-    desc: '基于 Supabase BaaS，跨设备自动加密同步，换端不掉线',
-  },
-  {
-    icon: LuSparkles,
-    title: '温暖打气与今日待办',
-    desc: '精选治愈哲思灵感寄语，灵动色彩与每日专注清单',
-  },
-] as const;
 
 export default function AuthPage() {
   const shouldReduceMotion = useReducedMotion();
@@ -109,30 +87,6 @@ export default function AuthPage() {
 
   // 聚焦状态高亮控制
   const [focusedField, setFocusedField] = useState<string | null>(null);
-
-  // 实时钟表与时光问候（增强时光脉搏意境）
-  const [currentTime, setCurrentTime] = useState(() => new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const timeGreeting = useMemo(() => {
-    const hour = currentTime.getHours();
-    if (hour >= 5 && hour < 11) {
-      return { label: '清晨破晓', desc: '迎着晨光，开启充实专注的一天', tag: '早安' };
-    }
-    if (hour >= 11 && hour < 14) {
-      return { label: '正午从容', desc: '小憩片刻，给心灵注入澄澈力量', tag: '午安' };
-    }
-    if (hour >= 14 && hour < 18) {
-      return { label: '午后沉浸', desc: '心无旁骛，在时间的河流中前行', tag: '专注' };
-    }
-    if (hour >= 18 && hour < 22) {
-      return { label: '晚霞暮色', desc: '归拢思绪，回顾今日时光与收获', tag: '晚安' };
-    }
-    return { label: '静谧深夜', desc: '万籁俱寂，愿今晚的专注带来宁静', tag: '夜阑' };
-  }, [currentTime]);
 
   const emailInputId = useId();
   const passwordInputId = useId();
@@ -509,121 +463,19 @@ export default function AuthPage() {
           </motion.div>
         ) : (
           /* =================================================== */
-          /* 未登录状态：顶级现代设计（桌面端双栏展示，移动端自适应） */
+          /* 未登录状态：登录 / 注册 / 找回密码 表单卡片 */
           /* =================================================== */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-12 items-center">
-            
-            {/* 桌面端左侧：品牌意境、实时禅意时钟与价值亮点展台 */}
-            <motion.div
-              initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -25 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.45, ease: 'easeOut' }}
-              className="hidden lg:flex lg:col-span-5 xl:col-span-5 flex-col justify-between p-8 xl:p-9 rounded-3xl bg-white/40 dark:bg-white/[0.04] cream:bg-white/60 border border-black/[0.06] dark:border-white/10 backdrop-blur-2xl shadow-xl shadow-black/5 dark:shadow-black/20 min-h-[580px] relative overflow-hidden"
-            >
-              {/* 装饰渐变光晕 */}
-              <div
-                className="absolute -top-16 -right-16 size-48 rounded-full blur-3xl opacity-25 pointer-events-none"
-                style={{ backgroundColor: activeColor }}
-              />
-
-              {/* 顶部标题标语 */}
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/[0.03] dark:bg-white/[0.06] text-xs font-medium text-gray-700 dark:text-gray-300">
-                  <LuSparkles className="size-3.5 text-amber-500" />
-                  <span>极简自律 · 专注空间</span>
-                </div>
-                <h2 className="text-2xl xl:text-3xl font-extrabold tracking-tight text-gray-950 dark:text-white leading-snug">
-                  掌控时光脉搏，<br />
-                  重拾内心的专注与平静。
-                </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                  专为深度思考、番茄工作法与身心平衡量身打造的时光伴侣。
-                </p>
-              </div>
-
-              {/* 动态实时禅意时钟卡片（让整个页面充满生命脉动） */}
-              <div className="my-6 p-4 rounded-2xl bg-white/70 dark:bg-black/30 cream:bg-white/80 border border-black/[0.05] dark:border-white/10 backdrop-blur-md shadow-xs">
-                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pb-2 border-b border-black/[0.05] dark:border-white/[0.08]">
-                  <div className="flex items-center gap-1.5 font-medium">
-                    <FiClock className="size-3.5 text-emerald-500" />
-                    <span>时光此刻 · {timeGreeting.label}</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                    {timeGreeting.tag}
-                  </span>
-                </div>
-
-                <div className="pt-3 pb-1 flex items-baseline justify-between">
-                  <span className="font-mono text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-                    {currentTime.toLocaleTimeString('zh-CN', { hour12: false })}
-                  </span>
-                  <span className="text-[11px] text-gray-400 font-medium">
-                    {currentTime.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })}
-                  </span>
-                </div>
-
-                <p className="text-[11px] text-gray-500 dark:text-gray-400 italic pt-1">
-                  “{timeGreeting.desc}”
-                </p>
-              </div>
-
-              {/* 核心亮点功能列表 */}
-              <div className="space-y-3">
-                {SHOWCASE_FEATURES.map((feature, idx) => {
-                  const Icon = feature.icon;
-                  return (
-                    <motion.div
-                      key={feature.title}
-                      initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.08 * (idx + 1), duration: 0.3 }}
-                      className="flex items-start gap-3 p-2.5 rounded-xl bg-white/40 dark:bg-white/[0.02] border border-black/[0.03] dark:border-white/[0.04]"
-                    >
-                      <div
-                        className="flex size-8 shrink-0 items-center justify-center rounded-lg mt-0.5"
-                        style={{
-                          backgroundColor: `${activeColor}15`,
-                          color: activeColor,
-                        }}
-                      >
-                        <Icon className="size-4" />
-                      </div>
-                      <div className="space-y-0.5 min-w-0">
-                        <div className="text-xs font-semibold text-gray-900 dark:text-gray-100">
-                          {feature.title}
-                        </div>
-                        <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
-                          {feature.desc}
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-
-              {/* 底部禅意物语 */}
-              <div className="pt-4 mt-4 border-t border-black/[0.05] dark:border-white/[0.08] flex items-center justify-between text-[11px] text-gray-400 dark:text-gray-500">
-                <span className="italic">生活不在别处，脚下即是前方。</span>
-                <span className="flex items-center gap-1 font-mono text-[10px]">
-                  <span className="size-1.5 rounded-full bg-emerald-500" />
-                  云端在线
-                </span>
-              </div>
-            </motion.div>
-
-            {/* 右侧表单主卡片：登录 / 注册 / 找回密码 */}
-            {/* 右侧表单主卡片：登录 / 注册 / 找回密码 */}
-            <motion.div
-              layout="position"
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: shouldReduceMotion ? 0 : 0.4,
-                ease: 'easeOut',
-                layout: { duration: 0.3, ease: [0.25, 1, 0.5, 1] },
-              }}
-              className="col-span-12 lg:col-span-7 xl:col-span-7 w-full max-w-lg mx-auto rounded-3xl border border-black/[0.08] dark:border-white/10 cream:border-amber-900/10 bg-white/85 dark:bg-zinc-900/85 cream:bg-[#fcf9f2]/90 p-5 sm:p-7 md:p-9 backdrop-blur-2xl shadow-2xl shadow-black/5 dark:shadow-black/30 relative overflow-hidden"
-            >
+          <motion.div
+            layout="position"
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: shouldReduceMotion ? 0 : 0.4,
+              ease: 'easeOut',
+              layout: { duration: 0.3, ease: [0.25, 1, 0.5, 1] },
+            }}
+            className="w-full max-w-lg mx-auto rounded-3xl border border-black/[0.08] dark:border-white/10 cream:border-amber-900/10 bg-white/85 dark:bg-zinc-900/85 cream:bg-[#fcf9f2]/90 p-5 sm:p-7 md:p-9 backdrop-blur-2xl shadow-2xl shadow-black/5 dark:shadow-black/30 relative overflow-hidden"
+          >
 
               <div className="space-y-4 sm:space-y-5">
                 {/* 标题与欢迎语 */}
@@ -1049,7 +901,6 @@ export default function AuthPage() {
                 </div>
               </div>
             </motion.div>
-          </div>
         )}
       </main>
 
