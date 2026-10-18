@@ -8,13 +8,6 @@ if (!fs.existsSync(outDir)) {
   fs.mkdirSync(outDir, { recursive: true });
 }
 
-// Clean old files in docs/screenshots
-for (const file of fs.readdirSync(outDir)) {
-  if (file.endsWith('.png')) {
-    fs.unlinkSync(path.join(outDir, file));
-  }
-}
-
 const mockUser = {
   id: 'e8a93cb2-9382-414f-b648-932f94ca2e32',
   aud: 'authenticated',
@@ -41,7 +34,6 @@ const mockSession = {
 };
 
 async function setupContextMocking(context, isAuthenticated = true) {
-  // Mock external supabase endpoints to keep screenshots clean from network errors
   await context.route('https://*.supabase.co/**', async (route) => {
     const url = route.request().url();
     if (url.includes('/auth/v1/user') || url.includes('/auth/v1/token')) {
@@ -74,9 +66,10 @@ async function setupContextMocking(context, isAuthenticated = true) {
         contentType: 'application/json',
         body: JSON.stringify([
           {
-            content: '心怀热爱，奔赴每一个灿烂的日子。',
+            text: '心怀热爱，奔赴每一个灿烂的日子。',
             author: 'TimePulse',
             source: '每日时光寄语',
+            category: 'life',
           },
         ]),
       });
@@ -86,6 +79,14 @@ async function setupContextMocking(context, isAuthenticated = true) {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify([]),
+    });
+  });
+
+  await context.route('https://insight.ravelloh.com/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/javascript',
+      body: 'console.log("Mock analytics loaded");',
     });
   });
 
@@ -99,12 +100,12 @@ async function setupContextMocking(context, isAuthenticated = true) {
 }
 
 async function run() {
-  console.log('Starting preview server for docs screenshot capture...');
+  console.log('Starting preview server for docs screenshot capture on port 4174...');
   let previewServer;
   try {
     previewServer = await preview({ preview: { port: 4174 } });
   } catch (err) {
-    console.log('Preview server might already be active:', err.message);
+    console.log('Preview server setup note:', err.message);
   }
 
   const browser = await chromium.launch();
@@ -119,14 +120,22 @@ async function run() {
   // Seed standard demo data into storage
   {
     const initPage = await desktopContext.newPage();
-    await initPage.goto('http://127.0.0.1:4174/#main', { waitUntil: 'networkidle' });
-    await initPage.waitForTimeout(500);
+    await initPage.goto('http://127.0.0.1:4174/#main', { waitUntil: 'domcontentloaded' });
+    await initPage.waitForTimeout(600);
 
     await initPage.evaluate(async () => {
-      // 1. IndexedDB Timers
-      const req = indexedDB.open('TimePulseDB', 2);
-      const db = await new Promise((resolve) => {
+      // 1. IndexedDB Timers (DATABASE_VERSION = 3)
+      const req = indexedDB.open('TimePulseDB', 3);
+      const db = await new Promise((resolve, reject) => {
         req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+        req.onupgradeneeded = () => {
+          const d = req.result;
+          if (!d.objectStoreNames.contains('custom_backgrounds')) d.createObjectStore('custom_backgrounds', { keyPath: 'id' });
+          if (!d.objectStoreNames.contains('timers')) d.createObjectStore('timers', { keyPath: 'id' });
+          if (!d.objectStoreNames.contains('state')) d.createObjectStore('state');
+          if (!d.objectStoreNames.contains('todos')) d.createObjectStore('todos', { keyPath: 'id' });
+        };
       });
       const tx = db.transaction(['timers', 'state'], 'readwrite');
       const timerCountdown = {
@@ -195,6 +204,18 @@ async function run() {
         cheerCount: 42,
       };
       localStorage.setItem('timepulse_personal_settings_v1', JSON.stringify(settings));
+
+      // 4. Cached Quotes
+      const sampleQuotes = [
+        {
+          text: '心怀热爱，奔赴每一个灿烂的日子。',
+          author: 'TimePulse',
+          source: '每日时光寄语',
+          category: 'life',
+        },
+      ];
+      localStorage.setItem('timepulse_cached_quotes_v1', JSON.stringify(sampleQuotes));
+      localStorage.setItem('timepulse_cached_quotes_ts_v1', String(Date.now()));
     });
 
     await initPage.close();
@@ -204,8 +225,8 @@ async function run() {
   console.log('Capturing 01-cheer-greeting.png...');
   {
     const page = await desktopContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#cheer', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
+    await page.goto('http://127.0.0.1:4174/#cheer', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(outDir, '01-cheer-greeting.png') });
     await page.close();
   }
@@ -214,8 +235,8 @@ async function run() {
   console.log('Capturing 02-timer-countdown.png...');
   {
     const page = await desktopContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
+    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(outDir, '02-timer-countdown.png') });
     await page.close();
   }
@@ -224,27 +245,29 @@ async function run() {
   console.log('Capturing 03-timer-short-pomodoro.png...');
   {
     const page = await desktopContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'networkidle' });
+    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(300);
     await page.evaluate(async () => {
-      const req = indexedDB.open('TimePulseDB', 2);
-      const db = await new Promise((resolve) => {
+      const req = indexedDB.open('TimePulseDB', 3);
+      const db = await new Promise((resolve, reject) => {
         req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
       });
       const tx = db.transaction(['state'], 'readwrite');
       tx.objectStore('state').put('countdown-pomodoro', 'activeTimerId');
       await new Promise((res) => { tx.oncomplete = res; });
       localStorage.setItem('activeTimerId', 'countdown-pomodoro');
     });
-    await page.reload({ waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(outDir, '03-timer-short-pomodoro.png') });
 
     // Restore countdown-newyear as default active
     await page.evaluate(async () => {
-      const req = indexedDB.open('TimePulseDB', 2);
-      const db = await new Promise((resolve) => {
+      const req = indexedDB.open('TimePulseDB', 3);
+      const db = await new Promise((resolve, reject) => {
         req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
       });
       const tx = db.transaction(['state'], 'readwrite');
       tx.objectStore('state').put('countdown-newyear', 'activeTimerId');
@@ -258,8 +281,8 @@ async function run() {
   console.log('Capturing 04-todo-checklist.png...');
   {
     const page = await desktopContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#todo', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
+    await page.goto('http://127.0.0.1:4174/#todo', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(outDir, '04-todo-checklist.png') });
     await page.close();
   }
@@ -268,8 +291,8 @@ async function run() {
   console.log('Capturing 05-personal-settings.png...');
   {
     const page = await desktopContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#settings', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
+    await page.goto('http://127.0.0.1:4174/#settings', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(outDir, '05-personal-settings.png') });
     await page.close();
   }
@@ -278,11 +301,11 @@ async function run() {
   console.log('Capturing 06-modal-add-timer.png...');
   {
     const page = await desktopContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'networkidle' });
+    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(800);
     const addBtn = page.locator('[data-insightflare-event="timer_create_open"]').first();
     await addBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(800);
     await page.screenshot({ path: path.join(outDir, '06-modal-add-timer.png') });
     await page.close();
   }
@@ -291,11 +314,11 @@ async function run() {
   console.log('Capturing 07-modal-background.png...');
   {
     const page = await desktopContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'networkidle' });
+    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(800);
     const bgBtn = page.locator('[data-insightflare-event="background_open"]').first();
     await bgBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(800);
     await page.screenshot({ path: path.join(outDir, '07-modal-background.png') });
     await page.close();
   }
@@ -304,11 +327,11 @@ async function run() {
   console.log('Capturing 08-modal-share.png...');
   {
     const page = await desktopContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'networkidle' });
+    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(800);
     const shareBtn = page.locator('[data-insightflare-event="share_open"]').first();
     await shareBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(800);
     await page.screenshot({ path: path.join(outDir, '08-modal-share.png') });
     await page.close();
   }
@@ -317,8 +340,8 @@ async function run() {
   console.log('Capturing 09-fullscreen-zen.png...');
   {
     const page = await desktopContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#cheer', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
+    await page.goto('http://127.0.0.1:4174/#cheer', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1000);
     const fullscreenBtn = page.locator('[data-insightflare-event="fullscreen_toggle"]').first();
     await fullscreenBtn.click();
     await page.waitForTimeout(4500);
@@ -336,8 +359,8 @@ async function run() {
     });
     await setupContextMocking(mobileContext, true);
     const page = await mobileContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
+    await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(outDir, '10-mobile-responsive.png') });
     await page.close();
     await mobileContext.close();
@@ -353,8 +376,8 @@ async function run() {
     });
     await setupContextMocking(unauthContext, false);
     const page = await unauthContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#register', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
+    await page.goto('http://127.0.0.1:4174/#register', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(outDir, '11-auth-register.png') });
     await page.close();
     await unauthContext.close();
@@ -364,8 +387,12 @@ async function run() {
   console.log('Capturing 12-auth-cloud-sync.png...');
   {
     const page = await desktopContext.newPage();
-    await page.goto('http://127.0.0.1:4174/#auth', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1500);
+    await page.goto('http://127.0.0.1:4174/#settings', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1000);
+    await page.evaluate(() => {
+      window.location.hash = '#auth';
+    });
+    await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(outDir, '12-auth-cloud-sync.png') });
     await page.close();
   }
