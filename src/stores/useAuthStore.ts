@@ -3,10 +3,26 @@ import type { User, Session } from '@supabase/supabase-js';
 import { usePersonalSettingsStore } from './usePersonalSettingsStore';
 import { validateAvatarFile, processAndOptimizeAvatar, getEffectiveAvatarUrl } from '@/utils/avatar';
 import { openExternalUrl } from '@/utils/browser';
+import { isTauriRuntime } from '@/services/db/platform';
 
 type SupabaseClient = typeof import('@/lib/supabase')['supabase'];
 
 export type OAuthProvider = 'google' | 'github';
+
+export const TAURI_CUSTOM_SCHEME = 'timepulse';
+export const TAURI_AUTH_CALLBACK_URL = `${TAURI_CUSTOM_SCHEME}://auth/callback`;
+
+/**
+ * 根据运行环境获取 OAuth 授权回调地址：
+ * - 原生客户端（Tauri）：优先使用环境变量自定义地址，默认使用系统协议 timepulse://auth/callback
+ * - Web 端：使用当前页面的 window.location.origin
+ */
+export function getOAuthRedirectUrl(): string | undefined {
+  if (isTauriRuntime()) {
+    return import.meta.env.VITE_AUTH_REDIRECT_URL || TAURI_AUTH_CALLBACK_URL;
+  }
+  return typeof window !== 'undefined' ? window.location.origin : undefined;
+}
 
 let supabaseClientPromise: Promise<SupabaseClient> | null = null;
 
@@ -85,6 +101,7 @@ export interface AuthState {
   initialize: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signInWithOAuth: (provider: OAuthProvider) => Promise<{ success: boolean; error?: string }>;
+  handleOAuthCallback: (url: string) => Promise<{ success: boolean; error?: string }>;
   signUpWithEmail: (
     email: string,
     password: string,
@@ -310,7 +327,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null, successMessage: null });
     try {
       const supabase = await getSupabaseClient();
-      const redirectTo = typeof window !== 'undefined' ? window.location.origin : undefined;
+      const redirectTo = getOAuthRedirectUrl();
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo, skipBrowserRedirect: true },
@@ -343,10 +360,101 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // 新开独立浏览器标签页（Web 端）或唤起系统默认浏览器（Tauri 桌面端）辅助登录，
         // 避免在应用/WebView 内部直接跳转导致页面丢失或被 Google 403 拦截。
         await openExternalUrl(url);
-        set({ isLoading: false, successMessage: '已在浏览器中打开授权页，请在浏览器中完成登录' });
+        const successMessage = isTauriRuntime()
+          ? '已在浏览器中打开授权页，完成后将自动返回应用'
+          : '已在浏览器中打开授权页，请在浏览器中完成登录';
+        set({ isLoading: false, successMessage });
       }
 
       return { success: true };
+    } catch (err) {
+      const formatted = formatAuthError(err);
+      set({ isLoading: false, error: formatted });
+      return { success: false, error: formatted };
+    }
+  },
+
+  handleOAuthCallback: async (url) => {
+    if (!url) return { success: false, error: '无效的回调链接' };
+
+    set({ isLoading: true, error: null, successMessage: null });
+    try {
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(url);
+      } catch {
+        const error = '无法解析授权回调地址';
+        set({ isLoading: false, error });
+        return { success: false, error };
+      }
+
+      const searchParams = parsedUrl.searchParams;
+      const hashParams = new URLSearchParams(parsedUrl.hash.replace(/^#/, ''));
+      const getParam = (key: string) => searchParams.get(key) || hashParams.get(key);
+
+      const errorParam = getParam('error');
+      const errorDescription = getParam('error_description');
+      if (errorParam || errorDescription) {
+        const formatted = formatAuthError(errorDescription || errorParam || '第三方授权失败');
+        set({ isLoading: false, error: formatted });
+        return { success: false, error: formatted };
+      }
+
+      const supabase = await getSupabaseClient();
+      const code = getParam('code');
+      const accessToken = getParam('access_token');
+      const refreshToken = getParam('refresh_token');
+
+      // 1. 处理 PKCE 模式（带有 code 授权码）
+      if (code) {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          const formatted = formatAuthError(error);
+          set({ isLoading: false, error: formatted });
+          return { success: false, error: formatted };
+        }
+        if (data.session) {
+          set({
+            session: data.session,
+            user: data.user,
+            isLoading: false,
+            error: null,
+            successMessage: '登录成功',
+            isAuthModalOpen: false,
+          });
+          await syncUserCloudProfile(data.user, supabase, (u) => set({ user: u }));
+          return { success: true };
+        }
+      }
+
+      // 2. 处理 Implicit 模式（带有 access_token 与 refresh_token）
+      if (accessToken && refreshToken) {
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (error) {
+          const formatted = formatAuthError(error);
+          set({ isLoading: false, error: formatted });
+          return { success: false, error: formatted };
+        }
+        if (data.session) {
+          set({
+            session: data.session,
+            user: data.user,
+            isLoading: false,
+            error: null,
+            successMessage: '登录成功',
+            isAuthModalOpen: false,
+          });
+          await syncUserCloudProfile(data.user, supabase, (u) => set({ user: u }));
+          return { success: true };
+        }
+      }
+
+      const formatted = '授权回调中未包含有效登录凭证';
+      set({ isLoading: false, error: formatted });
+      return { success: false, error: formatted };
     } catch (err) {
       const formatted = formatAuthError(err);
       set({ isLoading: false, error: formatted });

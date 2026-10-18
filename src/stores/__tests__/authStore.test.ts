@@ -312,4 +312,67 @@ describe('useAuthStore', () => {
     expect(mockStorageFrom).toHaveBeenCalledWith('touxiang');
     expect(mockRemove).toHaveBeenCalledWith(['u123/avatar.webp']);
   });
+
+  describe('OAuth Deep Link & Redirect handling', () => {
+    it('handleOAuthCallback exchanges PKCE code for session', async () => {
+      const mockSession = { user: { id: 'user_pkce', email: 'pkce@example.com' } };
+      const exchangeSpy = vi.spyOn(supabase.auth, 'exchangeCodeForSession').mockResolvedValueOnce({
+        data: { session: mockSession as any, user: mockSession.user as any },
+        error: null,
+      });
+
+      const res = await useAuthStore
+        .getState()
+        .handleOAuthCallback('timepulse://auth/callback?code=test_auth_code_123');
+
+      expect(res.success).toBe(true);
+      expect(exchangeSpy).toHaveBeenCalledWith('test_auth_code_123');
+      expect(useAuthStore.getState().session).toBe(mockSession);
+      expect(useAuthStore.getState().user).toBe(mockSession.user);
+      expect(useAuthStore.getState().isAuthModalOpen).toBe(false);
+      expect(useAuthStore.getState().successMessage).toBe('登录成功');
+    });
+
+    it('handleOAuthCallback sets session from implicit hash tokens', async () => {
+      const mockSession = { user: { id: 'user_implicit', email: 'implicit@example.com' } };
+      const setSessionSpy = vi.spyOn(supabase.auth, 'setSession').mockResolvedValueOnce({
+        data: { session: mockSession as any, user: mockSession.user as any },
+        error: null,
+      });
+
+      const res = await useAuthStore
+        .getState()
+        .handleOAuthCallback(
+          'timepulse://auth/callback#access_token=access_123&refresh_token=refresh_456&token_type=bearer'
+        );
+
+      expect(res.success).toBe(true);
+      expect(setSessionSpy).toHaveBeenCalledWith({
+        access_token: 'access_123',
+        refresh_token: 'refresh_456',
+      });
+      expect(useAuthStore.getState().session).toBe(mockSession);
+      expect(useAuthStore.getState().user).toBe(mockSession.user);
+    });
+
+    it('handleOAuthCallback sets error when callback contains error params', async () => {
+      const res = await useAuthStore
+        .getState()
+        .handleOAuthCallback(
+          'timepulse://auth/callback?error=access_denied&error_description=User+cancelled'
+        );
+
+      expect(res.success).toBe(false);
+      expect(useAuthStore.getState().error).toBe('User cancelled');
+    });
+
+    it('handleOAuthCallback returns error when callback lacks tokens or code', async () => {
+      const res = await useAuthStore
+        .getState()
+        .handleOAuthCallback('timepulse://auth/callback');
+
+      expect(res.success).toBe(false);
+      expect(useAuthStore.getState().error).toBe('授权回调中未包含有效登录凭证');
+    });
+  });
 });
