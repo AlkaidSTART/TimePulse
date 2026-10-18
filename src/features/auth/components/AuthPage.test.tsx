@@ -34,7 +34,7 @@ describe('AuthPage component', () => {
     renderComponent();
 
     expect(screen.getByRole('heading', { name: '登录 TimePulse' })).toBeInTheDocument();
-    expect(screen.getByText('Supabase BaaS 驱动')).toBeInTheDocument();
+    expect(screen.getByText('TLS 加密认证')).toBeInTheDocument();
     expect(screen.getByLabelText('电子邮箱地址')).toBeInTheDocument();
     expect(screen.getByLabelText('登录密码')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '立即登录' })).toBeInTheDocument();

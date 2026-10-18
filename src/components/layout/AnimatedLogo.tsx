@@ -8,7 +8,7 @@ type AnimatedLogoProps = {
   color?: string;
   /** 兼容旧的 accentColor 属性名 */
   accentColor?: string;
-  size?: 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
   onClick?: (e: ReactMouseEvent<HTMLHeadingElement>) => void;
   onLinkClick?: (e: ReactMouseEvent<HTMLAnchorElement>) => void;
@@ -60,7 +60,7 @@ export default function AnimatedLogo({
     isHoveredRef.current = false;
   };
 
-  const sizeClass = size === 'md' ? 'text-lg' : 'text-xl';
+  const sizeClass = size === 'sm' ? 'text-base' : size === 'md' ? 'text-lg' : 'text-xl';
 
   return (
     <h1
