@@ -81,6 +81,7 @@ export interface AuthState {
   ) => Promise<{ success: boolean; message?: string; error?: string; session?: Session | null }>;
   signOut: () => Promise<{ success: boolean; error?: string }>;
   resetPassword: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  updateProfile: (profile: { nickname?: string; customMotto?: string }) => Promise<{ success: boolean; error?: string }>;
   clearError: () => void;
   clearSuccessMessage: () => void;
   setError: (err: string | null) => void;
@@ -119,7 +120,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isInitialized: true,
       });
 
-      // 同步昵称（若本地未设置且云端有用户昵称）
+      // 同步昵称与签名（若云端有对应元数据）
       if (user?.user_metadata?.nickname) {
         const currentNickname = usePersonalSettingsStore.getState().nickname;
         if (!currentNickname || currentNickname === '阳光旅人') {
@@ -127,6 +128,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             nickname: String(user.user_metadata.nickname),
           });
         }
+      }
+      if (user?.user_metadata?.custom_motto) {
+        usePersonalSettingsStore.getState().updateSettings({
+          customMotto: String(user.user_metadata.custom_motto),
+        });
       }
 
       if (!authSubscriptionInitialized) {
@@ -145,6 +151,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 nickname: String(newUser.user_metadata.nickname),
               });
             }
+          }
+          if (newUser?.user_metadata?.custom_motto) {
+            usePersonalSettingsStore.getState().updateSettings({
+              customMotto: String(newUser.user_metadata.custom_motto),
+            });
           }
         });
       }
@@ -189,10 +200,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         successMessage: '登录成功，欢迎回来！',
       });
 
-      // 同步用户昵称
+      // 同步用户昵称与签名
       if (data.user?.user_metadata?.nickname) {
         usePersonalSettingsStore.getState().updateSettings({
           nickname: String(data.user.user_metadata.nickname),
+        });
+      }
+      if (data.user?.user_metadata?.custom_motto) {
+        usePersonalSettingsStore.getState().updateSettings({
+          customMotto: String(data.user.user_metadata.custom_motto),
         });
       }
 
@@ -368,6 +384,56 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         successMessage: message,
       });
       return { success: true, message };
+    } catch (err) {
+      const formatted = formatAuthError(err);
+      set({ isLoading: false, error: formatted });
+      return { success: false, error: formatted };
+    }
+  },
+
+  updateProfile: async ({ nickname, customMotto }) => {
+    set({ isLoading: true, error: null, successMessage: null });
+    try {
+      // 1. 同步更新本地偏好 Store
+      usePersonalSettingsStore.getState().updateSettings({
+        ...(nickname !== undefined ? { nickname } : {}),
+        ...(customMotto !== undefined ? { customMotto } : {}),
+      });
+
+      // 2. 如果存在云端用户，同步更新 Supabase User Metadata
+      const currentUser = get().user;
+      if (currentUser) {
+        const supabase = await getSupabaseClient();
+        const { data, error } = await supabase.auth.updateUser({
+          data: {
+            ...(nickname !== undefined ? { nickname } : {}),
+            ...(customMotto !== undefined ? { custom_motto: customMotto } : {}),
+          },
+        });
+
+        if (error) {
+          const formatted = formatAuthError(error);
+          set({ isLoading: false, error: formatted });
+          return { success: false, error: formatted };
+        }
+
+        if (data.user) {
+          set({
+            user: data.user,
+            isLoading: false,
+            error: null,
+            successMessage: '个人信息已更新并同步',
+          });
+          return { success: true };
+        }
+      }
+
+      set({
+        isLoading: false,
+        error: null,
+        successMessage: '个人信息已保存',
+      });
+      return { success: true };
     } catch (err) {
       const formatted = formatAuthError(err);
       set({ isLoading: false, error: formatted });

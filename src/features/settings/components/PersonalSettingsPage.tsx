@@ -1,13 +1,9 @@
-import { useState, useEffect, useId } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { useReducedMotion } from 'framer-motion';
 import {
   FiArrowLeft,
-  FiUser,
   FiSun,
-  FiCheck,
   FiRotateCcw,
   FiRotateCw,
-  FiSave,
   FiGlobe,
   FiCoffee,
   FiChevronRight,
@@ -17,6 +13,7 @@ import {
   FiLogOut,
   FiShield,
   FiCheckCircle,
+  FiCheck,
 } from 'react-icons/fi';
 import { SiWechat } from 'react-icons/si';
 import { LuPalette } from 'react-icons/lu';
@@ -43,35 +40,7 @@ export default function PersonalSettingsPage() {
   const signOut = useAuthStore((s) => s.signOut);
 
   const nickname = usePersonalSettingsStore((s) => s.nickname);
-  const customMotto = usePersonalSettingsStore((s) => s.customMotto);
-  const updateSettings = usePersonalSettingsStore((s) => s.updateSettings);
   const resetSettings = usePersonalSettingsStore((s) => s.resetSettings);
-
-  const cleanInitialNickname = nickname === '阳光旅人' ? '' : nickname;
-
-  const [inputNickname, setInputNickname] = useState(cleanInitialNickname);
-  const [inputMotto, setInputMotto] = useState(customMotto);
-  const [saveToast, setSaveToast] = useState(false);
-
-  useEffect(() => {
-    if (nickname === '阳光旅人') {
-      updateSettings({ nickname: '' });
-      setInputNickname('');
-    }
-  }, [nickname, updateSettings]);
-
-  const nicknameInputId = useId();
-  const mottoInputId = useId();
-
-  // 保存个人资料修改
-  const handleSaveProfile = () => {
-    updateSettings({
-      nickname: inputNickname.trim(),
-      customMotto: inputMotto.trim(),
-    });
-    setSaveToast(true);
-    setTimeout(() => setSaveToast(false), 2000);
-  };
 
   return (
     <div
@@ -108,7 +77,7 @@ export default function PersonalSettingsPage() {
                 个人设置中心
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 cream:text-[#786e63] mt-0.5">
-                定制你的称呼、专属座右铭与主题外观
+                定制主题外观、语言偏好与系统设置
               </p>
             </div>
           </div>
@@ -118,8 +87,6 @@ export default function PersonalSettingsPage() {
             onClick={() => {
               if (window.confirm('确定要恢复默认设置吗？已记录的打气数据将重置。')) {
                 resetSettings();
-                setInputNickname('');
-                setInputMotto('心怀热爱，奔赴每一个灿烂的日子');
               }
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 cream:text-[#786e63] cream:hover:text-red-600 transition-colors"
@@ -128,19 +95,6 @@ export default function PersonalSettingsPage() {
             <span className="hidden sm:inline">恢复默认</span>
           </button>
         </div>
-
-        {/* 保存反馈气泡 */}
-        {saveToast && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-xs sm:text-sm font-semibold"
-          >
-            <FiCheck className="size-4 text-emerald-500" />
-            <span>设置保存成功！个人资料已实时同步更新。</span>
-          </motion.div>
-        )}
 
         {/* 0. 云端账号卡片 (Supabase BaaS) */}
         <section className="rounded-2xl border border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0] bg-white/85 dark:bg-white/[0.05] cream:bg-[#faf5ea]/90 p-5 sm:p-6 backdrop-blur-xl shadow-xs cream:shadow-[0_4px_20px_-2px_rgba(120,95,65,0.06)]">
@@ -214,61 +168,7 @@ export default function PersonalSettingsPage() {
           )}
         </section>
 
-        {/* 1. 个人形象与称呼资料 */}
-        <section className="rounded-2xl border border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0] bg-white/85 dark:bg-white/[0.05] cream:bg-[#faf5ea]/90 p-5 sm:p-6 backdrop-blur-xl shadow-xs cream:shadow-[0_4px_20px_-2px_rgba(120,95,65,0.06)] space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
-              <FiUser className="size-4 text-primary-500" />
-              <span>个人称谓与签名</span>
-            </div>
-            <span className="text-xs text-gray-400 cream:text-[#8a7f72]">用于在问候卡片中称呼你</span>
-          </div>
-
-          {/* 昵称与座右铭输入 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-            <div className="space-y-1.5">
-              <label htmlFor={nicknameInputId} className="text-xs font-medium text-gray-600 dark:text-gray-300 cream:text-[#52493f]">
-                你的称呼 / 昵称
-              </label>
-              <input
-                id={nicknameInputId}
-                type="text"
-                value={inputNickname}
-                onChange={(e) => setInputNickname(e.target.value)}
-                placeholder=""
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.06] cream:bg-[#f5ece0]/85 border border-black/[0.08] dark:border-white/15 cream:border-[#d7c9b5] text-sm text-gray-900 dark:text-white cream:text-[#26211e] placeholder:text-gray-400 cream:placeholder:text-[#968a7a] focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-2xs transition-colors"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor={mottoInputId} className="text-xs font-medium text-gray-600 dark:text-gray-300 cream:text-[#52493f]">
-                个性座右铭 / 专属签名
-              </label>
-              <input
-                id={mottoInputId}
-                type="text"
-                value={inputMotto}
-                onChange={(e) => setInputMotto(e.target.value)}
-                placeholder="例如：心怀热爱，奔赴每一个灿烂的日子"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.06] cream:bg-[#f5ece0]/85 border border-black/[0.08] dark:border-white/15 cream:border-[#d7c9b5] text-sm text-gray-900 dark:text-white cream:text-[#26211e] placeholder:text-gray-400 cream:placeholder:text-[#968a7a] focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-2xs transition-colors"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end pt-2">
-            <button
-              type="button"
-              onClick={handleSaveProfile}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-xs transition-opacity hover:opacity-90"
-              style={{ backgroundColor: accentColor || '#10A37F' }}
-            >
-              <FiSave className="size-4" />
-              <span>保存个人资料</span>
-            </button>
-          </div>
-        </section>
-
-        {/* 2. 外观主题与色彩 */}
+        {/* 1. 外观主题与色彩 */}
         <section className="rounded-2xl border border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0] bg-white/85 dark:bg-white/[0.05] cream:bg-[#faf5ea]/90 p-5 sm:p-6 backdrop-blur-xl shadow-xs cream:shadow-[0_4px_20px_-2px_rgba(120,95,65,0.06)] space-y-4">
           <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
             <LuPalette className="size-4 text-teal-500" />

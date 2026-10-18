@@ -1,4 +1,4 @@
-import { useState, useId, useEffect, useMemo, type FormEvent, type CSSProperties } from 'react';
+import { useState, useId, useEffect, useMemo, useRef, type FormEvent, type CSSProperties } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
   FiMail,
@@ -28,6 +28,7 @@ import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import AnimatedLogo from '@/components/layout/AnimatedLogo';
 import OAuthButtons from './OAuthButtons';
 import { ProgressSubmitButton, type SubmitButtonStatus } from '@/components/ui/ProgressSubmitButton';
+import { FieldValidationTooltip } from '@/components/composed/FieldValidationTooltip';
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
 
@@ -61,8 +62,10 @@ export default function AuthPage() {
   const resetPassword = useAuthStore((s) => s.resetPassword);
   const clearError = useAuthStore((s) => s.clearError);
   const clearSuccessMessage = useAuthStore((s) => s.clearSuccessMessage);
+  const updateProfile = useAuthStore((s) => s.updateProfile);
 
   const nickname = usePersonalSettingsStore((s) => s.nickname);
+  const customMotto = usePersonalSettingsStore((s) => s.customMotto);
 
   const [mode, setMode] = useState<AuthMode>('signin');
   const [email, setEmail] = useState('');
@@ -73,6 +76,48 @@ export default function AuthPage() {
   const [copiedId, setCopiedId] = useState(false);
   const [localValidation, setLocalValidation] = useState<string | null>(null);
   const [submitStatus, setSubmitStatus] = useState<SubmitButtonStatus>('idle');
+
+  // 个人资料编辑状态（在管理账号面板中维护）
+  const [profileNickname, setProfileNickname] = useState(
+    user?.user_metadata?.nickname || (nickname === '阳光旅人' ? '' : nickname) || ''
+  );
+  const [profileMotto, setProfileMotto] = useState(
+    user?.user_metadata?.custom_motto || customMotto || '心怀热爱，奔赴每一个灿烂的日子'
+  );
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      const nick = user.user_metadata?.nickname || (nickname === '阳光旅人' ? '' : nickname) || '';
+      setProfileNickname(nick);
+      const motto = user.user_metadata?.custom_motto || customMotto || '心怀热爱，奔赴每一个灿烂的日子';
+      setProfileMotto(motto);
+    }
+  }, [user, nickname, customMotto]);
+
+  // 输入框 DOM 引用，用于校验未通过时自动平滑聚焦
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const confirmPasswordInputRef = useRef<HTMLInputElement>(null);
+
+  // 字段级别优雅校验状态与轻触微震颤反馈
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
+  const [shakingField, setShakingField] = useState<'email' | 'password' | 'confirmPassword' | null>(null);
+
+  const triggerShake = (field: 'email' | 'password' | 'confirmPassword') => {
+    setShakingField(null);
+    requestAnimationFrame(() => {
+      setShakingField(field);
+      setTimeout(() => {
+        setShakingField((curr) => (curr === field ? null : curr));
+      }, 450);
+    });
+  };
 
   // 监听外部 error 改变，若报错则触发按钮震颤并复位
   useEffect(() => {
@@ -92,6 +137,29 @@ export default function AuthPage() {
   const passwordInputId = useId();
   const confirmPasswordInputId = useId();
   const nicknameInputId = useId();
+  const profileNicknameInputId = useId();
+  const profileMottoInputId = useId();
+
+  // 保存个人资料修改
+  const handleSavePersonalProfile = async (e?: FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSavingProfile(true);
+    setProfileSaveSuccess(false);
+
+    const trimmedNickname = profileNickname.trim();
+    const trimmedMotto = profileMotto.trim();
+
+    const res = await updateProfile({
+      nickname: trimmedNickname,
+      customMotto: trimmedMotto,
+    });
+
+    setIsSavingProfile(false);
+    if (res.success) {
+      setProfileSaveSuccess(true);
+      setTimeout(() => setProfileSaveSuccess(false), 2500);
+    }
+  };
 
   // 监听 URL hash 默认定位到登录或注册
   useEffect(() => {
@@ -110,31 +178,44 @@ export default function AuthPage() {
     clearError();
     clearSuccessMessage();
     setLocalValidation(null);
+    setFieldErrors({});
+    setShakingField(null);
     setSubmitStatus('idle');
     setMode(newMode);
   };
 
-  // 提交处理
+  // 提交处理（纯净自定义优雅校验，彻底取代浏览器生硬默认弹窗）
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     clearError();
     clearSuccessMessage();
     setLocalValidation(null);
 
+    const newErrors: {
+      email?: string;
+      password?: string;
+      confirmPassword?: string;
+    } = {};
+
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      setLocalValidation('请输入电子邮箱');
-      setSubmitStatus('idle');
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
-      setLocalValidation('请输入格式有效的电子邮箱地址');
-      setSubmitStatus('idle');
-      return;
+      newErrors.email = '请填写电子邮箱地址';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(trimmedEmail)) {
+        newErrors.email = '电子邮箱格式不正确，例如 name@example.com';
+      }
     }
 
     if (mode === 'forgot') {
+      if (newErrors.email) {
+        setFieldErrors(newErrors);
+        triggerShake('email');
+        emailInputRef.current?.focus();
+        setSubmitStatus('idle');
+        return;
+      }
+      setFieldErrors({});
       setSubmitStatus('loading');
       const res = await resetPassword(trimmedEmail);
       if (res.success) {
@@ -146,23 +227,38 @@ export default function AuthPage() {
     }
 
     if (!password) {
-      setLocalValidation('请输入密码');
+      newErrors.password = mode === 'signup' ? '请设置登录密码' : '请输入登录密码';
+    } else if (mode === 'signup' && password.length < 6) {
+      newErrors.password = '密码长度至少需要 6 个字符';
+    }
+
+    if (mode === 'signup') {
+      if (!confirmPassword) {
+        newErrors.confirmPassword = '请再次输入密码以确认';
+      } else if (password !== confirmPassword) {
+        newErrors.confirmPassword = '两次输入的密码不一致，请核对';
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setFieldErrors(newErrors);
+      if (newErrors.email) {
+        triggerShake('email');
+        emailInputRef.current?.focus();
+      } else if (newErrors.password) {
+        triggerShake('password');
+        passwordInputRef.current?.focus();
+      } else if (newErrors.confirmPassword) {
+        triggerShake('confirmPassword');
+        confirmPasswordInputRef.current?.focus();
+      }
       setSubmitStatus('idle');
       return;
     }
 
-    if (mode === 'signup') {
-      if (password.length < 6) {
-        setLocalValidation('密码长度至少需要 6 个字符');
-        setSubmitStatus('idle');
-        return;
-      }
-      if (password !== confirmPassword) {
-        setLocalValidation('两次输入的密码不一致，请核对');
-        setSubmitStatus('idle');
-        return;
-      }
+    setFieldErrors({});
 
+    if (mode === 'signup') {
       setSubmitStatus('loading');
       const res = await signUpWithEmail(trimmedEmail, password, {
         nickname: signUpNickname.trim() || undefined,
@@ -207,8 +303,8 @@ export default function AuthPage() {
   const activeColor = accentColor || '#10A37F';
   const pwdStrength = useMemo(() => getPasswordStrength(password), [password]);
 
-  // 头像缩写提取
-  const userDisplayName = user?.user_metadata?.nickname || nickname || '时光守护者';
+  // 头像与展示昵称提取
+  const userDisplayName = profileNickname.trim() || user?.user_metadata?.nickname || (nickname === '阳光旅人' ? '' : nickname) || '时光守护者';
   const avatarLetter = (userDisplayName.trim().charAt(0) || user?.email?.charAt(0) || 'T').toUpperCase();
 
   return (
@@ -222,38 +318,13 @@ export default function AuthPage() {
         paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 0px))',
       }}
     >
-      {/* 1. 梦幻温润的动态流光背景 */}
+      {/* 1. 简约温和的背景氛围 */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <motion.div
-          animate={{
-            scale: [1, 1.15, 1],
-            x: [0, 20, 0],
-            y: [0, -25, 0],
-          }}
-          transition={{
-            duration: 18,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-          className="absolute -top-[12%] -left-[10%] w-[580px] h-[580px] rounded-full blur-[140px] opacity-25 dark:opacity-20 cream:opacity-20 transition-all duration-700"
+        <div
+          className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[360px] rounded-full blur-[120px] opacity-[0.08] dark:opacity-[0.06] cream:opacity-[0.10] pointer-events-none"
           style={{ backgroundColor: activeColor }}
         />
-        <motion.div
-          animate={{
-            scale: [1.1, 1, 1.1],
-            x: [0, -30, 0],
-            y: [0, 20, 0],
-          }}
-          transition={{
-            duration: 22,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-          className="absolute -bottom-[15%] -right-[10%] w-[650px] h-[650px] rounded-full blur-[160px] opacity-20 dark:opacity-15 cream:opacity-25 transition-all duration-700"
-          style={{ backgroundColor: activeColor }}
-        />
-        {/* 精致的微光星点与时间细丝纹理 */}
-        <div className="absolute inset-0 bg-[radial-gradient(#888_1px,transparent_1px)] dark:bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.04] dark:opacity-[0.03]" />
+        <div className="absolute inset-0 bg-[radial-gradient(#888_1px,transparent_1px)] dark:bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.03] dark:opacity-[0.02]" />
       </div>
 
       {/* 2. 独立路由顶部专属导航栏 */}
@@ -328,137 +399,171 @@ export default function AuthPage() {
       <main className="relative z-10 w-full max-w-6xl mx-auto flex-1 flex flex-col justify-center py-4 sm:py-8 lg:py-10">
         {user ? (
           /* =================================================== */
-          /* 已登录状态：尊享云端会员与个人管理面板 */
+          /* 已登录状态：账号管理与个人信息设置 (极简主义设计) */
           /* =================================================== */
           <motion.div
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: shouldReduceMotion ? 0 : 0.35, ease: 'easeOut' }}
-            className="w-full max-w-xl mx-auto rounded-3xl border border-black/[0.08] dark:border-white/10 cream:border-amber-900/10 bg-white/80 dark:bg-zinc-900/80 cream:bg-[#fcf9f2]/85 p-6 sm:p-9 md:p-10 backdrop-blur-2xl shadow-2xl shadow-black/5 dark:shadow-black/40 relative overflow-hidden space-y-6"
+            transition={{ duration: shouldReduceMotion ? 0 : 0.25, ease: 'easeOut' }}
+            className="w-full max-w-xl mx-auto rounded-3xl border border-black/[0.08] dark:border-white/10 cream:border-[#dfd3c0] bg-white/90 dark:bg-zinc-900/90 cream:bg-[#faf5ea]/95 p-6 sm:p-8 md:p-9 backdrop-blur-xl shadow-sm space-y-6"
           >
-            {/* 头像与身份 */}
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div className="relative">
-                <div
-                  className="flex size-20 sm:size-24 items-center justify-center rounded-full text-2xl sm:text-3xl font-bold text-white shadow-xl transition-transform duration-300 hover:scale-105"
-                  style={{
-                    background: `linear-gradient(135deg, ${activeColor}, color-mix(in srgb, ${activeColor} 65%, black))`,
-                    boxShadow: `0 12px 30px -6px ${activeColor}55`,
-                  }}
-                >
-                  {avatarLetter}
-                </div>
-                <div
-                  className="absolute -bottom-1 -right-1 size-7 rounded-full bg-white dark:bg-zinc-900 p-0.5 shadow-md flex items-center justify-center"
-                  title="云端认证已同步"
-                >
-                  <FiCheckCircle className="size-5 text-emerald-500" />
-                </div>
+            {/* 1. 顶部用户卡片：纯净头像与账号基本信息 */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-5 border-b border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0]/70">
+              <div
+                className="flex size-14 sm:size-16 shrink-0 items-center justify-center rounded-2xl text-xl sm:text-2xl font-bold transition-transform"
+                style={{
+                  backgroundColor: `${activeColor}15`,
+                  color: activeColor,
+                  border: `1px solid ${activeColor}30`,
+                }}
+              >
+                {avatarLetter}
               </div>
 
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-950 dark:text-white">
-                  {userDisplayName}
-                </h2>
-                <div className="flex items-center justify-center gap-2 mt-1">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-black/[0.04] dark:bg-white/[0.06] text-gray-700 dark:text-gray-300">
-                    <FiMail className="size-3 text-gray-400" />
-                    <span>{user.email}</span>
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-lg sm:text-xl font-bold tracking-tight text-gray-950 dark:text-white cream:text-[#26211e] truncate">
+                    {userDisplayName}
+                  </h2>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                     <span className="size-1.5 rounded-full bg-emerald-500" />
                     已安全连接
                   </span>
                 </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#786e63] mt-1 truncate">
+                  {user.email}
+                </p>
               </div>
             </div>
 
-            {/* 云端数据详情指标卡片组 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/20 p-4 border border-black/[0.05] dark:border-white/[0.06] flex items-center gap-3">
-                <div
-                  className="flex size-10 shrink-0 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: `${activeColor}15`, color: activeColor }}
-                >
-                  <FiShield className="size-5" />
+            {/* 2. 个人信息设置区（替代原设置页组件，在管理账号中维护） */}
+            <form onSubmit={handleSavePersonalProfile} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
+                  <FiUser className="size-4" style={{ color: activeColor }} />
+                  <span>个人信息设置</span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">账号用户 ID</div>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="font-mono text-xs text-gray-800 dark:text-gray-200 truncate">
-                      {user.id.slice(0, 14)}...
+                <span className="text-xs text-gray-400 cream:text-[#8a7f72]">问候卡片及主页专属称呼</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor={profileNicknameInputId}
+                    className="text-xs font-medium text-gray-600 dark:text-gray-300 cream:text-[#52493f]"
+                  >
+                    你的称呼 / 昵称
+                  </label>
+                  <input
+                    id={profileNicknameInputId}
+                    type="text"
+                    value={profileNickname}
+                    onChange={(e) => setProfileNickname(e.target.value)}
+                    placeholder="输入自定义昵称"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] cream:bg-[#f5ece0]/80 border border-black/[0.08] dark:border-white/10 cream:border-[#d7c9b5] text-sm text-gray-900 dark:text-white cream:text-[#26211e] placeholder:text-gray-400 cream:placeholder:text-[#968a7a] focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor={profileMottoInputId}
+                    className="text-xs font-medium text-gray-600 dark:text-gray-300 cream:text-[#52493f]"
+                  >
+                    个性座右铭 / 专属签名
+                  </label>
+                  <input
+                    id={profileMottoInputId}
+                    type="text"
+                    value={profileMotto}
+                    onChange={(e) => setProfileMotto(e.target.value)}
+                    placeholder="心怀热爱，奔赴每一个灿烂的日子"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] cream:bg-[#f5ece0]/80 border border-black/[0.08] dark:border-white/10 cream:border-[#d7c9b5] text-sm text-gray-900 dark:text-white cream:text-[#26211e] placeholder:text-gray-400 cream:placeholder:text-[#968a7a] focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <div className="text-xs">
+                  {profileSaveSuccess && (
+                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                      <FiCheck className="size-3.5" /> 设置保存成功！个人资料已实时同步更新。
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => handleCopyId(user.id)}
-                      className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer transition-colors"
-                      title="复制完整 ID"
-                    >
-                      {copiedId ? <FiCheck className="size-3 text-emerald-500" /> : <FiCopy className="size-3" />}
-                    </button>
-                  </div>
+                  )}
                 </div>
-              </div>
-
-              <div className="rounded-2xl bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/20 p-4 border border-black/[0.05] dark:border-white/[0.06] flex items-center gap-3">
-                <div
-                  className="flex size-10 shrink-0 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: `${activeColor}15`, color: activeColor }}
+                <button
+                  type="submit"
+                  disabled={isSavingProfile}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-xs transition-opacity hover:opacity-90 active:scale-[0.98] disabled:opacity-50 cursor-pointer ml-auto"
+                  style={{ backgroundColor: activeColor }}
                 >
-                  <FiZap className="size-5" />
+                  <FiCheck className="size-4" />
+                  <span>{isSavingProfile ? '正在保存...' : '保存个人资料'}</span>
+                </button>
+              </div>
+            </form>
+
+            {/* 3. 账号与同步元数据（简约分组列表） */}
+            <div className="rounded-2xl border border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0]/70 bg-black/[0.015] dark:bg-white/[0.02] cream:bg-[#f5ece0]/50 divide-y divide-black/[0.05] dark:divide-white/[0.06] cream:divide-[#dfd3c0]/60 text-xs">
+              <div className="flex items-center justify-between p-3.5">
+                <span className="text-gray-500 dark:text-gray-400 cream:text-[#786e63]">账号用户 ID</span>
+                <div className="flex items-center gap-2 font-mono text-gray-700 dark:text-gray-300 cream:text-[#3d362f]">
+                  <span>{user.id.slice(0, 16)}...</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyId(user.id)}
+                    className="p-1 rounded-md text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cream:hover:text-[#26211e] transition-colors cursor-pointer"
+                    title="复制完整 ID"
+                  >
+                    {copiedId ? <FiCheck className="size-3.5 text-emerald-500" /> : <FiCopy className="size-3.5" />}
+                  </button>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">云端同步状态</div>
-                  <div className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5 flex items-center gap-1">
-                    <span className="size-1.5 rounded-full bg-emerald-500" />
-                    <span>秒级自动双向同步</span>
-                  </div>
+              </div>
+
+              <div className="flex items-center justify-between p-3.5">
+                <span className="text-gray-500 dark:text-gray-400 cream:text-[#786e63]">云端同步状态</span>
+                <div className="flex items-center gap-1.5 font-medium text-gray-800 dark:text-gray-200 cream:text-[#26211e]">
+                  <span className="size-1.5 rounded-full bg-emerald-500" />
+                  <span>计时器与待办已加密同步</span>
                 </div>
               </div>
             </div>
 
-            {/* 云端说明 */}
-            <div className="rounded-2xl border border-black/[0.05] dark:border-white/10 bg-black/[0.015] dark:bg-white/[0.02] p-4 text-center">
-              <div className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
-                您的专属计时器、番茄钟及待办清单数据已自动加密同步至云端，换设备登录即可随时无缝接力。
+            {/* 4. 操作与快捷导航 */}
+            <div className="space-y-3 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => transitionTo('main')}
+                  className="py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-2xs transition-opacity hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
+                  style={{ backgroundColor: activeColor }}
+                >
+                  <span>返回主页计时器</span>
+                  <FiArrowRight className="size-3.5" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => transitionTo('settings')}
+                  className="py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium border border-black/10 dark:border-white/15 cream:border-[#d7c9b5] bg-black/[0.02] dark:bg-white/[0.04] cream:bg-[#f5ece0]/60 hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-gray-700 dark:text-gray-200 cream:text-[#3d362f] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <FiSettings className="size-3.5" />
+                  <span>前往个人设置中心</span>
+                </button>
               </div>
-            </div>
 
-            {/* 操作跳转与退出登录 */}
-            <div className="space-y-3 pt-2">
-              <button
-                type="button"
-                onClick={() => transitionTo('main')}
-                className="w-full py-3 px-5 rounded-2xl text-sm font-semibold text-white shadow-md transition-all duration-200 hover:opacity-95 hover:shadow-lg active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
-                style={{
-                  backgroundColor: activeColor,
-                  boxShadow: `0 8px 25px -4px ${activeColor}55`,
-                }}
-              >
-                <span>返回主页计时器</span>
-                <FiArrowRight className="size-4" />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => transitionTo('settings')}
-                className="w-full py-2.5 px-4 rounded-2xl text-xs sm:text-sm font-medium border border-black/10 dark:border-white/15 bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-gray-700 dark:text-gray-200 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <FiSettings className="size-3.5" />
-                <span>前往个人设置中心</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={async () => {
-                  await signOut();
-                }}
-                disabled={isLoading}
-                className="w-full py-2 px-4 rounded-xl text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
-              >
-                <FiLogOut className="size-3.5" />
-                <span>退出当前账号</span>
-              </button>
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await signOut();
+                  }}
+                  disabled={isLoading}
+                  className="inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 py-1.5 px-3 rounded-lg hover:bg-red-500/10 transition-colors disabled:opacity-50 cursor-pointer"
+                >
+                  <FiLogOut className="size-3.5" />
+                  <span>退出当前账号</span>
+                </button>
+              </div>
             </div>
           </motion.div>
         ) : (
@@ -590,6 +695,7 @@ export default function AuthPage() {
 
                 {/* 表单输入区域 */}
                 <motion.form
+                  noValidate
                   layout
                   transition={{ layout: { duration: 0.3, ease: [0.25, 1, 0.5, 1] } }}
                   onSubmit={handleSubmit}
@@ -646,211 +752,324 @@ export default function AuthPage() {
                   </AnimatePresence>
 
                   {/* 电子邮箱输入域 */}
-                  <div className="space-y-1 text-left">
-                    <label
-                      htmlFor={emailInputId}
-                      className="block text-xs font-semibold text-gray-700 dark:text-gray-300"
-                    >
-                      电子邮箱地址
-                    </label>
-                    <div
-                      className={`relative flex items-center rounded-2xl border overflow-hidden transition-all duration-200 bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15 ${
-                        focusedField === 'email'
-                          ? 'border-transparent'
-                          : 'border-black/10 dark:border-white/10 cream:border-amber-900/15 hover:border-black/20 dark:hover:border-white/20'
-                      }`}
-                      style={{
-                        borderColor: focusedField === 'email' ? activeColor : undefined,
-                      }}
-                    >
-                      <FiMail
-                        className="pointer-events-none absolute left-3.5 size-4 transition-colors duration-200"
-                        style={{
-                          color: focusedField === 'email' ? activeColor : undefined,
-                        }}
-                      />
-                      <input
-                        id={emailInputId}
-                        type="email"
-                        value={email}
-                        onFocus={() => setFocusedField('email')}
-                        onBlur={() => setFocusedField(null)}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="name@example.com"
-                        autoComplete="email"
-                        required
-                        disabled={isLoading}
-                        className="w-full bg-transparent rounded-[inherit] py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
-                      />
-                    </div>
-                  </div>
-
-                  {/* 密码输入域（找回密码模式无需密码） */}
-                  {mode !== 'forgot' && (
-                    <div className="space-y-1 text-left">
-                      <div className="flex items-center justify-between h-4">
+                  {(() => {
+                    const hasEmailError = Boolean(fieldErrors.email);
+                    return (
+                      <div className="space-y-1 text-left">
                         <label
-                          htmlFor={passwordInputId}
+                          htmlFor={emailInputId}
                           className="block text-xs font-semibold text-gray-700 dark:text-gray-300"
                         >
-                          {mode === 'signup' ? '设置登录密码' : '登录密码'}
+                          电子邮箱地址
                         </label>
-                        <AnimatePresence initial={false}>
-                          {mode === 'signin' && (
-                            <motion.button
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              transition={{ duration: 0.15 }}
-                              type="button"
-                              onClick={() => handleModeChange('forgot')}
-                              className="text-xs text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
-                            >
-                              忘记密码？
-                            </motion.button>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                      <div
-                        className={`relative flex items-center rounded-2xl border overflow-hidden transition-all duration-200 bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15 ${
-                          focusedField === 'password'
-                            ? 'border-transparent'
-                            : 'border-black/10 dark:border-white/10 cream:border-amber-900/15 hover:border-black/20 dark:hover:border-white/20'
-                        }`}
-                        style={{
-                          borderColor: focusedField === 'password' ? activeColor : undefined,
-                        }}
-                      >
-                        <FiLock
-                          className="pointer-events-none absolute left-3.5 size-4 transition-colors duration-200"
-                          style={{
-                            color: focusedField === 'password' ? activeColor : undefined,
-                          }}
-                        />
-                        <input
-                          id={passwordInputId}
-                          type={showPassword ? 'text' : 'password'}
-                          value={password}
-                          onFocus={() => setFocusedField('password')}
-                          onBlur={() => setFocusedField(null)}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder={mode === 'signup' ? '至少包含 6 位字符' : '请输入密码'}
-                          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-                          required
-                          disabled={isLoading}
-                          className="w-full bg-transparent rounded-[inherit] py-2.5 sm:py-3 pl-10 pr-10 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors cursor-pointer"
-                          title={showPassword ? '隐藏密码' : '显示密码'}
-                        >
-                          {showPassword ? <FiEyeOff className="size-4" /> : <FiEye className="size-4" />}
-                        </button>
-                      </div>
-
-                      {/* 注册模式下的动态密码强度指引条（柔和淡入淡出） */}
-                      <AnimatePresence initial={false}>
-                        {mode === 'signup' && password.length > 0 && (
-                          <motion.div
-                            key="signup-password-strength"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
-                            className="overflow-hidden pt-1 space-y-1"
-                          >
-                            <div className="flex items-center justify-between text-[11px]">
-                              <span className="text-gray-400">密码强度</span>
-                              <span style={{ color: pwdStrength.color }} className="font-semibold">
-                                {pwdStrength.label}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-4 gap-1.5 h-1">
-                              {[1, 2, 3, 4].map((step) => (
-                                <div
-                                  key={step}
-                                  className="h-full rounded-full transition-all duration-300"
-                                  style={{
-                                    backgroundColor:
-                                      step <= pwdStrength.score
-                                        ? pwdStrength.color
-                                        : 'rgba(150, 150, 150, 0.2)',
-                                  }}
-                                />
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  )}
-
-                  {/* 注册模式下的确认密码（柔和高度展开） */}
-                  <AnimatePresence initial={false}>
-                    {mode === 'signup' && (
-                      <motion.div
-                        key="signup-confirm-password"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.28, ease: [0.25, 1, 0.5, 1] }}
-                        className="overflow-hidden space-y-1 text-left"
-                      >
-                        <div className="flex items-center justify-between">
-                          <label
-                            htmlFor={confirmPasswordInputId}
-                            className="block text-xs font-semibold text-gray-700 dark:text-gray-300"
-                          >
-                            确认登录密码
-                          </label>
-                          {confirmPassword && password === confirmPassword && (
-                            <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
-                              <FiCheck className="size-3.5" /> 密码一致
-                            </span>
-                          )}
-                        </div>
-                        <div
-                          className={`relative flex items-center rounded-2xl border overflow-hidden transition-all duration-200 bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15 ${
-                            focusedField === 'confirmPassword'
-                              ? 'border-transparent'
-                              : 'border-black/10 dark:border-white/10 cream:border-amber-900/15 hover:border-black/20 dark:hover:border-white/20'
+                        <motion.div
+                          animate={
+                            shakingField === 'email'
+                              ? { x: [-6, 6, -4, 4, -2, 2, 0] }
+                              : { x: 0 }
+                          }
+                          transition={{ duration: 0.35, ease: 'easeInOut' }}
+                          className={`relative flex items-center rounded-2xl border overflow-hidden transition-all duration-200 ${
+                            hasEmailError
+                              ? 'border-rose-400 dark:border-rose-500/70 cream:border-rose-400 ring-2 ring-rose-500/15 dark:ring-rose-500/20 bg-rose-50/30 dark:bg-rose-950/20 cream:bg-rose-100/20'
+                              : focusedField === 'email'
+                              ? 'border-transparent bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15'
+                              : 'border-black/10 dark:border-white/10 cream:border-amber-900/15 hover:border-black/20 dark:hover:border-white/20 bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15'
                           }`}
                           style={{
-                            borderColor: focusedField === 'confirmPassword' ? activeColor : undefined,
+                            borderColor:
+                              hasEmailError
+                                ? undefined
+                                : focusedField === 'email'
+                                ? activeColor
+                                : undefined,
+                          }}
+                        >
+                          <FiMail
+                            className="pointer-events-none absolute left-3.5 size-4 transition-colors duration-200"
+                            style={{
+                              color:
+                                hasEmailError
+                                  ? '#F43F5E'
+                                  : focusedField === 'email'
+                                  ? activeColor
+                                  : undefined,
+                            }}
+                          />
+                          <input
+                            ref={emailInputRef}
+                            id={emailInputId}
+                            type="email"
+                            value={email}
+                            onFocus={() => {
+                              setFocusedField('email');
+                              if (fieldErrors.email) {
+                                setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                              }
+                            }}
+                            onBlur={() => setFocusedField(null)}
+                            onChange={(e) => {
+                              setEmail(e.target.value);
+                              if (fieldErrors.email) {
+                                setFieldErrors((prev) => ({ ...prev, email: undefined }));
+                              }
+                            }}
+                            onInvalid={(e) => e.preventDefault()}
+                            placeholder="name@example.com"
+                            autoComplete="email"
+                            aria-required="true"
+                            aria-invalid={hasEmailError}
+                            aria-describedby={hasEmailError ? `${emailInputId}-error` : undefined}
+                            disabled={isLoading}
+                            className="w-full bg-transparent rounded-[inherit] py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
+                          />
+                        </motion.div>
+                        <FieldValidationTooltip id={`${emailInputId}-error`} error={fieldErrors.email} />
+                      </div>
+                    );
+                  })()}
+
+                  {/* 密码输入域（找回密码模式无需密码） */}
+                  {mode !== 'forgot' && (() => {
+                    const hasPasswordError = Boolean(fieldErrors.password);
+                    return (
+                      <div className="space-y-1 text-left">
+                        <div className="flex items-center justify-between h-4">
+                          <label
+                            htmlFor={passwordInputId}
+                            className="block text-xs font-semibold text-gray-700 dark:text-gray-300"
+                          >
+                            {mode === 'signup' ? '设置登录密码' : '登录密码'}
+                          </label>
+                          <AnimatePresence initial={false}>
+                            {mode === 'signin' && (
+                              <motion.button
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.15 }}
+                                type="button"
+                                onClick={() => handleModeChange('forgot')}
+                                className="text-xs text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
+                              >
+                                忘记密码？
+                              </motion.button>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                        <motion.div
+                          animate={
+                            shakingField === 'password'
+                              ? { x: [-6, 6, -4, 4, -2, 2, 0] }
+                              : { x: 0 }
+                          }
+                          transition={{ duration: 0.35, ease: 'easeInOut' }}
+                          className={`relative flex items-center rounded-2xl border overflow-hidden transition-all duration-200 ${
+                            hasPasswordError
+                              ? 'border-rose-400 dark:border-rose-500/70 cream:border-rose-400 ring-2 ring-rose-500/15 dark:ring-rose-500/20 bg-rose-50/30 dark:bg-rose-950/20 cream:bg-rose-100/20'
+                              : focusedField === 'password'
+                              ? 'border-transparent bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15'
+                              : 'border-black/10 dark:border-white/10 cream:border-amber-900/15 hover:border-black/20 dark:hover:border-white/20 bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15'
+                          }`}
+                          style={{
+                            borderColor:
+                              hasPasswordError
+                                ? undefined
+                                : focusedField === 'password'
+                                ? activeColor
+                                : undefined,
                           }}
                         >
                           <FiLock
                             className="pointer-events-none absolute left-3.5 size-4 transition-colors duration-200"
                             style={{
-                              color: focusedField === 'confirmPassword' ? activeColor : undefined,
+                              color:
+                                hasPasswordError
+                                  ? '#F43F5E'
+                                  : focusedField === 'password'
+                                  ? activeColor
+                                  : undefined,
                             }}
                           />
                           <input
-                            id={confirmPasswordInputId}
+                            ref={passwordInputRef}
+                            id={passwordInputId}
                             type={showPassword ? 'text' : 'password'}
-                            value={confirmPassword}
-                            onFocus={() => setFocusedField('confirmPassword')}
+                            value={password}
+                            onFocus={() => {
+                              setFocusedField('password');
+                              if (fieldErrors.password) {
+                                setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                              }
+                            }}
                             onBlur={() => setFocusedField(null)}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="再次输入刚才设置的密码"
-                            autoComplete="new-password"
-                            required={mode === 'signup'}
+                            onChange={(e) => {
+                              setPassword(e.target.value);
+                              if (fieldErrors.password) {
+                                setFieldErrors((prev) => ({ ...prev, password: undefined }));
+                              }
+                              if (fieldErrors.confirmPassword && mode === 'signup' && confirmPassword === e.target.value) {
+                                setFieldErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                              }
+                            }}
+                            onInvalid={(e) => e.preventDefault()}
+                            placeholder={mode === 'signup' ? '至少包含 6 位字符' : '请输入密码'}
+                            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                            aria-required="true"
+                            aria-invalid={hasPasswordError}
+                            aria-describedby={hasPasswordError ? `${passwordInputId}-error` : undefined}
                             disabled={isLoading}
-                            className="w-full bg-transparent rounded-[inherit] py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
+                            className="w-full bg-transparent rounded-[inherit] py-2.5 sm:py-3 pl-10 pr-10 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
                           />
-                        </div>
-                      </motion.div>
-                    )}
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors cursor-pointer"
+                            title={showPassword ? '隐藏密码' : '显示密码'}
+                          >
+                            {showPassword ? <FiEyeOff className="size-4" /> : <FiEye className="size-4" />}
+                          </button>
+                        </motion.div>
+                        <FieldValidationTooltip id={`${passwordInputId}-error`} error={fieldErrors.password} />
+
+                        {/* 注册模式下的动态密码强度指引条（柔和淡入淡出） */}
+                        <AnimatePresence initial={false}>
+                          {mode === 'signup' && password.length > 0 && (
+                            <motion.div
+                              key="signup-password-strength"
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+                              className="overflow-hidden pt-1 space-y-1"
+                            >
+                              <div className="flex items-center justify-between text-[11px]">
+                                <span className="text-gray-400">密码强度</span>
+                                <span style={{ color: pwdStrength.color }} className="font-semibold">
+                                  {pwdStrength.label}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-4 gap-1.5 h-1">
+                                {[1, 2, 3, 4].map((step) => (
+                                  <div
+                                    key={step}
+                                    className="h-full rounded-full transition-all duration-300"
+                                    style={{
+                                      backgroundColor:
+                                        step <= pwdStrength.score
+                                          ? pwdStrength.color
+                                          : 'rgba(150, 150, 150, 0.2)',
+                                    }}
+                                  />
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })()}
+
+                  {/* 注册模式下的确认密码（柔和高度展开） */}
+                  <AnimatePresence initial={false}>
+                    {mode === 'signup' && (() => {
+                      const hasConfirmPasswordError = Boolean(fieldErrors.confirmPassword);
+                      return (
+                        <motion.div
+                          key="signup-confirm-password"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.28, ease: [0.25, 1, 0.5, 1] }}
+                          className="overflow-hidden space-y-1 text-left"
+                        >
+                          <div className="flex items-center justify-between">
+                            <label
+                              htmlFor={confirmPasswordInputId}
+                              className="block text-xs font-semibold text-gray-700 dark:text-gray-300"
+                            >
+                              确认登录密码
+                            </label>
+                            {confirmPassword && password === confirmPassword && (
+                              <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
+                                <FiCheck className="size-3.5" /> 密码一致
+                              </span>
+                            )}
+                          </div>
+                          <motion.div
+                            animate={
+                              shakingField === 'confirmPassword'
+                                ? { x: [-6, 6, -4, 4, -2, 2, 0] }
+                                : { x: 0 }
+                            }
+                            transition={{ duration: 0.35, ease: 'easeInOut' }}
+                            className={`relative flex items-center rounded-2xl border overflow-hidden transition-all duration-200 ${
+                              hasConfirmPasswordError
+                                ? 'border-rose-400 dark:border-rose-500/70 cream:border-rose-400 ring-2 ring-rose-500/15 dark:ring-rose-500/20 bg-rose-50/30 dark:bg-rose-950/20 cream:bg-rose-100/20'
+                                : focusedField === 'confirmPassword'
+                                ? 'border-transparent bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15'
+                                : 'border-black/10 dark:border-white/10 cream:border-amber-900/15 hover:border-black/20 dark:hover:border-white/20 bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15'
+                            }`}
+                            style={{
+                              borderColor:
+                                hasConfirmPasswordError
+                                  ? undefined
+                                  : focusedField === 'confirmPassword'
+                                  ? activeColor
+                                  : undefined,
+                            }}
+                          >
+                            <FiLock
+                              className="pointer-events-none absolute left-3.5 size-4 transition-colors duration-200"
+                              style={{
+                                color:
+                                  hasConfirmPasswordError
+                                    ? '#F43F5E'
+                                    : focusedField === 'confirmPassword'
+                                    ? activeColor
+                                    : undefined,
+                              }}
+                            />
+                            <input
+                              ref={confirmPasswordInputRef}
+                              id={confirmPasswordInputId}
+                              type={showPassword ? 'text' : 'password'}
+                              value={confirmPassword}
+                              onFocus={() => {
+                                setFocusedField('confirmPassword');
+                                if (fieldErrors.confirmPassword) {
+                                  setFieldErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                                }
+                              }}
+                              onBlur={() => setFocusedField(null)}
+                              onChange={(e) => {
+                                setConfirmPassword(e.target.value);
+                                if (fieldErrors.confirmPassword) {
+                                  setFieldErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                                }
+                              }}
+                              onInvalid={(e) => e.preventDefault()}
+                              placeholder="再次输入刚才设置的密码"
+                              autoComplete="new-password"
+                              aria-required="true"
+                              aria-invalid={hasConfirmPasswordError}
+                              aria-describedby={hasConfirmPasswordError ? `${confirmPasswordInputId}-error` : undefined}
+                              disabled={isLoading}
+                              className="w-full bg-transparent rounded-[inherit] py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
+                            />
+                          </motion.div>
+                          <FieldValidationTooltip id={`${confirmPasswordInputId}-error`} error={fieldErrors.confirmPassword} />
+                        </motion.div>
+                      );
+                    })()}
                   </AnimatePresence>
 
-                  {/* 提交主操作按钮：初始淡柔杏橙，提交后鲜艳蜜杏橙流光进度条填充，成功后立刻触发 border 双向滚动动画 */}
+                  {/* 提交主操作按钮：轻盈通透毛玻璃质感，动态契合主题色，优雅细腻呼吸态与确认微交互 */}
                   <div className="pt-2">
                     <ProgressSubmitButton
                       status={isLoading && submitStatus === 'idle' ? 'loading' : submitStatus}
-                      accentColor="#FB923C"
-                      progressColor="#FB923C"
+                      accentColor={activeColor}
+                      progressColor={activeColor}
                       idleText={
                         mode === 'forgot'
                           ? '发送重置密码邮件'

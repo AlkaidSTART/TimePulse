@@ -101,4 +101,36 @@ describe('ProgressSubmitButton', () => {
     expect(button).toBeDisabled();
     expect(button).toHaveTextContent('正在验证...');
   });
+
+  it('supports dynamic loading animation types (pulse-bars, wave-dots, ripple)', () => {
+    const { rerender } = render(
+      <ProgressSubmitButton
+        status="loading"
+        loadingAnimation="pulse-bars"
+        idleText="立即登录"
+        loadingText="正在验证..."
+      />
+    );
+    expect(screen.getByRole('button')).toHaveTextContent('正在验证...');
+
+    rerender(
+      <ProgressSubmitButton
+        status="loading"
+        loadingAnimation="wave-dots"
+        idleText="立即登录"
+        loadingText="正在验证..."
+      />
+    );
+    expect(screen.getByRole('button')).toHaveTextContent('正在验证...');
+
+    rerender(
+      <ProgressSubmitButton
+        status="loading"
+        loadingAnimation="ripple"
+        idleText="立即登录"
+        loadingText="正在验证..."
+      />
+    );
+    expect(screen.getByRole('button')).toHaveTextContent('正在验证...');
+  });
 });
