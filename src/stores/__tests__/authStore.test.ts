@@ -125,6 +125,33 @@ describe('useAuthStore', () => {
     expect(useAuthStore.getState().error).toBe('请输入有效的电子邮箱地址');
   });
 
+  it('signInWithOAuth passes provider and redirectTo', async () => {
+    const spy = vi.spyOn(supabase.auth, 'signInWithOAuth').mockResolvedValueOnce({
+      data: { provider: 'google', url: 'https://accounts.google.com/o/oauth2/v2/auth' },
+      error: null,
+    } as any);
+
+    const res = await useAuthStore.getState().signInWithOAuth('google');
+
+    expect(res.success).toBe(true);
+    expect(spy).toHaveBeenCalledWith({
+      provider: 'google',
+      options: { redirectTo: expect.any(String) },
+    });
+  });
+
+  it('translates disabled OAuth provider error into friendly Chinese text', async () => {
+    vi.spyOn(supabase.auth, 'signInWithOAuth').mockResolvedValueOnce({
+      data: { provider: 'github', url: null },
+      error: new Error('Unsupported provider: provider is not enabled') as any,
+    } as any);
+
+    const res = await useAuthStore.getState().signInWithOAuth('github');
+
+    expect(res.success).toBe(false);
+    expect(useAuthStore.getState().error).toBe('该登录方式暂未开启，请使用邮箱登录或稍后再试');
+  });
+
   it('handles signOut correctly', async () => {
     useAuthStore.setState({
       user: { id: 'u123', email: 'user@example.com' } as any,
