@@ -350,15 +350,9 @@ export default function MobileTabBar({
         }}
       >
         <div className="ios-liquid-glass-dock relative mx-auto flex h-[70px] sm:h-[76px] landscape:h-[48px] w-full items-center justify-around rounded-full p-1.5 overflow-hidden">
-          {/* Top 1px Specular Light Shelf */}
-          <div
-            className="pointer-events-none absolute inset-x-6 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 cream:via-white/90 dark:via-white/25 to-transparent"
-            aria-hidden="true"
-          />
-
           {tabsConfig.map((item) => {
             if (item.isAction) {
-              // Center Action: "+" Button - Apple Liquid Glass Transparent Water Droplet (Strictly Zero Blue)
+              // Center Action: "+" Button - Clean Ultra-Transparent Button (No Reflections)
               return (
                 <div key={item.id} className="relative flex flex-1 h-full items-center justify-center px-0.5">
                   <motion.button
@@ -368,25 +362,7 @@ export default function MobileTabBar({
                     className="liquid-droplet-button relative flex size-12.5 sm:size-14 landscape:size-9.5 items-center justify-center rounded-full text-gray-950 dark:text-white cursor-pointer transition-all focus:outline-none overflow-hidden select-none"
                     aria-label="新建计时器"
                   >
-                    {/* Top Specular Lens Dome Highlight */}
-                    <div
-                      className="pointer-events-none absolute inset-x-0 top-0 h-[50%] overflow-hidden rounded-t-full"
-                      aria-hidden="true"
-                    >
-                      <div
-                        className="w-full h-full"
-                        style={{
-                          background:
-                            'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.08) 60%, transparent 100%)',
-                        }}
-                      />
-                    </div>
-                    {/* Bottom Meniscus Surface Tension Line */}
-                    <div
-                      className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/60 dark:via-white/25 to-transparent"
-                      aria-hidden="true"
-                    />
-                    <FiPlus className="size-6 sm:size-7 landscape:size-4.5 stroke-[2.6] text-gray-950 dark:text-white relative z-10 drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" />
+                    <FiPlus className="size-6 sm:size-7 landscape:size-4.5 stroke-[2.4] text-gray-950 dark:text-white relative z-10" />
                   </motion.button>
                 </div>
               );
@@ -406,36 +382,19 @@ export default function MobileTabBar({
                   aria-selected={isActive}
                   role="tab"
                 >
-                  {/* Apple Liquid Glass Transparent Water Droplet Active Indicator (Strictly Zero Blue) */}
+                  {/* Ultra-Transparent Active Indicator (Zero Reflections) */}
                   {isActive && (
                     <motion.div
                       layoutId="mobile-active-tab-indicator"
                       className="liquid-droplet-pill absolute inset-y-0.5 inset-x-0.5 rounded-full pointer-events-none overflow-hidden"
                       transition={tabSpring}
                     >
-                      {/* Top Specular Lens Dome Highlight */}
-                      <div
-                        className="pointer-events-none absolute inset-x-0 top-0 h-[48%] overflow-hidden rounded-t-full"
-                        aria-hidden="true"
-                      >
-                        <div
-                          className="w-full h-full"
-                          style={{
-                            background:
-                              'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.06) 60%, transparent 100%)',
-                          }}
-                        />
-                      </div>
-
-                      {/* Bottom Meniscus Surface Tension Line */}
-                      <div
-                        className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/55 dark:via-white/25 to-transparent"
-                        aria-hidden="true"
-                      />
+                      <div className="hidden" aria-hidden="true" />
+                      <div className="hidden" aria-hidden="true" />
                     </motion.div>
                   )}
 
-                  {/* Content: Icon + Label (Strictly Transparent Achromatic Liquid Glass Contrast, Zero Blue) */}
+                  {/* Content: Icon + Label (Clean & High Contrast, Zero Reflections) */}
                   <motion.div
                     className="relative z-10 flex flex-col items-center justify-center gap-1 sm:gap-1.5 landscape:gap-0.5"
                     animate={isActive ? { scale: [0.96, 1.04, 1] } : { scale: 1 }}
@@ -445,16 +404,16 @@ export default function MobileTabBar({
                       <Icon
                         className={`size-5 sm:size-6 landscape:size-[16px] transition-colors duration-200 ${
                           isActive
-                            ? 'stroke-[2.4] text-gray-950 dark:text-white drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]'
-                            : 'stroke-[1.9] text-stone-700 hover:text-stone-900 dark:text-gray-200 dark:hover:text-white drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]'
+                            ? 'stroke-[2.4] text-gray-950 dark:text-white'
+                            : 'stroke-[1.8] text-stone-600 hover:text-stone-900 dark:text-gray-300 dark:hover:text-white'
                         }`}
                       />
                     </div>
                     <span
                       className={`text-[11px] sm:text-xs landscape:text-[9px] tracking-tight transition-colors duration-200 whitespace-nowrap ${
                         isActive
-                          ? 'font-bold text-gray-950 dark:text-white drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]'
-                          : 'font-medium text-stone-700 dark:text-gray-200 drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]'
+                          ? 'font-bold text-gray-950 dark:text-white'
+                          : 'font-medium text-stone-600 dark:text-gray-300'
                       }`}
                     >
                       {item.label}

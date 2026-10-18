@@ -218,11 +218,6 @@ export default function WebDock({
       )}
     >
       <Dock className="ios-liquid-glass-dock relative items-end pb-3 rounded-2xl px-3.5">
-        {/* Top 1px Specular Light Shelf */}
-        <div
-          className="pointer-events-none absolute inset-x-6 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 cream:via-white/90 dark:via-white/25 to-transparent"
-          aria-hidden="true"
-        />
 
         {dockItems.map((item) => (
           <DockItem
