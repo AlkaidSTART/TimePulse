@@ -27,6 +27,7 @@ import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useVersionStore } from '@/stores/useVersionStore';
 import { UserAvatar } from '@/components/composed/UserAvatar';
+import { getEffectiveAvatarUrl } from '@/utils/avatar';
 import { CHATGPT_THEME_PRESETS } from '@/constants/colors';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Language } from '@/i18n/types';
