@@ -10,6 +10,7 @@ import GlobalScrollbars from '@/components/layout/GlobalScrollbars';
 import OpeningAnimation from '@/components/layout/OpeningAnimation';
 import { usePlatformShortcuts } from '@/hooks/usePlatformShortcuts';
 
+import { setupDeepLink } from '@/services/deepLink';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 declare global {
@@ -25,6 +26,11 @@ function useViteAppLifecycle() {
     void setupTauriNotificationChannel();
     void useAuthStore.getState().initialize();
 
+    let unlistenDeepLink: (() => void) | undefined;
+    void setupDeepLink().then((unlisten) => {
+      unlistenDeepLink = unlisten;
+    });
+
     const onControllerChange = () => {
       console.log('Service Worker已接管页面，可以发送通知');
     };
@@ -39,6 +45,7 @@ function useViteAppLifecycle() {
     }
 
     return () => {
+      unlistenDeepLink?.();
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
       }
