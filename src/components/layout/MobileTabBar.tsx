@@ -11,7 +11,7 @@ import {
   FiCheck,
   FiCheckSquare,
 } from 'react-icons/fi';
-import { LuSparkles } from 'react-icons/lu';
+import { LuSmile } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { CountdownTimer, Timer, TimerType } from '@/domain/timer';
 import { useTranslation } from '@/i18n/useTranslation';
@@ -192,8 +192,9 @@ export default function MobileTabBar({
   }, [activeTab]);
 
   useEffect(() => {
+    const previousOrder = timerOrderRef.current;
     const availableIds = new Set(timers.map((timer) => timer.id));
-    const nextOrder = timerOrderRef.current.filter((id) => availableIds.has(id));
+    const nextOrder = previousOrder.filter((id) => availableIds.has(id));
     const orderedIds = new Set(nextOrder);
     for (const timer of timers) {
       if (!orderedIds.has(timer.id)) {
@@ -202,7 +203,13 @@ export default function MobileTabBar({
       }
     }
     timerOrderRef.current = nextOrder;
-    setTimerOrder(nextOrder);
+    // 顺序没有实际变化时跳过 setState，避免每次 timers 引用变化都触发重渲染
+    const orderChanged =
+      nextOrder.length !== previousOrder.length ||
+      nextOrder.some((id, index) => id !== previousOrder[index]);
+    if (orderChanged) {
+      setTimerOrder(nextOrder);
+    }
   }, [timers]);
 
   const handleTimerReorder = (nextOrder: string[]) => {
@@ -319,7 +326,7 @@ export default function MobileTabBar({
       };
 
   const tabsConfig = [
-    { id: 'cheer' as MobileTab, label: t('header.cheerShort', '打气'), icon: LuSparkles },
+    { id: 'cheer' as MobileTab, label: t('header.cheerShort', '打气'), icon: LuSmile },
     { id: 'timer' as MobileTab, label: t('header.timersShort', '计时'), icon: FiClock },
     { id: 'add' as const, label: t('header.newTimer', '新建'), icon: FiPlus, isAction: true },
     { id: 'todo' as MobileTab, label: t('header.todoShort', '待办'), icon: FiCheckSquare },

@@ -11,7 +11,7 @@ import {
   SunMoon,
   Maximize,
   Minimize,
-  Zap,
+  Smile,
   User,
 } from 'lucide-react';
 import { Dock, DockIcon, DockItem, DockLabel, DockBadge } from '@/components/core/dock';
@@ -113,7 +113,7 @@ export default function WebDock({
     {
       id: 'cheer',
       title: t('header.cheerTab', '元气打气'),
-      icon: <Zap className="size-full text-neutral-700 dark:text-neutral-200" />,
+      icon: <Smile className="size-full text-neutral-700 dark:text-neutral-200" />,
       onClick: () => {
         if (view !== 'cheer') transitionTo('cheer');
       },
@@ -177,7 +177,7 @@ export default function WebDock({
     },
     {
       id: 'theme',
-      title: `${t('theme.title', '切换主题')} (${theme === 'cream' ? '米白模式' : '浅白模式'})`,
+      title: `${t('theme.title', '切换主题')} (${theme === 'cream' ? '米白模式' : '白色模式'})`,
       icon: <SunMoon className="size-full text-neutral-700 dark:text-neutral-200" />,
       onClick: toggleTheme,
     },
