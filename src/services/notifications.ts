@@ -1,4 +1,5 @@
 import type { Language } from '@/i18n/types';
+import { preloadTranslations } from '@/i18n/useTranslation';
 import {
   isPermissionGranted as tauriIsPermissionGranted,
   requestPermission as tauriRequestPermission,
@@ -34,12 +35,10 @@ function getCurrentLanguage(): Language {
 async function loadNotificationTranslations(): Promise<Record<string, unknown>> {
   if (notificationTranslations) return notificationTranslations;
   try {
-    const locale = getCurrentLanguage() === 'en-US' ? 'en' : 'zh';
-    const response = await fetch(`/locales/${locale}/common.json`);
-    if (!response.ok) throw new Error(`Failed to load ${locale} translations`);
-    const value: unknown = await response.json();
-    if (typeof value !== 'object' || value === null) throw new Error('Invalid translations');
-    notificationTranslations = value as Record<string, unknown>;
+    // 复用 i18n 的共享缓存与 in-flight 请求，避免同一份 common.json 被重复拉取/解析
+    const tree = await preloadTranslations(getCurrentLanguage());
+    if (!tree) throw new Error('Invalid translations');
+    notificationTranslations = tree as Record<string, unknown>;
     return notificationTranslations;
   } catch (error) {
     console.error('Failed to load notification translations:', error);
