@@ -29,6 +29,7 @@ import { usePageTransition } from '@/hooks/usePageTransition';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import AnimatedLogo from '@/components/layout/AnimatedLogo';
+import OAuthButtons from './OAuthButtons';
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
 
@@ -265,20 +266,21 @@ export default function AuthPage() {
 
       {/* 2. 独立路由顶部专属导航栏 */}
       <header className="relative z-20 w-full max-w-6xl mx-auto flex items-center justify-between py-2 sm:py-3 px-2 sm:px-4">
-        {/* 左侧品牌与标语 */}
-        <div className="flex items-center gap-3">
-          <AnimatedLogo accentColor={activeColor} size="sm" />
-          <div className="flex flex-col">
-            <span
-              className="font-bold text-sm sm:text-base tracking-tight font-display flex items-center gap-1.5"
-              style={{ color: 'var(--color-font-accent, inherit)' }}
-            >
-              TimePulse
-            </span>
-            <span className="text-[10px] sm:text-[11px] text-gray-500 dark:text-gray-400 cream:text-[#8c8275] hidden sm:inline">
-              极简时光 · 专注脉搏
-            </span>
-          </div>
+        {/* 左侧品牌 */}
+        <div className="flex items-center">
+          <AnimatedLogo
+            accentColor={activeColor}
+            size="sm"
+            onClick={() => {
+              if (user) transitionTo('main');
+            }}
+            onLinkClick={(e) => {
+              if (user) {
+                e.preventDefault();
+                transitionTo('main');
+              }
+            }}
+          />
         </div>
 
         {/* 右侧环境控制台：主题切换 + TLS安全徽章 + 登录态跳转 */}
@@ -305,10 +307,6 @@ export default function AuthPage() {
 
           {/* TLS 安全认证徽章 */}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/60 dark:bg-white/[0.06] cream:bg-white/70 backdrop-blur-md border border-black/[0.06] dark:border-white/10 text-[10px] sm:text-[11px] font-medium text-gray-600 dark:text-gray-300 shadow-2xs">
-            <span className="relative flex size-2 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
-            </span>
             <span className="font-semibold text-gray-800 dark:text-gray-200 hidden sm:inline">
               Supabase BaaS 驱动
             </span>
@@ -576,28 +574,30 @@ export default function AuthPage() {
             </motion.div>
 
             {/* 右侧表单主卡片：登录 / 注册 / 找回密码 */}
+            {/* 右侧表单主卡片：登录 / 注册 / 找回密码 */}
             <motion.div
+              layout="position"
               initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.4, ease: 'easeOut' }}
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.4,
+                ease: 'easeOut',
+                layout: { duration: 0.3, ease: [0.25, 1, 0.5, 1] },
+              }}
               className="col-span-12 lg:col-span-7 xl:col-span-7 w-full max-w-lg mx-auto rounded-3xl border border-black/[0.08] dark:border-white/10 cream:border-amber-900/10 bg-white/85 dark:bg-zinc-900/85 cream:bg-[#fcf9f2]/90 p-5 sm:p-7 md:p-9 backdrop-blur-2xl shadow-2xl shadow-black/5 dark:shadow-black/30 relative overflow-hidden"
             >
-              {/* 移动端专属 Logo 顶头 */}
-              <div className="lg:hidden flex justify-center mb-3">
-                <AnimatedLogo accentColor={activeColor} size="sm" />
-              </div>
 
               <div className="space-y-4 sm:space-y-5">
                 {/* 标题与欢迎语 */}
                 <div className="text-center space-y-1">
-                  <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-gray-950 dark:text-white">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-gray-950 dark:text-white transition-opacity duration-200">
                     {mode === 'forgot'
                       ? '重置登录密码'
                       : mode === 'signup'
                       ? '注册 TimePulse 账号'
                       : '登录 TimePulse'}
                   </h1>
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 cream:text-[#887e72]">
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 cream:text-[#887e72] transition-opacity duration-200">
                     {mode === 'forgot'
                       ? '验证邮箱后即可重新设置您的账号密码'
                       : mode === 'signup'
@@ -639,8 +639,8 @@ export default function AuthPage() {
                       initial={false}
                       transition={{
                         type: 'spring',
-                        stiffness: 480,
-                        damping: 34,
+                        stiffness: 420,
+                        damping: 32,
                       }}
                       className="absolute inset-y-1 rounded-xl bg-white dark:bg-zinc-800 shadow-sm"
                       style={{
@@ -662,6 +662,9 @@ export default function AuthPage() {
                     <span className="text-[11px] text-gray-400 font-medium">重置指引向导</span>
                   </div>
                 )}
+
+                {/* 第三方 OAuth 快捷登录（Google / GitHub） */}
+                {mode !== 'forgot' && <OAuthButtons />}
 
                 {/* 异常反馈提示 Banner */}
                 <AnimatePresence>
@@ -696,48 +699,62 @@ export default function AuthPage() {
                 </AnimatePresence>
 
                 {/* 表单输入区域 */}
-                <form onSubmit={handleSubmit} className="space-y-3.5">
+                <motion.form
+                  layout
+                  transition={{ layout: { duration: 0.3, ease: [0.25, 1, 0.5, 1] } }}
+                  onSubmit={handleSubmit}
+                  className="space-y-3.5"
+                >
                   
-                  {/* 注册模式下的昵称 */}
-                  {mode === 'signup' && (
-                    <div className="space-y-1 text-left">
-                      <label
-                        htmlFor={nicknameInputId}
-                        className="block text-xs font-semibold text-gray-700 dark:text-gray-300"
+                  {/* 注册模式下的昵称（柔和高度展开） */}
+                  <AnimatePresence initial={false}>
+                    {mode === 'signup' && (
+                      <motion.div
+                        key="signup-nickname"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.28, ease: [0.25, 1, 0.5, 1] }}
+                        className="overflow-hidden space-y-1 text-left"
                       >
-                        个性称呼 / 昵称 <span className="text-gray-400 font-normal">(选填)</span>
-                      </label>
-                      <div
-                        className={`relative flex items-center rounded-2xl border transition-all duration-200 ${
-                          focusedField === 'nickname'
-                            ? 'bg-transparent ring-2'
-                            : 'bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/20 border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20'
-                        }`}
-                        style={{
-                          borderColor: focusedField === 'nickname' ? activeColor : undefined,
-                          boxShadow: focusedField === 'nickname' ? `0 0 0 3px ${activeColor}22` : undefined,
-                        }}
-                      >
-                        <FiUser
-                          className="pointer-events-none absolute left-3.5 size-4 transition-colors duration-200"
+                        <label
+                          htmlFor={nicknameInputId}
+                          className="block text-xs font-semibold text-gray-700 dark:text-gray-300"
+                        >
+                          个性称呼 / 昵称 <span className="text-gray-400 font-normal">(选填)</span>
+                        </label>
+                        <div
+                          className={`relative flex items-center rounded-2xl border transition-all duration-200 ${
+                            focusedField === 'nickname'
+                              ? 'bg-transparent ring-2'
+                              : 'bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/20 border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20'
+                          }`}
                           style={{
-                            color: focusedField === 'nickname' ? activeColor : undefined,
+                            borderColor: focusedField === 'nickname' ? activeColor : undefined,
+                            boxShadow: focusedField === 'nickname' ? `0 0 0 3px ${activeColor}22` : undefined,
                           }}
-                        />
-                        <input
-                          id={nicknameInputId}
-                          type="text"
-                          value={signUpNickname}
-                          onFocus={() => setFocusedField('nickname')}
-                          onBlur={() => setFocusedField(null)}
-                          onChange={(e) => setSignUpNickname(e.target.value)}
-                          placeholder="例如：阳光旅人"
-                          disabled={isLoading}
-                          className="w-full bg-transparent py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
-                        />
-                      </div>
-                    </div>
-                  )}
+                        >
+                          <FiUser
+                            className="pointer-events-none absolute left-3.5 size-4 transition-colors duration-200"
+                            style={{
+                              color: focusedField === 'nickname' ? activeColor : undefined,
+                            }}
+                          />
+                          <input
+                            id={nicknameInputId}
+                            type="text"
+                            value={signUpNickname}
+                            onFocus={() => setFocusedField('nickname')}
+                            onBlur={() => setFocusedField(null)}
+                            onChange={(e) => setSignUpNickname(e.target.value)}
+                            placeholder="例如：阳光旅人"
+                            disabled={isLoading}
+                            className="w-full bg-transparent py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* 电子邮箱输入域 */}
                   <div className="space-y-1 text-left">
@@ -783,22 +800,28 @@ export default function AuthPage() {
                   {/* 密码输入域（找回密码模式无需密码） */}
                   {mode !== 'forgot' && (
                     <div className="space-y-1 text-left">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between h-4">
                         <label
                           htmlFor={passwordInputId}
                           className="block text-xs font-semibold text-gray-700 dark:text-gray-300"
                         >
                           {mode === 'signup' ? '设置登录密码' : '登录密码'}
                         </label>
-                        {mode === 'signin' && (
-                          <button
-                            type="button"
-                            onClick={() => handleModeChange('forgot')}
-                            className="text-xs text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
-                          >
-                            忘记密码？
-                          </button>
-                        )}
+                        <AnimatePresence initial={false}>
+                          {mode === 'signin' && (
+                            <motion.button
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              type="button"
+                              onClick={() => handleModeChange('forgot')}
+                              className="text-xs text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
+                            >
+                              忘记密码？
+                            </motion.button>
+                          )}
+                        </AnimatePresence>
                       </div>
                       <div
                         className={`relative flex items-center rounded-2xl border transition-all duration-200 ${
@@ -840,90 +863,108 @@ export default function AuthPage() {
                         </button>
                       </div>
 
-                      {/* 注册模式下的动态密码强度指引条 */}
-                      {mode === 'signup' && password.length > 0 && (
-                        <div className="pt-1 space-y-1">
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="text-gray-400">密码强度</span>
-                            <span style={{ color: pwdStrength.color }} className="font-semibold">
-                              {pwdStrength.label}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-4 gap-1.5 h-1">
-                            {[1, 2, 3, 4].map((step) => (
-                              <div
-                                key={step}
-                                className="h-full rounded-full transition-all duration-300"
-                                style={{
-                                  backgroundColor:
-                                    step <= pwdStrength.score
-                                      ? pwdStrength.color
-                                      : 'rgba(150, 150, 150, 0.2)',
-                                }}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      {/* 注册模式下的动态密码强度指引条（柔和淡入淡出） */}
+                      <AnimatePresence initial={false}>
+                        {mode === 'signup' && password.length > 0 && (
+                          <motion.div
+                            key="signup-password-strength"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+                            className="overflow-hidden pt-1 space-y-1"
+                          >
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="text-gray-400">密码强度</span>
+                              <span style={{ color: pwdStrength.color }} className="font-semibold">
+                                {pwdStrength.label}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-4 gap-1.5 h-1">
+                              {[1, 2, 3, 4].map((step) => (
+                                <div
+                                  key={step}
+                                  className="h-full rounded-full transition-all duration-300"
+                                  style={{
+                                    backgroundColor:
+                                      step <= pwdStrength.score
+                                        ? pwdStrength.color
+                                        : 'rgba(150, 150, 150, 0.2)',
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   )}
 
-                  {/* 注册模式下的确认密码 */}
-                  {mode === 'signup' && (
-                    <div className="space-y-1 text-left">
-                      <div className="flex items-center justify-between">
-                        <label
-                          htmlFor={confirmPasswordInputId}
-                          className="block text-xs font-semibold text-gray-700 dark:text-gray-300"
-                        >
-                          确认登录密码
-                        </label>
-                        {confirmPassword && password === confirmPassword && (
-                          <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
-                            <FiCheck className="size-3.5" /> 密码一致
-                          </span>
-                        )}
-                      </div>
-                      <div
-                        className={`relative flex items-center rounded-2xl border transition-all duration-200 ${
-                          focusedField === 'confirmPassword'
-                            ? 'bg-transparent ring-2'
-                            : 'bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/20 border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20'
-                        }`}
-                        style={{
-                          borderColor: focusedField === 'confirmPassword' ? activeColor : undefined,
-                          boxShadow: focusedField === 'confirmPassword' ? `0 0 0 3px ${activeColor}22` : undefined,
-                        }}
+                  {/* 注册模式下的确认密码（柔和高度展开） */}
+                  <AnimatePresence initial={false}>
+                    {mode === 'signup' && (
+                      <motion.div
+                        key="signup-confirm-password"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.28, ease: [0.25, 1, 0.5, 1] }}
+                        className="overflow-hidden space-y-1 text-left"
                       >
-                        <FiLock
-                          className="pointer-events-none absolute left-3.5 size-4 transition-colors duration-200"
+                        <div className="flex items-center justify-between">
+                          <label
+                            htmlFor={confirmPasswordInputId}
+                            className="block text-xs font-semibold text-gray-700 dark:text-gray-300"
+                          >
+                            确认登录密码
+                          </label>
+                          {confirmPassword && password === confirmPassword && (
+                            <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
+                              <FiCheck className="size-3.5" /> 密码一致
+                            </span>
+                          )}
+                        </div>
+                        <div
+                          className={`relative flex items-center rounded-2xl border transition-all duration-200 ${
+                            focusedField === 'confirmPassword'
+                              ? 'bg-transparent ring-2'
+                              : 'bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/20 border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20'
+                          }`}
                           style={{
-                            color: focusedField === 'confirmPassword' ? activeColor : undefined,
+                            borderColor: focusedField === 'confirmPassword' ? activeColor : undefined,
+                            boxShadow: focusedField === 'confirmPassword' ? `0 0 0 3px ${activeColor}22` : undefined,
                           }}
-                        />
-                        <input
-                          id={confirmPasswordInputId}
-                          type={showPassword ? 'text' : 'password'}
-                          value={confirmPassword}
-                          onFocus={() => setFocusedField('confirmPassword')}
-                          onBlur={() => setFocusedField(null)}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          placeholder="再次输入刚才设置的密码"
-                          autoComplete="new-password"
-                          required
-                          disabled={isLoading}
-                          className="w-full bg-transparent py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
-                        />
-                      </div>
-                    </div>
-                  )}
+                        >
+                          <FiLock
+                            className="pointer-events-none absolute left-3.5 size-4 transition-colors duration-200"
+                            style={{
+                              color: focusedField === 'confirmPassword' ? activeColor : undefined,
+                            }}
+                          />
+                          <input
+                            id={confirmPasswordInputId}
+                            type={showPassword ? 'text' : 'password'}
+                            value={confirmPassword}
+                            onFocus={() => setFocusedField('confirmPassword')}
+                            onBlur={() => setFocusedField(null)}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="再次输入刚才设置的密码"
+                            autoComplete="new-password"
+                            required={mode === 'signup'}
+                            disabled={isLoading}
+                            className="w-full bg-transparent py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* 提交主操作按钮 */}
                   <div className="pt-2">
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full py-3 sm:py-3.5 px-5 rounded-2xl text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:opacity-95 hover:shadow-xl active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                      className="w-full py-3 sm:py-3.5 px-5 rounded-2xl text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:opacity-95 hover:shadow-xl active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden"
                       style={{
                         backgroundColor: activeColor,
                         boxShadow: `0 8px 25px -4px ${activeColor}55`,
@@ -935,7 +976,7 @@ export default function AuthPage() {
                           <span>正在安全验证...</span>
                         </span>
                       ) : (
-                        <span className="flex items-center gap-2">
+                        <span className="flex items-center gap-2 transition-all duration-200">
                           <span>
                             {mode === 'forgot'
                               ? '发送重置密码邮件'
@@ -948,7 +989,7 @@ export default function AuthPage() {
                       )}
                     </button>
                   </div>
-                </form>
+                </motion.form>
 
                 {/* 找回密码模式下的返回登录切换 */}
                 {mode === 'forgot' && (
