@@ -23,7 +23,9 @@
     "online": "在线",
     "offline": "离线",
     "uploading": "上传中...",
-    "changeAvatar": "更换头像"
+    "changeAvatar": "更换头像",
+    "loadingTime": "正在加载时间...",
+    "timers": "计时器"
   },
   "header": {
     "fullscreen": "进入全屏",
@@ -97,7 +99,9 @@
     "customColorPlaceholder": "#10A37F",
     "apply": "应用配色",
     "currentActive": "当前使用",
-    "selectTheme": "选择字体配色"
+    "selectTheme": "选择字体配色",
+    "colorListAria": "主题配色列表",
+    "recommendedColors": "推荐搭配色"
   },
   "timer": {
     "noActiveTimer": "没有活动的计时器",
@@ -521,7 +525,9 @@
     "markItemCompleted": "将「{text}」标记为已完成",
     "markItemUncompleted": "将「{text}」标记为未完成",
     "changePriorityColor": "修改或清除任务配色标记",
-    "setPriorityColor": "为任务标注优先级配色"
+    "setPriorityColor": "为任务标注优先级配色",
+    "hapticOnShort": "触觉开启",
+    "hapticOffShort": "触觉关闭"
   },
   "mobile": {
     "settingsTitle": "设置与功能",
@@ -592,7 +598,10 @@
     "saveCoffeeQr": "保存赞赏码图片",
     "saveContactQr": "保存微信二维码",
     "copySuccess": "微信号已复制到剪贴板",
-    "copyAuthor": "复制微信号"
+    "copyAuthor": "复制微信号",
+    "coffeeAlt": "Buy Me a Coffee - Alkaid 的赞赏码",
+    "wechatCopied": "已复制微信号",
+    "copyWechat": "复制微信号 Alkaid"
   },
   "auth": {
     "pageTitle": "登录 TimePulse",
@@ -759,7 +768,13 @@
     "avatarResetConfirm": "确定要恢复默认头像吗？",
     "avatarResetSuccess": "已恢复默认头像",
     "avatarResetFailed": "重置头像失败",
-    "memberDefaultName": "TimePulse 会员"
+    "memberDefaultName": "TimePulse 会员",
+    "avatarLoginRequired": "云端存储空间仅 5MB，请先登录账号后再上传专属头像",
+    "quota5MB": "5MB 配额",
+    "avatarSpecs": "限 JPG/PNG/WEBP · 单图 ≤ 2MB · 自动优化为 256×256 WebP · 覆盖防冗余",
+    "changeAvatarTitle": "上传自定义头像（自动压缩并覆盖旧头像）",
+    "avatarSpecsTip": "登录后可上传个人专属云端头像（配额 5MB，单图≤2MB，覆盖防冗余）",
+    "uploadAvatarTitle": "登录后上传自定义头像到 Supabase touxiang 存储桶"
   },
   "background": {
     "title": "背景设置",

@@ -23,7 +23,9 @@
     "online": "Online",
     "offline": "Offline",
     "uploading": "Uploading...",
-    "changeAvatar": "Change Avatar"
+    "changeAvatar": "Change Avatar",
+    "loadingTime": "Loading time...",
+    "timers": "Timers"
   },
   "header": {
     "fullscreen": "Enter Fullscreen",
@@ -97,7 +99,9 @@
     "customColorPlaceholder": "#10A37F",
     "apply": "Apply Color",
     "currentActive": "Current",
-    "selectTheme": "Select Font Color"
+    "selectTheme": "Select Font Color",
+    "colorListAria": "Theme color palette list",
+    "recommendedColors": "Recommended colors"
   },
   "timer": {
     "noActiveTimer": "No active timer",
@@ -521,7 +525,9 @@
     "markItemCompleted": "Mark \"{text}\" as completed",
     "markItemUncompleted": "Mark \"{text}\" as uncompleted",
     "changePriorityColor": "Change or clear task priority color",
-    "setPriorityColor": "Set task priority color"
+    "setPriorityColor": "Set task priority color",
+    "hapticOnShort": "Haptic On",
+    "hapticOffShort": "Haptic Off"
   },
   "mobile": {
     "settingsTitle": "Settings & Features",
@@ -592,7 +598,10 @@
     "saveCoffeeQr": "Save Reward Code Image",
     "saveContactQr": "Save WeChat QR Code",
     "copySuccess": "WeChat ID copied to clipboard",
-    "copyAuthor": "Copy WeChat ID"
+    "copyAuthor": "Copy WeChat ID",
+    "coffeeAlt": "Buy Me a Coffee - Alkaid's appreciation QR code",
+    "wechatCopied": "WeChat ID copied",
+    "copyWechat": "Copy WeChat ID Alkaid"
   },
   "auth": {
     "pageTitle": "Sign In to TimePulse",
@@ -759,7 +768,13 @@
     "avatarResetConfirm": "Are you sure you want to restore default avatar?",
     "avatarResetSuccess": "Default avatar restored.",
     "avatarResetFailed": "Failed to reset avatar.",
-    "memberDefaultName": "TimePulse Member"
+    "memberDefaultName": "TimePulse Member",
+    "avatarLoginRequired": "Cloud storage quota is 5MB. Please sign in to upload your custom avatar.",
+    "quota5MB": "5MB Quota",
+    "avatarSpecs": "JPG/PNG/WEBP · Max 2MB · Auto-optimized to 256×256 WebP · Deduplicated overwrite",
+    "changeAvatarTitle": "Upload custom avatar (auto-compressed and overwrites previous)",
+    "avatarSpecsTip": "Sign in to upload custom cloud avatar (5MB quota, max 2MB per image, auto-deduplication)",
+    "uploadAvatarTitle": "Sign in to upload custom avatar to Supabase storage"
   },
   "background": {
     "title": "Background Settings",

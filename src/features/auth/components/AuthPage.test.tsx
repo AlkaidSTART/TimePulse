@@ -8,6 +8,8 @@ import { supabase } from '@/lib/supabase';
 describe('AuthPage component', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    window.location.hash = '';
+    localStorage.clear();
     useAuthStore.setState({
       user: null,
       session: null,
@@ -17,11 +19,11 @@ describe('AuthPage component', () => {
       successMessage: null,
       isAuthModalOpen: false,
     });
-    localStorage.clear();
   });
 
   afterEach(() => {
     cleanup();
+    window.location.hash = '';
     localStorage.clear();
   });
 

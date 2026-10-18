@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-test('inspect cheer quote card with Wang Zengqi quote', async ({ page }) => {
+test('inspect cheer quote card at 450px viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 450, height: 800 });
+
   const dummyUser = {
     id: 'test-user-id',
     email: 'test@example.com',
@@ -46,14 +48,6 @@ test('inspect cheer quote card with Wang Zengqi quote', async ({ page }) => {
   await page.goto('/#cheer');
   await page.waitForTimeout(1000);
 
-  // Set the exact quote from user's screenshot
-  await page.evaluate(() => {
-    // @ts-ignore
-    const win = window as any;
-    // We can access or dispatch to zustand
-  });
-
-  // Let's find the quote index in INSPIRATIONAL_QUOTES or click "换一句" until we find it, or inject it via store
   await page.evaluate(async () => {
     const { useQuotesStore } = await import('/src/stores/useQuotesStore.ts');
     useQuotesStore.setState({
@@ -73,9 +67,8 @@ test('inspect cheer quote card with Wang Zengqi quote', async ({ page }) => {
   await expect(refreshButton).toBeVisible();
 
   const card = refreshButton.locator('xpath=ancestor::div[contains(@class, "rounded-2xl")]').first();
-  await card.screenshot({ path: 'test-results/wang-zengqi.png' });
+  await card.screenshot({ path: 'test-results/wang-zengqi-mobile.png' });
 
-  // Print card dimensions and inner elements
   const info = await card.evaluate((el) => {
     const textEffect = el.querySelector('p');
     const author = el.querySelector('.text-right');
@@ -103,5 +96,5 @@ test('inspect cheer quote card with Wang Zengqi quote', async ({ page }) => {
     };
   });
 
-  console.log('CARD INFO:\n' + JSON.stringify(info, null, 2));
+  console.log('MOBILE CARD INFO:\n' + JSON.stringify(info, null, 2));
 });

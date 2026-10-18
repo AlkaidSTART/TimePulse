@@ -60,3 +60,66 @@ describe('avatar utils - 5MB 对象存储约束校验', () => {
     expect(result).toBe(validFile);
   });
 });
+
+describe('getEffectiveAvatarUrl - 头像解析优先级与防覆盖保护', () => {
+  const googleAvatar = 'https://lh3.googleusercontent.com/a/google-avatar=s96-c';
+  const touxiangStorageUrl = 'https://ikdbwkrqlfksmjgrzchm.supabase.co/storage/v1/object/public/touxiang/u123/avatar.jpg';
+
+  it('prioritizes custom_avatar_url over Google OAuth avatar_url and picture', () => {
+    const user = {
+      user_metadata: {
+        avatar_url: googleAvatar,
+        picture: googleAvatar,
+        custom_avatar_url: touxiangStorageUrl,
+      },
+    };
+    expect(getEffectiveAvatarUrl(user, googleAvatar)).toBe(touxiangStorageUrl);
+  });
+
+  it('prioritizes localAvatar pointing to /touxiang/ over OAuth avatars', () => {
+    const user = {
+      user_metadata: {
+        avatar_url: googleAvatar,
+        picture: googleAvatar,
+      },
+    };
+    expect(getEffectiveAvatarUrl(user, touxiangStorageUrl)).toBe(touxiangStorageUrl);
+  });
+
+  it('prioritizes user_metadata.avatar_url when pointing to /touxiang/', () => {
+    const user = {
+      user_metadata: {
+        avatar_url: touxiangStorageUrl,
+        picture: googleAvatar,
+      },
+    };
+    expect(getEffectiveAvatarUrl(user, null)).toBe(touxiangStorageUrl);
+  });
+
+  it('falls back to custom local http/data URL when no touxiang or custom avatar', () => {
+    const user = null;
+    const customLocal = 'https://example.com/my-pic.png';
+    expect(getEffectiveAvatarUrl(user, customLocal)).toBe(customLocal);
+  });
+
+  it('falls back to user_metadata.avatar_url and picture for OAuth users who have not uploaded', () => {
+    const userWithAvatar = {
+      user_metadata: {
+        avatar_url: googleAvatar,
+      },
+    };
+    expect(getEffectiveAvatarUrl(userWithAvatar, '')).toBe(googleAvatar);
+
+    const userWithPictureOnly = {
+      user_metadata: {
+        picture: googleAvatar,
+      },
+    };
+    expect(getEffectiveAvatarUrl(userWithPictureOnly, '')).toBe(googleAvatar);
+  });
+
+  it('returns null when no valid avatar is present', () => {
+    expect(getEffectiveAvatarUrl(null, '')).toBeNull();
+    expect(getEffectiveAvatarUrl({ user_metadata: {} }, '阳光旅人')).toBeNull();
+  });
+});

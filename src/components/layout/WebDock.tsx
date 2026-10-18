@@ -52,7 +52,7 @@ export default function WebDock({
   const openAboutModal = useVersionStore((s) => s.openAboutModal);
   const user = useAuthStore((s) => s.user);
   const avatar = usePersonalSettingsStore((s) => s.avatar);
-  const userAvatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || (avatar && (avatar.startsWith('http') || avatar.startsWith('data:')) ? avatar : null);
+  const userAvatarUrl = getEffectiveAvatarUrl(user, avatar);
   const { t } = useTranslation();
 
   const [pendingTodoCount, setPendingTodoCount] = useState(0);
