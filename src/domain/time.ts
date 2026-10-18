@@ -64,13 +64,20 @@ function getZonedDateTimeFormatter(timeZone: string): Intl.DateTimeFormat {
   return formatter;
 }
 
+const zonedDateTimePartsCache = new Map<string, ZonedDateTimeParts>();
+const ZONED_PARTS_CACHE_LIMIT = 64;
+
 export function getZonedDateTimeParts(timestamp: number, timeZone: string): ZonedDateTimeParts {
+  const cacheKey = `${timeZone}|${timestamp}`;
+  const cached = zonedDateTimePartsCache.get(cacheKey);
+  if (cached) return cached;
+
   const values: Record<string, number> = {};
   for (const part of getZonedDateTimeFormatter(timeZone).formatToParts(new Date(timestamp))) {
     if (part.type !== 'literal') values[part.type] = Number(part.value);
   }
 
-  return {
+  const result = {
     year: values.year,
     month: values.month,
     day: values.day,
@@ -79,6 +86,13 @@ export function getZonedDateTimeParts(timestamp: number, timeZone: string): Zone
     second: values.second,
     millisecond: ((timestamp % 1000) + 1000) % 1000,
   };
+
+  if (zonedDateTimePartsCache.size >= ZONED_PARTS_CACHE_LIMIT) {
+    const oldestKey = zonedDateTimePartsCache.keys().next().value;
+    if (oldestKey !== undefined) zonedDateTimePartsCache.delete(oldestKey);
+  }
+  zonedDateTimePartsCache.set(cacheKey, result);
+  return result;
 }
 
 function getWallClockTimestamp(parts: ZonedDateTimeParts): number {
@@ -99,6 +113,10 @@ function sameZonedDateTime(left: ZonedDateTimeParts, right: ZonedDateTimeParts):
     left.millisecond === right.millisecond;
 }
 
+function getOffsetMsAt(timestamp: number, timeZone: string): number {
+  return getWallClockTimestamp(getZonedDateTimeParts(timestamp, timeZone)) - timestamp;
+}
+
 /**
  * Converts a local calendar date and time into an instant. Sampling nearby
  * offsets also handles daylight-saving gaps and repeated local times without
@@ -106,6 +124,19 @@ function sameZonedDateTime(left: ZonedDateTimeParts, right: ZonedDateTimeParts):
  */
 function zonedDateTimeToTimestamp(parts: ZonedDateTimeParts, timeZone: string): number {
   const wallClockTimestamp = getWallClockTimestamp(parts);
+
+  // Fast path: for unambiguous local times the offset sampled at the wall-clock
+  // value resolves the instant directly. Checking one hour earlier keeps the
+  // "earliest occurrence" behaviour for repeated local times; skipped/ambiguous
+  // times fall through to the sampling algorithm below.
+  const guessedCandidate = wallClockTimestamp - getOffsetMsAt(wallClockTimestamp, timeZone);
+  if (
+    sameZonedDateTime(getZonedDateTimeParts(guessedCandidate, timeZone), parts) &&
+    !sameZonedDateTime(getZonedDateTimeParts(guessedCandidate - HOUR_MS, timeZone), parts)
+  ) {
+    return guessedCandidate;
+  }
+
   const offsets = new Set<number>();
 
   for (let hours = -48; hours <= 48; hours += 12) {
@@ -196,24 +227,47 @@ export function splitCalendarDuration(
   const end = getZonedDateTimeParts(endTimestamp, timeZone);
   let totalMonths = (end.year - start.year) * 12 + end.month - start.month;
 
-  while (totalMonths > 0 && addZonedCalendarMonths(start, totalMonths, timeZone, startTimestamp) > endTimestamp) {
+  // These helpers are called several times with identical arguments while
+  // probing the boundary; memoising keeps each step at one conversion.
+  const monthStepCache = new Map<number, number>();
+  const monthStep = (months: number): number => {
+    let value = monthStepCache.get(months);
+    if (value === undefined) {
+      value = addZonedCalendarMonths(start, months, timeZone, startTimestamp);
+      monthStepCache.set(months, value);
+    }
+    return value;
+  };
+
+  while (totalMonths > 0 && monthStep(totalMonths) > endTimestamp) {
     totalMonths -= 1;
   }
-  while (addZonedCalendarMonths(start, totalMonths + 1, timeZone, startTimestamp) <= endTimestamp) {
+  while (monthStep(totalMonths + 1) <= endTimestamp) {
     totalMonths += 1;
   }
 
-  const afterMonthsTimestamp = addZonedCalendarMonths(start, totalMonths, timeZone, startTimestamp);
+  const afterMonthsTimestamp = monthStep(totalMonths);
   const afterMonths = getZonedDateTimeParts(afterMonthsTimestamp, timeZone);
+
+  const dayStepCache = new Map<number, number>();
+  const dayStep = (days: number): number => {
+    let value = dayStepCache.get(days);
+    if (value === undefined) {
+      value = addZonedCalendarDays(afterMonths, days, timeZone, afterMonthsTimestamp);
+      dayStepCache.set(days, value);
+    }
+    return value;
+  };
+
   let days = Math.max(0, getCalendarDayNumber(end) - getCalendarDayNumber(afterMonths));
-  while (days > 0 && addZonedCalendarDays(afterMonths, days, timeZone, afterMonthsTimestamp) > endTimestamp) {
+  while (days > 0 && dayStep(days) > endTimestamp) {
     days -= 1;
   }
-  while (addZonedCalendarDays(afterMonths, days + 1, timeZone, afterMonthsTimestamp) <= endTimestamp) {
+  while (dayStep(days + 1) <= endTimestamp) {
     days += 1;
   }
 
-  const remainder = Math.max(0, endTimestamp - addZonedCalendarDays(afterMonths, days, timeZone, afterMonthsTimestamp));
+  const remainder = Math.max(0, endTimestamp - dayStep(days));
 
   return {
     years: Math.floor(totalMonths / 12),
