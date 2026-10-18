@@ -1,6 +1,7 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
+import { preview } from 'vite';
 
 const outDir = path.resolve(process.cwd(), 'docs/screenshots');
 if (!fs.existsSync(outDir)) {
@@ -9,10 +10,103 @@ if (!fs.existsSync(outDir)) {
 
 // Clean old files in docs/screenshots
 for (const file of fs.readdirSync(outDir)) {
-  fs.unlinkSync(path.join(outDir, file));
+  if (file.endsWith('.png')) {
+    fs.unlinkSync(path.join(outDir, file));
+  }
+}
+
+const mockUser = {
+  id: 'e8a93cb2-9382-414f-b648-932f94ca2e32',
+  aud: 'authenticated',
+  role: 'authenticated',
+  email: 'traveler@timepulse.app',
+  email_confirmed_at: '2026-01-01T00:00:00.000Z',
+  app_metadata: { provider: 'email', providers: ['email'] },
+  user_metadata: {
+    nickname: '星河漫游者',
+    custom_motto: '心怀热爱，奔赴每一个灿烂的日子',
+    avatar_url: '',
+  },
+  created_at: '2026-01-01T00:00:00.000Z',
+  updated_at: '2026-10-18T00:00:00.000Z',
+};
+
+const mockSession = {
+  access_token: 'mock-access-token',
+  refresh_token: 'mock-refresh-token',
+  expires_in: 3600,
+  expires_at: 9999999999,
+  token_type: 'bearer',
+  user: mockUser,
+};
+
+async function setupContextMocking(context, isAuthenticated = true) {
+  // Mock external supabase endpoints to keep screenshots clean from network errors
+  await context.route('https://*.supabase.co/**', async (route) => {
+    const url = route.request().url();
+    if (url.includes('/auth/v1/user') || url.includes('/auth/v1/token')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(mockSession),
+      });
+      return;
+    }
+    if (url.includes('/storage/v1/object/list/touxiang')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
+      });
+      return;
+    }
+    if (url.includes('/rest/v1/app_versions')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([{ version: '0.7.0', release_notes: '最新稳定版本' }]),
+      });
+      return;
+    }
+    if (url.includes('/rest/v1/inspirational_quotes')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            content: '心怀热爱，奔赴每一个灿烂的日子。',
+            author: 'TimePulse',
+            source: '每日时光寄语',
+          },
+        ]),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    });
+  });
+
+  if (isAuthenticated) {
+    await context.addInitScript((session) => {
+      localStorage.setItem('sb-ikdbwkrqlfksmjgrzchm-auth-token', JSON.stringify(session));
+      localStorage.setItem('timepulse_has_registered', 'true');
+      localStorage.setItem('timepulse_registered_email', 'traveler@timepulse.app');
+    }, mockSession);
+  }
 }
 
 async function run() {
+  console.log('Starting preview server for docs screenshot capture...');
+  let previewServer;
+  try {
+    previewServer = await preview({ preview: { port: 4174 } });
+  } catch (err) {
+    console.log('Preview server might already be active:', err.message);
+  }
+
   const browser = await chromium.launch();
 
   const desktopContext = await browser.newContext({
@@ -20,6 +114,7 @@ async function run() {
     deviceScaleFactor: 2,
     colorScheme: 'light',
   });
+  await setupContextMocking(desktopContext, true);
 
   // Seed standard demo data into storage
   {
@@ -131,7 +226,6 @@ async function run() {
     const page = await desktopContext.newPage();
     await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'networkidle' });
     await page.waitForTimeout(300);
-    // Switch to pomodoro timer
     await page.evaluate(async () => {
       const req = indexedDB.open('TimePulseDB', 2);
       const db = await new Promise((resolve) => {
@@ -227,7 +321,6 @@ async function run() {
     await page.waitForTimeout(1500);
     const fullscreenBtn = page.locator('[data-insightflare-event="fullscreen_toggle"]').first();
     await fullscreenBtn.click();
-    // Wait for header to auto-hide
     await page.waitForTimeout(4500);
     await page.screenshot({ path: path.join(outDir, '09-fullscreen-zen.png') });
     await page.close();
@@ -241,6 +334,7 @@ async function run() {
       deviceScaleFactor: 2,
       colorScheme: 'light',
     });
+    await setupContextMocking(mobileContext, true);
     const page = await mobileContext.newPage();
     await page.goto('http://127.0.0.1:4174/#main', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1500);
@@ -249,9 +343,40 @@ async function run() {
     await mobileContext.close();
   }
 
+  // 11. Auth Page - Sign Up / Sign In (Unauthenticated view)
+  console.log('Capturing 11-auth-register.png...');
+  {
+    const unauthContext = await browser.newContext({
+      viewport: { width: 1280, height: 800 },
+      deviceScaleFactor: 2,
+      colorScheme: 'light',
+    });
+    await setupContextMocking(unauthContext, false);
+    const page = await unauthContext.newPage();
+    await page.goto('http://127.0.0.1:4174/#register', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: path.join(outDir, '11-auth-register.png') });
+    await page.close();
+    await unauthContext.close();
+  }
+
+  // 12. Auth Page - Profile & Cloud Sync (Authenticated management view)
+  console.log('Capturing 12-auth-cloud-sync.png...');
+  {
+    const page = await desktopContext.newPage();
+    await page.goto('http://127.0.0.1:4174/#auth', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: path.join(outDir, '12-auth-cloud-sync.png') });
+    await page.close();
+  }
+
   await desktopContext.close();
   await browser.close();
-  console.log('All screenshots captured successfully!');
+
+  if (previewServer?.httpServer) {
+    previewServer.httpServer.close();
+  }
+  console.log('All 12 screenshots captured successfully!');
 }
 
 run().catch((err) => {
