@@ -11,7 +11,7 @@ import {
   SunMoon,
   Maximize,
   Minimize,
-  Sparkles,
+  Zap,
   User,
 } from 'lucide-react';
 import { Dock, DockIcon, DockItem, DockLabel, DockBadge } from '@/components/core/dock';
@@ -113,7 +113,7 @@ export default function WebDock({
     {
       id: 'cheer',
       title: t('header.cheerTab', '元气打气'),
-      icon: <Sparkles className="size-full text-neutral-700 dark:text-neutral-200" />,
+      icon: <Zap className="size-full text-neutral-700 dark:text-neutral-200" />,
       onClick: () => {
         if (view !== 'cheer') transitionTo('cheer');
       },
@@ -217,10 +217,10 @@ export default function WebDock({
         className
       )}
     >
-      <Dock className="relative items-end pb-3 rounded-2xl border border-black/[0.08] bg-white/20 shadow-[0_16px_48px_-8px_rgba(0,0,0,0.1),0_4px_16px_-2px_rgba(0,0,0,0.04)] backdrop-blur-md cream:bg-[#faf7ee]/25 cream:border-stone-400/35 dark:border-white/12 dark:bg-[#141416]/35 dark:shadow-[0_16px_48px_rgba(0,0,0,0.6)] px-3.5">
+      <Dock className="ios-liquid-glass-dock relative items-end pb-3 rounded-2xl px-3.5">
         {/* Top 1px Specular Light Shelf */}
         <div
-          className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/70 cream:via-white/75 dark:via-white/20 to-transparent"
+          className="pointer-events-none absolute inset-x-6 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 cream:via-white/90 dark:via-white/25 to-transparent"
           aria-hidden="true"
         />
 

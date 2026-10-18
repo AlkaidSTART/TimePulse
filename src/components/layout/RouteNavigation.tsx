@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { FiClock, FiCheckSquare, FiUser } from 'react-icons/fi';
-import { LuSparkles } from 'react-icons/lu';
+import { LuZap } from 'react-icons/lu';
 import { usePageTransition, type PageView } from '@/hooks/usePageTransition';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTranslation } from '@/i18n/useTranslation';
@@ -61,7 +61,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
       id: 'cheer',
       label: t('header.cheerTab', '元气打气'),
       shortLabel: t('header.cheerShort', '打气'),
-      icon: LuSparkles,
+      icon: LuZap,
       title: '元气打气与时光问候',
       description: '时间问候、元气充能与今日灵感',
     },
@@ -269,7 +269,7 @@ export default function RouteNavigation({ compact = false, className = '' }: Rou
               <div className="flex items-center gap-1.5">
                 <span className="p-1 rounded-lg bg-black/5 dark:bg-white/10 text-gray-800 dark:text-gray-200">
                   {hoveredRoute === 'cheer' ? (
-                    <LuSparkles className="size-3.5 text-amber-500" />
+                    <LuZap className="size-3.5 text-amber-500" />
                   ) : hoveredRoute === 'main' ? (
                     <FiClock className="size-3.5" />
                   ) : hoveredRoute === 'todo' ? (

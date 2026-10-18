@@ -349,10 +349,10 @@ export default function MobileTabBar({
           paddingRight: 'var(--tp-safe-right, env(safe-area-inset-right, 0px))',
         }}
       >
-        <div className="relative mx-auto flex h-[70px] sm:h-[76px] landscape:h-[48px] w-full items-center justify-around rounded-full border border-black/[0.08] bg-white/20 p-1.5 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.08),0_2px_8px_-1px_rgba(0,0,0,0.04)] backdrop-blur-md cream:bg-[#faf7ee]/25 cream:border-stone-400/35 cream:shadow-[0_8px_32px_-4px_rgba(120,95,65,0.1),0_2px_8px_-1px_rgba(120,95,65,0.04)] dark:border-white/[0.12] dark:bg-[#141416]/35 dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)] overflow-hidden">
+        <div className="ios-liquid-glass-dock relative mx-auto flex h-[70px] sm:h-[76px] landscape:h-[48px] w-full items-center justify-around rounded-full p-1.5 overflow-hidden">
           {/* Top 1px Specular Light Shelf */}
           <div
-            className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/70 cream:via-white/75 dark:via-white/20 to-transparent"
+            className="pointer-events-none absolute inset-x-6 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 cream:via-white/90 dark:via-white/25 to-transparent"
             aria-hidden="true"
           />
 
@@ -365,7 +365,7 @@ export default function MobileTabBar({
                     type="button"
                     onClick={handleAddClick}
                     whileTap={{ scale: 0.92 }}
-                    className="liquid-droplet-button relative flex size-12.5 sm:size-14 landscape:size-9.5 items-center justify-center rounded-full text-gray-900 dark:text-white cursor-pointer transition-all focus:outline-none overflow-hidden select-none"
+                    className="liquid-droplet-button relative flex size-12.5 sm:size-14 landscape:size-9.5 items-center justify-center rounded-full text-gray-950 dark:text-white cursor-pointer transition-all focus:outline-none overflow-hidden select-none"
                     aria-label="新建计时器"
                   >
                     {/* Top Specular Lens Dome Highlight */}
@@ -377,16 +377,16 @@ export default function MobileTabBar({
                         className="w-full h-full"
                         style={{
                           background:
-                            'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.06) 60%, transparent 100%)',
+                            'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.08) 60%, transparent 100%)',
                         }}
                       />
                     </div>
                     {/* Bottom Meniscus Surface Tension Line */}
                     <div
-                      className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/50 dark:via-white/20 to-transparent"
+                      className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/60 dark:via-white/25 to-transparent"
                       aria-hidden="true"
                     />
-                    <FiPlus className="size-6 sm:size-7 landscape:size-4.5 stroke-[2.6] text-gray-900 dark:text-white relative z-10 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]" />
+                    <FiPlus className="size-6 sm:size-7 landscape:size-4.5 stroke-[2.6] text-gray-950 dark:text-white relative z-10 drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)] dark:drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" />
                   </motion.button>
                 </div>
               );
@@ -422,14 +422,14 @@ export default function MobileTabBar({
                           className="w-full h-full"
                           style={{
                             background:
-                              'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.05) 60%, transparent 100%)',
+                              'radial-gradient(ellipse 90% 100% at 50% 0%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0.06) 60%, transparent 100%)',
                           }}
                         />
                       </div>
 
                       {/* Bottom Meniscus Surface Tension Line */}
                       <div
-                        className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/45 dark:via-white/20 to-transparent"
+                        className="pointer-events-none absolute inset-x-2 bottom-0.5 h-[1px] bg-gradient-to-r from-transparent via-white/55 dark:via-white/25 to-transparent"
                         aria-hidden="true"
                       />
                     </motion.div>
