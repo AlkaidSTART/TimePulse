@@ -42,9 +42,6 @@ export default defineConfig({
           if (pkg === 'framer-motion' || pkg === 'motion' || pkg?.startsWith('motion-')) {
             return 'vendor-motion';
           }
-          if (pkg === 'qrcode.react') {
-            return 'vendor-qr';
-          }
           if (pkg === 'react-colorful') {
             // 仅被懒加载的取色器使用：交给 Rollup 放入动态依赖图
             return undefined;
@@ -85,7 +82,6 @@ export default defineConfig({
       'react-dom/client',
       'framer-motion',
       'date-fns',
-      'qrcode.react',
       'react-colorful',
       'react-icons/fi',
       'lucide-react',

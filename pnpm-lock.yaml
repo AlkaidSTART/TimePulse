@@ -14,9 +14,6 @@ importers:
       '@number-flow/react':
         specifier: 0.6.2
         version: 0.6.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@supabase/server':
-        specifier: ^1.9.2
-        version: 1.9.2(@supabase/supabase-js@2.118.0)(hono@4.11.4)(typescript@5.9.3)
       '@supabase/supabase-js':
         specifier: ^2.118.0
         version: 2.118.0
@@ -44,9 +41,6 @@ importers:
       overlayscrollbars:
         specifier: ^2.16.0
         version: 2.16.0
-      qrcode.react:
-        specifier: ^3.2.0
-        version: 3.2.0(react@19.3.0)
       react:
         specifier: 19.3.0
         version: 19.3.0
@@ -59,15 +53,9 @@ importers:
       react-icons:
         specifier: ^4.12.0
         version: 4.12.0(react@19.3.0)
-      react-intersection-observer:
-        specifier: ^9.16.0
-        version: 9.16.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       solarlunar:
         specifier: ^2.0.7
         version: 2.0.7
-      use-sound:
-        specifier: ^4.0.4
-        version: 4.0.4(react@19.3.0)
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
@@ -2200,15 +2188,6 @@ packages:
     resolution: {integrity: sha512-4ofletPa/noKAU6KHeqsd3FztGzRPUEJRey1MKY0o+PIHaVePqRPShIXtl37gcVyIWaFM+zNg6r9zh0uUSFOSA==}
     engines: {node: '>=22.0.0'}
 
-  '@supabase/middleware@1.0.0':
-    resolution: {integrity: sha512-ecA+z/o5E9sB+quuupGt8d7QjrnD4BBwZr+Qthm0uj6CtL/+yvAUTDlknhGuTbUidvx5CxBHJ1R3H96UjDpgyg==}
-    engines: {node: '>=22'}
-    peerDependencies:
-      typescript: '>=5.4'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-
   '@supabase/phoenix@0.4.5':
     resolution: {integrity: sha512-aAn9H9ovVyeApKy11OWOrrOGq8DV68yWeH4ud2lN9fzn4aO8Zb5GLL9m1pUg9nLqIcT+ZDfAcsZe0E/nqdv2lw==}
 
@@ -2219,28 +2198,6 @@ packages:
   '@supabase/realtime-js@2.118.0':
     resolution: {integrity: sha512-pzCIEWjqD5/xqEZQerpt+q9rsgYkcrkgCJgf0W2ULqC4fYUeB/p9CFa3t9vn+IVh6dMN9r4ZCE262lZvUC+Bfw==}
     engines: {node: '>=22.0.0'}
-
-  '@supabase/server@1.9.2':
-    resolution: {integrity: sha512-zkvU157ivZ268Ffs+2aEaYvavfchZ8IiB/Rt5tW4JTfew2JeX0TN46Do3XD5U8ganGhfAJr3BUsMHswY56+iLA==}
-    engines: {node: '>=22'}
-    peerDependencies:
-      '@nestjs/common': ^10.0.0 || ^11.0.0
-      '@supabase/supabase-js': ^2.0.0
-      elysia: ^1.4.0
-      h3: ^2.0.0
-      hono: ^4.0.0
-      pg: ^8.0.0
-    peerDependenciesMeta:
-      '@nestjs/common':
-        optional: true
-      elysia:
-        optional: true
-      h3:
-        optional: true
-      hono:
-        optional: true
-      pg:
-        optional: true
 
   '@supabase/storage-js@2.118.0':
     resolution: {integrity: sha512-5MNkKt2Moy7Jud/sPX7/28BwdDxZMCVHGJT00b8op3KRa9LKSjOAYU5IcfGWIstaasAqY8GkbA6oI3IRDgB1YQ==}
@@ -3271,9 +3228,6 @@ packages:
     resolution: {integrity: sha512-U7tt8JsyrxSRKspfhtLET79pU8K+tInj5QZXs1jSugO1Vq5dFj3kmZsRldo29mTBfcjDRVRXrEZ6LS63Cog9ZA==}
     engines: {node: '>=16.9.0'}
 
-  howler@2.2.4:
-    resolution: {integrity: sha512-iARIBPgcQrwtEr+tALF+rapJ8qSc+Set2GJQl7xT1MQzWaVkFebdJhR3alVlSiUf5U7nAANKuj3aWpwerocD5w==}
-
   html-encoding-sniffer@6.0.0:
     resolution: {integrity: sha512-CV9TW3Y3f8/wT0BRFc1/KAVQ3TUHiXmaAb6VW9vtiMFf7SLoMd1PdAc4W3KFOFETBJUb90KatHqlsZMWV+R9Gg==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
@@ -3363,9 +3317,6 @@ packages:
 
   jju@1.4.0:
     resolution: {integrity: sha512-8wb9Yw966OSxApiCt0K3yNJL8pnNeIv+OEq2YMidz4FKP6nonSRoOXc80iXY4JaN2FC11B9qsNmDsm+ZOfMROA==}
-
-  jose@6.2.12:
-    resolution: {integrity: sha512-9NiFmJEex0sy2Dk58j2UGBSHgUs2ypF9eZSu4L6vjOX3Dp96Sw1F3uL+H+D1sx02jZZdzUT0HgvCy59CuvXcWw==}
 
   js-base64@3.9.4:
     resolution: {integrity: sha512-PtOMXpEGuP0RRiRXsjzHzl44dMHxSu2CPvAhinupR1tBa88me+1DPqsobl7eupn5UukjLkln1ZnAOAOXOrYG0Q==}
@@ -3824,11 +3775,6 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  qrcode.react@3.2.0:
-    resolution: {integrity: sha512-YietHHltOHA4+l5na1srdaMx4sVSOjV9tamHs+mwiLWAMr6QVACRUw1Neax5CptFILcNoITctJY0Ipyn5enQ8g==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-
   radix-ui@1.6.7:
     resolution: {integrity: sha512-QBdhh1arIEUvPC0dQ5+nwWAxt7+N+oP/9jPwjJkGFoSk/sqxg32gJtSXGtFh8frAIcS6oC9cx2Q+7KYCQLOAeA==}
     peerDependencies:
@@ -3863,15 +3809,6 @@ packages:
     resolution: {integrity: sha512-IBaDuHiShdZqmfc/TwHu6+d6k2ltNCf3AszxNmjJc1KUfXdEeRJOKyNvLmAHaarhzGmTSVygNdyu8/opXv2gaw==}
     peerDependencies:
       react: '*'
-
-  react-intersection-observer@9.16.0:
-    resolution: {integrity: sha512-w9nJSEp+DrW9KmQmeWHQyfaP6b03v+TdXynaoA964Wxt7mdR3An11z4NNCQgL4gKSK7y1ver2Fq+JKH6CWEzUA==}
-    peerDependencies:
-      react: ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      react-dom:
-        optional: true
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
@@ -4028,9 +3965,6 @@ packages:
 
   std-env@3.10.0:
     resolution: {integrity: sha512-5GS12FdOZNliM5mAOxFRg7Ir0pWz8MdpYm6AY6VPkGpbA7ZzmbzNcBJQ0GPvvyWgcY7QAhCgf9Uy89I03faLkg==}
-
-  std-env@4.3.0:
-    resolution: {integrity: sha512-OtU/EgQ1kIm5KwqQpBC6ZEMXrZRui11w8zgfTWp8cdO9B8OaPsbA8bTHO2P+HNo1VlUTGMVBwPhydu6poeXiag==}
 
   streamx@2.28.1:
     resolution: {integrity: sha512-zEzXb0s5Cds7tqMH6rhZ05lcJydCWiQPEwiNngVqzsxCc962vLY4Uw+mW7od8kDH258k2Uz/JrOkdIAAhSh9VA==}
@@ -4212,11 +4146,6 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
-
-  use-sound@4.0.4:
-    resolution: {integrity: sha512-SW81yRUu3K0rJHW0WVANCAK581A2qgD97+QrLxPhlAhvdIAIgw2J9d1VThdbHmPHjzCbwKE/is82V88sgFdjCg==}
-    peerDependencies:
-      react: '>=16.8'
 
   use-sync-external-store@1.7.0:
     resolution: {integrity: sha512-6L+EeigHMQhdaIPNIFUKwfWJSwWFQ8gJbJ2DLOs5sDIegTwR9fRxvnM3uciHKjIZhFz+KAv2emhWMRvDmMcY8A==}
@@ -6408,12 +6337,6 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
-  '@supabase/middleware@1.0.0(typescript@5.9.3)':
-    dependencies:
-      std-env: 4.3.0
-    optionalDependencies:
-      typescript: 5.9.3
-
   '@supabase/phoenix@0.4.5': {}
 
   '@supabase/postgrest-js@2.118.0':
@@ -6424,16 +6347,6 @@ snapshots:
     dependencies:
       '@supabase/phoenix': 0.4.5
       tslib: 2.8.1
-
-  '@supabase/server@1.9.2(@supabase/supabase-js@2.118.0)(hono@4.11.4)(typescript@5.9.3)':
-    dependencies:
-      '@supabase/middleware': 1.0.0(typescript@5.9.3)
-      '@supabase/supabase-js': 2.118.0
-      jose: 6.2.12
-    optionalDependencies:
-      hono: 4.11.4
-    transitivePeerDependencies:
-      - typescript
 
   '@supabase/storage-js@2.118.0':
     dependencies:
@@ -7418,8 +7331,6 @@ snapshots:
 
   hono@4.11.4: {}
 
-  howler@2.2.4: {}
-
   html-encoding-sniffer@6.0.0(@noble/hashes@2.4.0):
     dependencies:
       '@exodus/bytes': 1.15.1(@noble/hashes@2.4.0)
@@ -7483,8 +7394,6 @@ snapshots:
   jiti@2.7.0: {}
 
   jju@1.4.0: {}
-
-  jose@6.2.12: {}
 
   js-base64@3.9.4: {}
 
@@ -7916,10 +7825,6 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  qrcode.react@3.2.0(react@19.3.0):
-    dependencies:
-      react: 19.3.0
-
   radix-ui@1.6.7(@types/react-dom@19.2.7(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
     dependencies:
       '@radix-ui/primitive': 1.1.7
@@ -8003,12 +7908,6 @@ snapshots:
   react-icons@4.12.0(react@19.3.0):
     dependencies:
       react: 19.3.0
-
-  react-intersection-observer@9.16.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0):
-    dependencies:
-      react: 19.3.0
-    optionalDependencies:
-      react-dom: 19.3.0(react@19.3.0)
 
   react-is@17.0.2: {}
 
@@ -8210,8 +8109,6 @@ snapshots:
 
   std-env@3.10.0: {}
 
-  std-env@4.3.0: {}
-
   streamx@2.28.1:
     dependencies:
       events-universal: 1.0.1
@@ -8390,11 +8287,6 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.2.18
-
-  use-sound@4.0.4(react@19.3.0):
-    dependencies:
-      howler: 2.2.4
-      react: 19.3.0
 
   use-sync-external-store@1.7.0(react@19.3.0):
     dependencies:
