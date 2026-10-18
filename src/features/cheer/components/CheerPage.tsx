@@ -316,7 +316,7 @@ export default function CheerPage() {
           <button
             type="button"
             onClick={() => transitionTo('main')}
-            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] border border-black/[0.05] dark:border-white/10 transition-colors cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 bg-white/10 dark:bg-white/[0.05] hover:bg-white/20 dark:hover:bg-white/[0.1] border border-black/15 cream:border-stone-400/40 dark:border-white/20 hover:border-black/25 dark:hover:border-white/35 backdrop-blur-md transition-all cursor-pointer active:scale-95"
           >
             <FiClock className="size-4 sm:size-4.5 text-primary-500" />
             <span>时钟主页</span>
@@ -327,7 +327,7 @@ export default function CheerPage() {
           <button
             type="button"
             onClick={() => transitionTo('todo')}
-            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] border border-black/[0.05] dark:border-white/10 transition-colors cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 bg-white/10 dark:bg-white/[0.05] hover:bg-white/20 dark:hover:bg-white/[0.1] border border-black/15 cream:border-stone-400/40 dark:border-white/20 hover:border-black/25 dark:hover:border-white/35 backdrop-blur-md transition-all cursor-pointer active:scale-95"
           >
             <FiCheckSquare className="size-4 sm:size-4.5 text-emerald-500" />
             <span>今日待办</span>
@@ -343,7 +343,7 @@ export default function CheerPage() {
           <button
             type="button"
             onClick={() => transitionTo('settings')}
-            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] border border-black/[0.05] dark:border-white/10 transition-colors cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 bg-white/10 dark:bg-white/[0.05] hover:bg-white/20 dark:hover:bg-white/[0.1] border border-black/15 cream:border-stone-400/40 dark:border-white/20 hover:border-black/25 dark:hover:border-white/35 backdrop-blur-md transition-all cursor-pointer active:scale-95"
           >
             <FiUser className="size-4 sm:size-4.5 text-gray-400" />
             <span>个人设置</span>
