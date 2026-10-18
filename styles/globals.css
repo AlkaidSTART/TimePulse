@@ -34,7 +34,7 @@ button:focus-visible:not(.btn):not(.btn-primary):not(.btn-ghost):not(.btn-glass-
   --color-primary-700: rgba(var(--color-primary), 0.8);
   --color-primary-800: rgba(var(--color-primary), 0.7);
   --color-primary-900: rgba(var(--color-primary), 0.6);
-  --color-background-light: #fafbfd;
+  --color-background-light: #ffffff;
   --color-background-cream: #f7f4eb;
   --font-sans: Inter, ui-sans-serif, system-ui;
   --font-display: Poppins, sans-serif;
@@ -325,8 +325,9 @@ select,
   }
 
   .cream .modal-content {
-    background: rgba(255, 252, 245, 0.75) !important;
-    border: 1px solid rgba(220, 212, 198, 0.6) !important;
+    background: rgba(249, 244, 233, 0.94) !important;
+    border: 1px solid rgba(215, 202, 178, 0.6) !important;
+    box-shadow: 0 16px 40px -8px rgba(135, 110, 75, 0.12) !important;
   }
 
   /* 覆盖所有可能的glass-card相关样式 */
@@ -337,8 +338,9 @@ select,
   }
 
   .cream .modal-content.glass-card {
-    background: rgba(255, 252, 245, 0.75) !important;
-    border: 1px solid rgba(220, 212, 198, 0.6) !important;
+    background: rgba(249, 244, 233, 0.92) !important;
+    border: 1px solid rgba(215, 202, 178, 0.6) !important;
+    box-shadow: 0 16px 40px -8px rgba(135, 110, 75, 0.12) !important;
   }
 
   /* Firefox中禁用某些可能导致闪烁的效果 */
@@ -374,17 +376,18 @@ select,
 
   .cream .glass-effect,
   .cream .glass-card {
-    background: rgba(255, 252, 245, 0.72) !important;
-    border: 1px solid rgba(220, 212, 198, 0.6) !important;
+    background: rgba(249, 244, 233, 0.90) !important;
+    border: 1px solid rgba(215, 202, 178, 0.55) !important;
+    box-shadow: 0 8px 30px -4px rgba(135, 110, 80, 0.08) !important;
   }
 
   /* 强制覆盖Tailwind的背景透明度设置 */
   .bg-white\/70 {
-    background: rgba(255, 255, 255, 0.75) !important;
+    background: rgba(255, 255, 255, 0.88) !important;
   }
 
   .cream .bg-white\/70 {
-    background: rgba(255, 252, 245, 0.75) !important;
+    background: rgba(249, 244, 233, 0.88) !important;
   }
 
   /* Firefox专用：强制禁用所有可能导致闪烁的动画属性 */
@@ -1247,7 +1250,7 @@ select,
   }
 
   .cream .glass-effect {
-    background-color: rgba(255, 252, 245, 0.95);
+    background-color: rgba(249, 244, 233, 0.92);
   }
 
   .glass-card {
@@ -1255,13 +1258,13 @@ select,
   }
 
   .cream .glass-card {
-    background-color: rgba(255, 252, 245, 0.95) !important;
+    background-color: rgba(249, 244, 233, 0.92) !important;
   }
 }
 
 .cream .glass-effect {
-  background-color: rgba(255, 252, 245, 0.78);
-  border: 1px solid rgba(220, 212, 198, 0.6);
+  background-color: rgba(249, 244, 233, 0.88);
+  border: 1px solid rgba(215, 202, 178, 0.55);
   color: #2c2825;
 }
 
@@ -1581,7 +1584,7 @@ body {
   }
 
   .cream .modal-content[class*="bg-"] {
-    background: rgba(255, 252, 245, 0.75) !important;
+    background: rgba(249, 244, 233, 0.94) !important;
   }
 
   /* 使用transform代替opacity变化 */
@@ -1597,7 +1600,7 @@ body {
   }
 
   .cream .glass-card[class*="bg-"] {
-    background: rgba(255, 252, 245, 0.75) !important;
+    background: rgba(249, 244, 233, 0.90) !important;
   }
 
   /* 禁用所有可能的opacity相关动画 */
@@ -1615,13 +1618,89 @@ body {
   }
 }
 
+/* ==========================================================================
+   米白模式 (Cream) 全局温润纸感与组件配色细微调整
+   注意：严格保护底部 tab bar 与高透明组件（.ios-liquid-glass-dock, 
+   .liquid-droplet-pill, .liquid-droplet-button, .liquid-glass-digit, 
+   .liquid-glass-control 等）保持原始高透与纯净感，绝不作不透明或变色覆盖。
+   ========================================================================== */
+
+/* 1. 卡片与各页面内容容器（设置中心、待办卡片、问候卡片、弹窗面板等） */
+html.cream section:not(.ios-liquid-glass-dock):not(.ios-liquid-glass-dock *),
+html.cream [data-page-view="settings"] section,
+html.cream [data-page-view="auth"] section,
+html.cream .card-cream {
+  background-color: rgba(250, 245, 234, 0.88);
+  border-color: rgba(218, 204, 182, 0.55);
+  box-shadow: 0 4px 20px -2px rgba(125, 100, 70, 0.06);
+}
 
 html.cream .glass-card {
   box-shadow: 0 8px 30px -4px rgba(140, 120, 95, 0.08);
 }
 
-html.cream input,
-html.cream select,
-html.cream textarea {
+/* 2. 表单输入控件（输入框、选择框、文本域） */
+html.cream input:not([type="checkbox"]):not([type="radio"]):not(.ios-liquid-glass-dock *),
+html.cream select:not(.ios-liquid-glass-dock *),
+html.cream textarea:not(.ios-liquid-glass-dock *) {
+  background-color: rgba(245, 239, 228, 0.85);
+  border-color: rgba(210, 196, 175, 0.6);
+  color: #26211e;
+}
+html.cream input::placeholder,
+html.cream textarea::placeholder {
+  color: #988c7f;
+}
+
+/* 3. 次级按钮与轻量胶囊按钮（排除底部 Dock 与高透组件内部） */
+html.cream button.btn-secondary,
+html.cream [data-page-view="settings"] button:not([style*="background-color"]):not(.glass-circle-button):not([class*="text-red"]):not([class*="bg-primary"]):not([class*="bg-white"]):not(.btn-ghost):not([class*="bg-emerald"]):not([class*="bg-amber"]),
+html.cream .bg-black\/\[0\.02\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *):not(.liquid-glass-digit *),
+html.cream .bg-black\/\[0\.03\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *):not(.liquid-glass-digit *),
+html.cream .bg-black\/\[0\.04\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *):not(.liquid-glass-digit *),
+html.cream .bg-black\/\[0\.05\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *):not(.liquid-glass-digit *),
+html.cream .bg-black\/5:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *):not(.liquid-glass-digit *) {
+  background-color: rgba(234, 225, 210, 0.65);
+  border-color: rgba(205, 192, 172, 0.5);
   color: #2c2825;
+}
+
+html.cream button:hover.bg-black\/\[0\.03\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *),
+html.cream button:hover.bg-black\/\[0\.06\]:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *),
+html.cream .hover\:bg-black\/\[0\.06\]:hover:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *),
+html.cream .hover\:bg-black\/5:hover:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *),
+html.cream .hover\:bg-black\/10:hover:not(.ios-liquid-glass-dock *):not(.liquid-glass-control *) {
+  background-color: rgba(222, 211, 194, 0.85);
+  border-color: rgba(195, 180, 158, 0.65);
+}
+
+/* 4. 分割线与下边框（排除高透底栏） */
+html.cream [class*="border-t"]:not(.border-t-white):not(.ios-liquid-glass-dock *):not(.liquid-glass-control *),
+html.cream [class*="border-b"]:not(.border-b-white):not(.ios-liquid-glass-dock *):not(.liquid-glass-control *) {
+  border-color: rgba(215, 202, 180, 0.45);
+}
+
+/* 5. 分段选择器（Segmented Controller）与标签底衬 */
+html.cream .bg-black\/\[0\.04\].rounded-xl:not(.ios-liquid-glass-dock *),
+html.cream .bg-black\/5.rounded-xl:not(.ios-liquid-glass-dock *),
+html.cream .bg-black\/5.rounded-2xl:not(.ios-liquid-glass-dock *) {
+  background-color: rgba(232, 222, 207, 0.7);
+  border-color: rgba(212, 198, 178, 0.5);
+}
+
+/* 6. 米白模式下的文字色彩微调 */
+html.cream .text-gray-950,
+html.cream .text-gray-900,
+html.cream .text-gray-800 {
+  color: #26211e;
+}
+html.cream .text-gray-700,
+html.cream .text-gray-600 {
+  color: #4a423a;
+}
+html.cream .text-gray-500 {
+  color: #72685d;
+}
+html.cream .text-gray-400 {
+  color: #928678;
 }

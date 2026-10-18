@@ -42,12 +42,10 @@ export default function PersonalSettingsPage() {
   const user = useAuthStore((s) => s.user);
   const signOut = useAuthStore((s) => s.signOut);
 
-  const {
-    nickname,
-    customMotto,
-    updateSettings,
-    resetSettings,
-  } = usePersonalSettingsStore();
+  const nickname = usePersonalSettingsStore((s) => s.nickname);
+  const customMotto = usePersonalSettingsStore((s) => s.customMotto);
+  const updateSettings = usePersonalSettingsStore((s) => s.updateSettings);
+  const resetSettings = usePersonalSettingsStore((s) => s.resetSettings);
 
   const cleanInitialNickname = nickname === '阳光旅人' ? '' : nickname;
 
@@ -106,10 +104,10 @@ export default function PersonalSettingsPage() {
               <FiArrowLeft className="size-4.5 sm:size-5" />
             </button>
             <div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 dark:text-white">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 dark:text-white cream:text-[#26211e]">
                 个人设置中心
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 cream:text-[#786e63] mt-0.5">
                 定制你的称呼、专属座右铭与主题外观
               </p>
             </div>
@@ -124,7 +122,7 @@ export default function PersonalSettingsPage() {
                 setInputMotto('心怀热爱，奔赴每一个灿烂的日子');
               }
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 cream:text-[#786e63] cream:hover:text-red-600 transition-colors"
           >
             <FiRotateCcw className="size-3.5" />
             <span className="hidden sm:inline">恢复默认</span>
@@ -145,7 +143,7 @@ export default function PersonalSettingsPage() {
         )}
 
         {/* 0. 云端账号卡片 (Supabase BaaS) */}
-        <section className="rounded-2xl border border-black/[0.08] dark:border-white/10 bg-white/70 dark:bg-white/[0.05] p-5 sm:p-6 backdrop-blur-xl shadow-xs">
+        <section className="rounded-2xl border border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0] bg-white/85 dark:bg-white/[0.05] cream:bg-[#faf5ea]/90 p-5 sm:p-6 backdrop-blur-xl shadow-xs cream:shadow-[0_4px_20px_-2px_rgba(120,95,65,0.06)]">
           {user ? (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
@@ -154,14 +152,14 @@ export default function PersonalSettingsPage() {
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm sm:text-base text-gray-900 dark:text-white truncate">
+                    <span className="font-bold text-sm sm:text-base text-gray-900 dark:text-white cream:text-[#26211e] truncate">
                       {user.user_metadata?.nickname || 'TimePulse 会员'}
                     </span>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
                       <FiCheckCircle className="size-2.5" /> 已登录
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#786e63] truncate mt-0.5">
                     {user.email}
                   </p>
                 </div>
@@ -171,7 +169,7 @@ export default function PersonalSettingsPage() {
                 <button
                   type="button"
                   onClick={() => transitionTo('auth')}
-                  className="px-3.5 py-1.5 rounded-xl border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.06] hover:bg-black/[0.06] dark:hover:bg-white/[0.12] text-xs font-semibold text-gray-800 dark:text-gray-200 transition-colors"
+                  className="px-3.5 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-gray-800 dark:text-gray-200 cream:text-[#26211e] shadow-2xs transition-colors cursor-pointer"
                 >
                   管理账号
                 </button>
@@ -180,7 +178,7 @@ export default function PersonalSettingsPage() {
                   onClick={async () => {
                     await signOut();
                   }}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-1 cursor-pointer"
                 >
                   <FiLogOut className="size-3.5" />
                   <span>退出</span>
@@ -190,14 +188,14 @@ export default function PersonalSettingsPage() {
           ) : (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
-                <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-black/[0.05] dark:bg-white/[0.08] text-gray-600 dark:text-gray-300">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-black/[0.04] dark:bg-white/[0.08] cream:bg-[#eee4d4] text-gray-600 dark:text-gray-300 cream:text-[#52493f]">
                   <FiShield className="size-5 text-emerald-500" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-white">
+                  <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-white cream:text-[#26211e]">
                     登录 / 注册 TimePulse 账号
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#786e63] mt-0.5">
                     基于 Supabase BaaS 云端身份认证，数据安全有保障
                   </p>
                 </div>
@@ -217,19 +215,19 @@ export default function PersonalSettingsPage() {
         </section>
 
         {/* 1. 个人形象与称呼资料 */}
-        <section className="rounded-2xl border border-black/[0.08] dark:border-white/10 bg-white/70 dark:bg-white/[0.05] p-5 sm:p-6 backdrop-blur-xl shadow-xs space-y-4">
+        <section className="rounded-2xl border border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0] bg-white/85 dark:bg-white/[0.05] cream:bg-[#faf5ea]/90 p-5 sm:p-6 backdrop-blur-xl shadow-xs cream:shadow-[0_4px_20px_-2px_rgba(120,95,65,0.06)] space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white">
+            <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
               <FiUser className="size-4 text-primary-500" />
               <span>个人称谓与签名</span>
             </div>
-            <span className="text-xs text-gray-400">用于在问候卡片中称呼你</span>
+            <span className="text-xs text-gray-400 cream:text-[#8a7f72]">用于在问候卡片中称呼你</span>
           </div>
 
           {/* 昵称与座右铭输入 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
             <div className="space-y-1.5">
-              <label htmlFor={nicknameInputId} className="text-xs font-medium text-gray-600 dark:text-gray-300">
+              <label htmlFor={nicknameInputId} className="text-xs font-medium text-gray-600 dark:text-gray-300 cream:text-[#52493f]">
                 你的称呼 / 昵称
               </label>
               <input
@@ -238,12 +236,12 @@ export default function PersonalSettingsPage() {
                 value={inputNickname}
                 onChange={(e) => setInputNickname(e.target.value)}
                 placeholder=""
-                className="w-full px-3.5 py-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.06] border border-black/10 dark:border-white/15 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.06] cream:bg-[#f5ece0]/85 border border-black/[0.08] dark:border-white/15 cream:border-[#d7c9b5] text-sm text-gray-900 dark:text-white cream:text-[#26211e] placeholder:text-gray-400 cream:placeholder:text-[#968a7a] focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-2xs transition-colors"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor={mottoInputId} className="text-xs font-medium text-gray-600 dark:text-gray-300">
+              <label htmlFor={mottoInputId} className="text-xs font-medium text-gray-600 dark:text-gray-300 cream:text-[#52493f]">
                 个性座右铭 / 专属签名
               </label>
               <input
@@ -252,7 +250,7 @@ export default function PersonalSettingsPage() {
                 value={inputMotto}
                 onChange={(e) => setInputMotto(e.target.value)}
                 placeholder="例如：心怀热爱，奔赴每一个灿烂的日子"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.06] border border-black/10 dark:border-white/15 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-white/[0.06] cream:bg-[#f5ece0]/85 border border-black/[0.08] dark:border-white/15 cream:border-[#d7c9b5] text-sm text-gray-900 dark:text-white cream:text-[#26211e] placeholder:text-gray-400 cream:placeholder:text-[#968a7a] focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-2xs transition-colors"
               />
             </div>
           </div>
@@ -271,21 +269,21 @@ export default function PersonalSettingsPage() {
         </section>
 
         {/* 2. 外观主题与色彩 */}
-        <section className="rounded-2xl border border-black/[0.08] dark:border-white/10 bg-white/70 dark:bg-white/[0.05] p-5 sm:p-6 backdrop-blur-xl shadow-xs space-y-4">
-          <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white">
+        <section className="rounded-2xl border border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0] bg-white/85 dark:bg-white/[0.05] cream:bg-[#faf5ea]/90 p-5 sm:p-6 backdrop-blur-xl shadow-xs cream:shadow-[0_4px_20px_-2px_rgba(120,95,65,0.06)] space-y-4">
+          <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
             <LuPalette className="size-4 text-teal-500" />
             <span>外观主题与色彩</span>
           </div>
 
           {/* 主题明暗模式 */}
           <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-              界面模式：{theme === 'cream' ? '米白模式' : '浅白模式'}
+            <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 cream:text-[#3d362f]">
+              界面模式：{theme === 'cream' ? '米白模式' : '白色模式'}
             </span>
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.06] hover:bg-black/[0.06] dark:hover:bg-white/[0.12] text-xs font-semibold text-gray-800 dark:text-gray-200"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-gray-800 dark:text-gray-200 cream:text-[#26211e] shadow-2xs transition-colors cursor-pointer"
             >
               <FiSun className="size-3.5 text-amber-500" />
               <span>切换模式</span>
@@ -294,7 +292,7 @@ export default function PersonalSettingsPage() {
 
           {/* 常用预设强调色 */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-400 cream:text-[#52493f]">
               快速点选应用强调色 (Accent Color)
             </label>
             <div className="flex items-center gap-2.5 pt-1 overflow-x-auto scrollbar-hide py-1">
@@ -310,7 +308,7 @@ export default function PersonalSettingsPage() {
                     }}
                     title={preset.name}
                     className={`size-9 sm:size-10 rounded-full border-2 transition-transform flex items-center justify-center shrink-0 active:scale-95 cursor-pointer ${
-                      isSelected ? 'scale-115 border-gray-900 dark:border-white shadow-xs' : 'border-transparent hover:scale-105'
+                      isSelected ? 'scale-115 border-gray-900 dark:border-white cream:border-[#26211e] shadow-xs' : 'border-transparent hover:scale-105'
                     }`}
                     style={{ backgroundColor: preset.color }}
                   >
@@ -322,26 +320,26 @@ export default function PersonalSettingsPage() {
           </div>
 
           {/* 界面语言偏好 */}
-          <div className="flex items-center justify-between pt-2 border-t border-black/[0.05] dark:border-white/10">
+          <div className="flex items-center justify-between pt-2 border-t border-black/[0.05] dark:border-white/10 cream:border-[#dfd3c0]/60">
             <div className="flex items-center gap-2">
               <FiGlobe className="size-4 sm:size-4.5 text-sky-500" />
               <div>
-                <span className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200">
+                <span className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 cream:text-[#26211e]">
                   {t('mobile.language', '语言偏好 / Language')}
                 </span>
-                <p className="text-[11px] sm:text-xs text-gray-400">
+                <p className="text-[11px] sm:text-xs text-gray-400 cream:text-[#8a7f72]">
                   {currentLang === 'zh-CN' ? '当前：简体中文' : 'Current: English'}
                 </p>
               </div>
             </div>
-            <div className="flex items-center p-1 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] text-xs sm:text-sm font-semibold shrink-0 border border-black/[0.04] dark:border-white/[0.04]">
+            <div className="flex items-center p-1 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] cream:bg-[#eae0cf] text-xs sm:text-sm font-semibold shrink-0 border border-black/[0.04] dark:border-white/[0.04] cream:border-[#d9cbba]">
               <button
                 type="button"
                 onClick={() => currentLang !== 'zh-CN' && changeLanguage('zh-CN')}
                 className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer active:scale-95 ${
                   currentLang === 'zh-CN'
-                    ? 'bg-white dark:bg-white/[0.16] text-gray-900 dark:text-white shadow-xs font-bold'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-white dark:bg-white/[0.16] cream:bg-[#faf6ee] text-gray-900 dark:text-white cream:text-[#26211e] shadow-xs font-bold'
+                    : 'text-gray-500 dark:text-gray-400 cream:text-[#7d7164] hover:text-gray-900 dark:hover:text-white cream:hover:text-[#26211e]'
                 }`}
               >
                 中文
@@ -351,8 +349,8 @@ export default function PersonalSettingsPage() {
                 onClick={() => currentLang !== 'en-US' && changeLanguage('en-US')}
                 className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer font-sans active:scale-95 ${
                   currentLang === 'en-US'
-                    ? 'bg-white dark:bg-white/[0.16] text-gray-900 dark:text-white shadow-xs font-bold'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'bg-white dark:bg-white/[0.16] cream:bg-[#faf6ee] text-gray-900 dark:text-white cream:text-[#26211e] shadow-xs font-bold'
+                    : 'text-gray-500 dark:text-gray-400 cream:text-[#7d7164] hover:text-gray-900 dark:hover:text-white cream:hover:text-[#26211e]'
                 }`}
               >
                 EN
@@ -361,14 +359,14 @@ export default function PersonalSettingsPage() {
           </div>
 
           {/* 背景壁纸与毛玻璃 */}
-          <div className="flex items-center justify-between pt-2 border-t border-black/[0.05] dark:border-white/10">
+          <div className="flex items-center justify-between pt-2 border-t border-black/[0.05] dark:border-white/10 cream:border-[#dfd3c0]/60">
             <div className="flex items-center gap-2">
               <FiImage className="size-4 text-purple-500" />
               <div>
-                <span className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200">
+                <span className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 cream:text-[#26211e]">
                   {t('mobile.wallpaper', '背景壁纸与氛围')}
                 </span>
-                <p className="text-[11px] text-gray-400">
+                <p className="text-[11px] text-gray-400 cream:text-[#8a7f72]">
                   {t('mobile.wallpaperDesc', '渐变配色、自定义壁纸与毛玻璃模糊度')}
                 </p>
               </div>
@@ -378,7 +376,7 @@ export default function PersonalSettingsPage() {
               onClick={() => {
                 window.location.hash = 'background';
               }}
-              className="px-3 py-1.5 rounded-xl border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.06] hover:bg-black/[0.06] dark:hover:bg-white/[0.12] text-xs font-semibold text-primary-600 dark:text-primary-400 flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-primary-600 dark:text-primary-400 cream:text-primary-700 shadow-2xs flex items-center gap-1 cursor-pointer"
             >
               <span>{t('mobile.customize', '定制')}</span>
               <FiChevronRight className="size-3.5" />
@@ -386,14 +384,14 @@ export default function PersonalSettingsPage() {
           </div>
 
           {/* 移动端横竖屏与显示模式 */}
-          <div className="flex items-center justify-between pt-2 border-t border-black/[0.05] dark:border-white/10">
+          <div className="flex items-center justify-between pt-2 border-t border-black/[0.05] dark:border-white/10 cream:border-[#dfd3c0]/60">
             <div className="flex items-center gap-2">
               <FiRotateCw className={`size-4 text-emerald-500 transition-transform duration-300 ${isLandscape ? 'rotate-90' : ''}`} />
               <div>
-                <span className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200">
+                <span className="text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-200 cream:text-[#26211e]">
                   {t('mobile.orientation', '横竖屏与显示')}
                 </span>
-                <p className="text-[11px] text-gray-400">
+                <p className="text-[11px] text-gray-400 cream:text-[#8a7f72]">
                   {isLandscape
                     ? t('mobile.orientationLandscape', '横屏模式 · StandBy 桌面时钟')
                     : t('mobile.orientationPortrait', '竖屏模式 · 支持重力感应自适应')}
@@ -403,7 +401,7 @@ export default function PersonalSettingsPage() {
             <button
               type="button"
               onClick={() => void toggleOrientation()}
-              className="px-3 py-1.5 rounded-xl border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/[0.06] hover:bg-black/[0.06] dark:hover:bg-white/[0.12] text-xs font-semibold text-primary-600 dark:text-primary-400 flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-primary-600 dark:text-primary-400 cream:text-primary-700 shadow-2xs flex items-center gap-1 cursor-pointer"
             >
               <span>{isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}</span>
               <FiChevronRight className="size-3.5" />
@@ -412,16 +410,16 @@ export default function PersonalSettingsPage() {
         </section>
 
         {/* 3. 支持与联系作者 (Buy Me a Coffee & Contact Author) */}
-        <section className="rounded-2xl border border-black/[0.08] dark:border-white/10 bg-white/70 dark:bg-white/[0.05] p-5 sm:p-6 backdrop-blur-xl shadow-xs space-y-4">
+        <section className="rounded-2xl border border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0] bg-white/85 dark:bg-white/[0.05] cream:bg-[#faf5ea]/90 p-5 sm:p-6 backdrop-blur-xl shadow-xs cream:shadow-[0_4px_20px_-2px_rgba(120,95,65,0.06)] space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white">
+            <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
               <FiCoffee className="size-4 text-amber-500" />
               <span>{t('version.supportAuthor', '支持与联系作者')}</span>
             </div>
-            <span className="text-xs text-gray-400">TimePulse · Alkaid</span>
+            <span className="text-xs text-gray-400 cream:text-[#8a7f72]">TimePulse · Alkaid</span>
           </div>
 
-          <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+          <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#52493f] leading-relaxed">
             TimePulse 专为专注与沉浸流而生。如果这款应用给你的工作和日常带来了陪伴与便利，欢迎支持作者或交流反馈！
           </p>
 
@@ -429,17 +427,17 @@ export default function PersonalSettingsPage() {
             <button
               type="button"
               onClick={() => openAboutModal('coffee')}
-              className="flex items-center justify-between p-3.5 rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 text-gray-800 dark:text-gray-100 transition-colors group cursor-pointer"
+              className="flex items-center justify-between p-3.5 rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 cream:bg-amber-600/[0.08] cream:border-amber-700/30 cream:hover:bg-amber-600/[0.14] text-gray-800 dark:text-gray-100 cream:text-[#26211e] transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3">
                 <div className="size-9 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                   <FiCoffee className="size-5" />
                 </div>
                 <div className="text-left">
-                  <div className="text-xs font-bold text-gray-900 dark:text-white">
+                  <div className="text-xs font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
                     {t('version.buyMeACoffee', '请作者喝咖啡')}
                   </div>
-                  <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                  <div className="text-[11px] text-gray-500 dark:text-gray-400 cream:text-[#786e63]">
                     Buy Me a Coffee · 赞赏码
                   </div>
                 </div>
@@ -450,17 +448,17 @@ export default function PersonalSettingsPage() {
             <button
               type="button"
               onClick={() => openAboutModal('contact')}
-              className="flex items-center justify-between p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-gray-800 dark:text-gray-100 transition-colors group cursor-pointer"
+              className="flex items-center justify-between p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 cream:bg-emerald-600/[0.08] cream:border-emerald-700/30 cream:hover:bg-emerald-600/[0.14] text-gray-800 dark:text-gray-100 cream:text-[#26211e] transition-colors group cursor-pointer"
             >
               <div className="flex items-center gap-3">
                 <div className="size-9 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
                   <SiWechat className="size-5" />
                 </div>
                 <div className="text-left">
-                  <div className="text-xs font-bold text-gray-900 dark:text-white">
+                  <div className="text-xs font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
                     {t('version.contactAuthor', '联系作者')}
                   </div>
-                  <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                  <div className="text-[11px] text-gray-500 dark:text-gray-400 cream:text-[#786e63]">
                     微信扫码 · 交流反馈
                   </div>
                 </div>
@@ -470,19 +468,19 @@ export default function PersonalSettingsPage() {
           </div>
 
           {/* 版本与更新卡片 */}
-          <div className="flex items-center justify-between p-3.5 rounded-xl border border-black/[0.06] dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] mt-2">
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-black/[0.06] dark:border-white/10 cream:border-[#d8cabb] bg-black/[0.02] dark:bg-white/[0.03] cream:bg-[#f4ebe0]/75 mt-2">
             <div className="flex items-center gap-3">
-              <div className="size-9 rounded-lg bg-neutral-500/10 text-neutral-600 dark:bg-white/10 dark:text-neutral-300 flex items-center justify-center shrink-0">
+              <div className="size-9 rounded-lg bg-neutral-500/10 text-neutral-600 dark:bg-white/10 dark:text-neutral-300 cream:bg-stone-500/15 cream:text-stone-700 flex items-center justify-center shrink-0">
                 <FiInfo className="size-5" />
               </div>
               <div className="text-left">
-                <div className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <div className="text-xs font-bold text-gray-900 dark:text-white cream:text-[#26211e] flex items-center gap-2">
                   <span>{t('version.title', '版本与更新')}</span>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 text-gray-600 dark:text-gray-300">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 cream:bg-[#e5d9ca] text-gray-600 dark:text-gray-300 cream:text-[#52493f]">
                     v{currentVersion}
                   </span>
                 </div>
-                <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                <div className="text-[11px] text-gray-500 dark:text-gray-400 cream:text-[#786e63]">
                   {hasUpdate ? t('version.hasNewVersion', '发现新版本可供升级') : t('version.upToDate', '当前已是最新版本')}
                 </div>
               </div>
@@ -490,7 +488,7 @@ export default function PersonalSettingsPage() {
             <button
               type="button"
               onClick={() => openAboutModal('version')}
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary-500/10 text-primary-600 dark:bg-primary-500/15 dark:text-primary-400 hover:bg-primary-500/20 transition-colors cursor-pointer"
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary-500/10 text-primary-600 dark:bg-primary-500/15 dark:text-primary-400 cream:bg-primary-500/20 cream:text-primary-700 hover:bg-primary-500/25 transition-colors cursor-pointer"
             >
               {hasUpdate ? '立即升级' : '查看详情'}
             </button>
