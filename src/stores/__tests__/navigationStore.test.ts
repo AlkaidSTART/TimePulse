@@ -1,8 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useNavigationStore } from '../useNavigationStore';
+import { useNavigationStore, canAccessView } from '../useNavigationStore';
+import { useAuthStore } from '../useAuthStore';
 
 describe('useNavigationStore', () => {
   beforeEach(() => {
+    useAuthStore.setState({
+      user: null,
+      session: null,
+      isInitialized: false,
+    });
     useNavigationStore.getState().setView('cheer');
   });
 
@@ -39,4 +45,36 @@ describe('useNavigationStore', () => {
     expect(useNavigationStore.getState().view).toBe('auth');
     expect(useNavigationStore.getState().isAuth).toBe(true);
   });
+
+  it('blocks transition to protected routes and redirects to auth when initialized and not logged in', () => {
+    useAuthStore.setState({
+      user: null,
+      session: null,
+      isInitialized: true,
+    });
+
+    expect(canAccessView('main')).toBe(false);
+    expect(canAccessView('cheer')).toBe(false);
+    expect(canAccessView('todo')).toBe(false);
+    expect(canAccessView('settings')).toBe(false);
+    expect(canAccessView('auth')).toBe(true);
+
+    useNavigationStore.getState().transitionTo('main');
+    expect(useNavigationStore.getState().view).toBe('auth');
+    expect(window.location.hash).toBe('#login');
+  });
+
+  it('allows transition to protected routes when user is authenticated', () => {
+    useAuthStore.setState({
+      user: { id: 'test-user-123', email: 'test@timepulse.app' } as any,
+      session: {} as any,
+      isInitialized: true,
+    });
+
+    expect(canAccessView('main')).toBe(true);
+    useNavigationStore.getState().transitionTo('main');
+    expect(useNavigationStore.getState().view).toBe('main');
+    expect(window.location.hash).toBe('#main');
+  });
 });
+
