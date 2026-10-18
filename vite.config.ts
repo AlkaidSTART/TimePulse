@@ -70,7 +70,11 @@ export default defineConfig({
             // 仅被懒加载的待办视图使用：交给 Rollup 放入动态依赖图，避免首屏静态加载
             return undefined;
           }
-          if (pkg?.includes('number-flow') || pkg === 'overlayscrollbars' || pkg === 'clsx' || pkg === 'tailwind-merge' || pkg === 'class-variance-authority') {
+          if (pkg === 'overlayscrollbars') {
+            // 仅被 GlobalScrollbars 动态引入（桌面非 Apple 环境）：交给 Rollup 放入动态依赖图
+            return undefined;
+          }
+          if (pkg?.includes('number-flow') || pkg === 'clsx' || pkg === 'tailwind-merge' || pkg === 'class-variance-authority') {
             return 'vendor-ui';
           }
           if (pkg === 'react-icons' || pkg === 'lucide-react') {
