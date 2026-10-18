@@ -30,6 +30,7 @@ import { useTheme } from '@/app/providers/ThemeProvider';
 import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import AnimatedLogo from '@/components/layout/AnimatedLogo';
 import OAuthButtons from './OAuthButtons';
+import { ProgressSubmitButton, type SubmitButtonStatus } from '@/components/ui/ProgressSubmitButton';
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
 
@@ -93,6 +94,18 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
   const [localValidation, setLocalValidation] = useState<string | null>(null);
+  const [submitStatus, setSubmitStatus] = useState<SubmitButtonStatus>('idle');
+
+  // 监听外部 error 改变，若报错则触发按钮震颤并复位
+  useEffect(() => {
+    if (error) {
+      setSubmitStatus('error');
+      const timer = setTimeout(() => {
+        setSubmitStatus('idle');
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   // 聚焦状态高亮控制
   const [focusedField, setFocusedField] = useState<string | null>(null);
@@ -143,6 +156,7 @@ export default function AuthPage() {
     clearError();
     clearSuccessMessage();
     setLocalValidation(null);
+    setSubmitStatus('idle');
     setMode(newMode);
   };
 
@@ -156,49 +170,73 @@ export default function AuthPage() {
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
       setLocalValidation('请输入电子邮箱');
+      setSubmitStatus('idle');
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
       setLocalValidation('请输入格式有效的电子邮箱地址');
+      setSubmitStatus('idle');
       return;
     }
 
     if (mode === 'forgot') {
-      await resetPassword(trimmedEmail);
+      setSubmitStatus('loading');
+      const res = await resetPassword(trimmedEmail);
+      if (res.success) {
+        setSubmitStatus('success');
+      } else {
+        setSubmitStatus('error');
+      }
       return;
     }
 
     if (!password) {
       setLocalValidation('请输入密码');
+      setSubmitStatus('idle');
       return;
     }
 
     if (mode === 'signup') {
       if (password.length < 6) {
         setLocalValidation('密码长度至少需要 6 个字符');
+        setSubmitStatus('idle');
         return;
       }
       if (password !== confirmPassword) {
         setLocalValidation('两次输入的密码不一致，请核对');
+        setSubmitStatus('idle');
         return;
       }
 
+      setSubmitStatus('loading');
       const res = await signUpWithEmail(trimmedEmail, password, {
         nickname: signUpNickname.trim() || undefined,
       });
 
-      if (res.success && res.session) {
-        setTimeout(() => {
-          transitionTo('main');
-        }, 800);
+      if (res.success) {
+        setSubmitStatus('success');
+      } else {
+        setSubmitStatus('error');
       }
     } else if (mode === 'signin') {
+      setSubmitStatus('loading');
       const res = await signInWithEmail(trimmedEmail, password);
       if (res.success) {
-        setTimeout(() => {
-          transitionTo('main');
-        }, 600);
+        setSubmitStatus('success');
+      } else {
+        setSubmitStatus('error');
+      }
+    }
+  };
+
+  // 成功状态（包括 border 双向滚动动画播放完成）后触发平滑页面跳转
+  const handleSuccessComplete = () => {
+    if (mode === 'signin') {
+      transitionTo('main');
+    } else if (mode === 'signup') {
+      if (useAuthStore.getState().session) {
+        transitionTo('main');
       }
     }
   };
@@ -724,14 +762,13 @@ export default function AuthPage() {
                           个性称呼 / 昵称 <span className="text-gray-400 font-normal">(选填)</span>
                         </label>
                         <div
-                          className={`relative flex items-center rounded-2xl border transition-all duration-200 ${
+                          className={`relative flex items-center rounded-2xl border overflow-hidden transition-all duration-200 bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15 ${
                             focusedField === 'nickname'
-                              ? 'bg-transparent ring-2'
-                              : 'bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/20 border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20'
+                              ? 'border-transparent'
+                              : 'border-black/10 dark:border-white/10 cream:border-amber-900/15 hover:border-black/20 dark:hover:border-white/20'
                           }`}
                           style={{
                             borderColor: focusedField === 'nickname' ? activeColor : undefined,
-                            boxShadow: focusedField === 'nickname' ? `0 0 0 3px ${activeColor}22` : undefined,
                           }}
                         >
                           <FiUser
@@ -749,7 +786,7 @@ export default function AuthPage() {
                             onChange={(e) => setSignUpNickname(e.target.value)}
                             placeholder="例如：阳光旅人"
                             disabled={isLoading}
-                            className="w-full bg-transparent py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
+                            className="w-full bg-transparent rounded-[inherit] py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
                           />
                         </div>
                       </motion.div>
@@ -765,14 +802,13 @@ export default function AuthPage() {
                       电子邮箱地址
                     </label>
                     <div
-                      className={`relative flex items-center rounded-2xl border transition-all duration-200 ${
+                      className={`relative flex items-center rounded-2xl border overflow-hidden transition-all duration-200 bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15 ${
                         focusedField === 'email'
-                          ? 'bg-transparent ring-2'
-                          : 'bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/20 border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20'
+                          ? 'border-transparent'
+                          : 'border-black/10 dark:border-white/10 cream:border-amber-900/15 hover:border-black/20 dark:hover:border-white/20'
                       }`}
                       style={{
                         borderColor: focusedField === 'email' ? activeColor : undefined,
-                        boxShadow: focusedField === 'email' ? `0 0 0 3px ${activeColor}22` : undefined,
                       }}
                     >
                       <FiMail
@@ -792,7 +828,7 @@ export default function AuthPage() {
                         autoComplete="email"
                         required
                         disabled={isLoading}
-                        className="w-full bg-transparent py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
+                        className="w-full bg-transparent rounded-[inherit] py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
                       />
                     </div>
                   </div>
@@ -824,14 +860,13 @@ export default function AuthPage() {
                         </AnimatePresence>
                       </div>
                       <div
-                        className={`relative flex items-center rounded-2xl border transition-all duration-200 ${
+                        className={`relative flex items-center rounded-2xl border overflow-hidden transition-all duration-200 bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15 ${
                           focusedField === 'password'
-                            ? 'bg-transparent ring-2'
-                            : 'bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/20 border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20'
+                            ? 'border-transparent'
+                            : 'border-black/10 dark:border-white/10 cream:border-amber-900/15 hover:border-black/20 dark:hover:border-white/20'
                         }`}
                         style={{
                           borderColor: focusedField === 'password' ? activeColor : undefined,
-                          boxShadow: focusedField === 'password' ? `0 0 0 3px ${activeColor}22` : undefined,
                         }}
                       >
                         <FiLock
@@ -851,7 +886,7 @@ export default function AuthPage() {
                           autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                           required
                           disabled={isLoading}
-                          className="w-full bg-transparent py-2.5 sm:py-3 pl-10 pr-10 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
+                          className="w-full bg-transparent rounded-[inherit] py-2.5 sm:py-3 pl-10 pr-10 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
                         />
                         <button
                           type="button"
@@ -925,14 +960,13 @@ export default function AuthPage() {
                           )}
                         </div>
                         <div
-                          className={`relative flex items-center rounded-2xl border transition-all duration-200 ${
+                          className={`relative flex items-center rounded-2xl border overflow-hidden transition-all duration-200 bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15 ${
                             focusedField === 'confirmPassword'
-                              ? 'bg-transparent ring-2'
-                              : 'bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/20 border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20'
+                              ? 'border-transparent'
+                              : 'border-black/10 dark:border-white/10 cream:border-amber-900/15 hover:border-black/20 dark:hover:border-white/20'
                           }`}
                           style={{
                             borderColor: focusedField === 'confirmPassword' ? activeColor : undefined,
-                            boxShadow: focusedField === 'confirmPassword' ? `0 0 0 3px ${activeColor}22` : undefined,
                           }}
                         >
                           <FiLock
@@ -952,42 +986,44 @@ export default function AuthPage() {
                             autoComplete="new-password"
                             required={mode === 'signup'}
                             disabled={isLoading}
-                            className="w-full bg-transparent py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
+                            className="w-full bg-transparent rounded-[inherit] py-2.5 sm:py-3 pl-10 pr-3 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none disabled:opacity-50"
                           />
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
 
-                  {/* 提交主操作按钮 */}
+                  {/* 提交主操作按钮：初始淡柔杏橙，提交后鲜艳蜜杏橙流光进度条填充，成功后立刻触发 border 双向滚动动画 */}
                   <div className="pt-2">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full py-3 sm:py-3.5 px-5 rounded-2xl text-sm font-semibold text-white shadow-lg transition-all duration-200 hover:opacity-95 hover:shadow-xl active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed overflow-hidden"
-                      style={{
-                        backgroundColor: activeColor,
-                        boxShadow: `0 8px 25px -4px ${activeColor}55`,
-                      }}
-                    >
-                      {isLoading ? (
-                        <span className="flex items-center gap-2">
-                          <span className="size-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                          <span>正在安全验证...</span>
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-2 transition-all duration-200">
-                          <span>
-                            {mode === 'forgot'
-                              ? '发送重置密码邮件'
-                              : mode === 'signup'
-                              ? '注册账号'
-                              : '立即登录'}
-                          </span>
-                          <FiArrowRight className="size-4" />
-                        </span>
-                      )}
-                    </button>
+                    <ProgressSubmitButton
+                      status={isLoading && submitStatus === 'idle' ? 'loading' : submitStatus}
+                      accentColor="#FB923C"
+                      progressColor="#FB923C"
+                      idleText={
+                        mode === 'forgot'
+                          ? '发送重置密码邮件'
+                          : mode === 'signup'
+                          ? '注册账号'
+                          : '立即登录'
+                      }
+                      loadingText={
+                        mode === 'forgot'
+                          ? '正在发送重置邮件...'
+                          : mode === 'signup'
+                          ? '正在创建专属账号...'
+                          : '正在安全验证...'
+                      }
+                      successText={
+                        mode === 'forgot'
+                          ? '重置邮件已发送'
+                          : mode === 'signup'
+                          ? '注册成功，欢迎加入'
+                          : '登录成功，欢迎回来'
+                      }
+                      icon={<FiArrowRight className="size-4" />}
+                      onSuccessComplete={handleSuccessComplete}
+                      successDuration={1300}
+                    />
                   </div>
                 </motion.form>
 

@@ -1639,9 +1639,9 @@ html.cream .glass-card {
 }
 
 /* 2. 表单输入控件（输入框、选择框、文本域） */
-html.cream input:not([type="checkbox"]):not([type="radio"]):not(.ios-liquid-glass-dock *),
-html.cream select:not(.ios-liquid-glass-dock *),
-html.cream textarea:not(.ios-liquid-glass-dock *) {
+html.cream input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not(.bg-transparent):not(.ios-liquid-glass-dock *),
+html.cream select:not(.bg-transparent):not(.ios-liquid-glass-dock *),
+html.cream textarea:not(.bg-transparent):not(.ios-liquid-glass-dock *) {
   background-color: rgba(245, 239, 228, 0.85);
   border-color: rgba(210, 196, 175, 0.6);
   color: #26211e;
@@ -1649,6 +1649,23 @@ html.cream textarea:not(.ios-liquid-glass-dock *) {
 html.cream input::placeholder,
 html.cream textarea::placeholder {
   color: #988c7f;
+}
+
+html.cream input.bg-transparent,
+html.cream textarea.bg-transparent {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+/* 规范化输入框自动填充背景，防止浏览器原生黄色/蓝色高亮色块遮挡或溢出圆角边框 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: inherit !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 /* 3. 次级按钮与轻量胶囊按钮（排除底部 Dock 与高透组件内部） */
