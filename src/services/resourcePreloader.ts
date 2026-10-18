@@ -1,6 +1,6 @@
 import { preloadTranslations } from '@/i18n/useTranslation';
+import { warmUpDatabase } from './db';
 import imageStorage from './imageStorage';
-import { openTimePulseDatabase } from './storage';
 
 const CRITICAL_IMAGES = [
   '/logo.png',
@@ -84,8 +84,8 @@ export function preloadCriticalResources(): void {
   if (isPreloaded || typeof window === 'undefined') return;
   isPreloaded = true;
 
-  // 1. Warm up IndexedDB connection non-blockingly
-  void openTimePulseDatabase().catch(() => {});
+  // 1. Warm up the platform database connection non-blockingly (IndexedDB / SQLite)
+  void warmUpDatabase().catch(() => {});
 
   // 2. Preload i18n translations
   void preloadTranslations('zh-CN');

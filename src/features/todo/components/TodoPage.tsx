@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fi';
 import { todoReducer, isAllCompleted } from '../todoReducer';
 import {
+  hydrateTodoItemsFromDatabase,
   readTodoItems,
   writeTodoItems,
   readActiveTodoTab,
@@ -82,6 +83,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
       }
     };
     loadFromStorage();
+    void hydrateTodoItemsFromDatabase().then(loadFromStorage);
 
     window.addEventListener(TODO_STORAGE_EVENT, loadFromStorage);
     window.addEventListener('storage', loadFromStorage);

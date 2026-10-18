@@ -6,6 +6,8 @@
   "permissions": [
     "core:default",
     "haptics:default",
-    "notification:default"
+    "notification:default",
+    "sql:default",
+    "sql:allow-execute"
   ]
 }
