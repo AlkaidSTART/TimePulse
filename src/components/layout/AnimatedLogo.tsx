@@ -38,7 +38,8 @@ export default function AnimatedLogo({
     if (shouldReduceMotion) return;
 
     const interval = setInterval(() => {
-      if (!isHoveredRef.current) {
+      // 标签页不可见时跳过更新，避免后台空转触发无意义重渲染
+      if (!isHoveredRef.current && !document.hidden) {
         setWaveKey((k) => k + 1);
       }
     }, 8000);
