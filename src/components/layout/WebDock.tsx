@@ -19,6 +19,7 @@ import { usePageTransition } from '@/hooks/usePageTransition';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTheme } from '@/app/providers/ThemeProvider';
 import { useVersionStore } from '@/stores/useVersionStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { useTranslation } from '@/i18n/useTranslation';
 import { readTodoItems, TODO_STORAGE_EVENT } from '@/features/todo/todoStorage';
 import { cn } from '@/lib/utils';
@@ -47,6 +48,7 @@ export default function WebDock({
   const currentVersion = useVersionStore((s) => s.currentVersion);
   const hasUpdate = useVersionStore((s) => s.hasUpdate);
   const openAboutModal = useVersionStore((s) => s.openAboutModal);
+  const user = useAuthStore((s) => s.user);
   const { t } = useTranslation();
 
   const [pendingTodoCount, setPendingTodoCount] = useState(0);
@@ -181,12 +183,12 @@ export default function WebDock({
     },
     {
       id: 'settings',
-      title: t('header.settingsTab', '个人设置中心'),
+      title: user ? `个人账号: ${user.user_metadata?.nickname || user.email}` : t('header.settingsTab', '个人设置中心'),
       icon: <User className="size-full text-neutral-700 dark:text-neutral-200" />,
       onClick: () => {
         if (view !== 'settings') transitionTo('settings');
       },
-      isActive: view === 'settings',
+      isActive: view === 'settings' || view === 'auth',
     },
     {
       id: 'fullscreen',
@@ -215,10 +217,10 @@ export default function WebDock({
         className
       )}
     >
-      <Dock className="relative items-end pb-3 rounded-2xl border border-black/[0.08] bg-white/70 shadow-[0_16px_48px_-8px_rgba(0,0,0,0.12),0_4px_16px_-2px_rgba(0,0,0,0.06)] backdrop-blur-2xl cream:bg-[#faf7ee]/85 cream:border-stone-300/60 dark:border-white/12 dark:bg-[#141416]/85 dark:shadow-[0_16px_48px_rgba(0,0,0,0.7)] px-3.5">
+      <Dock className="relative items-end pb-3 rounded-2xl border border-black/[0.08] bg-white/20 shadow-[0_16px_48px_-8px_rgba(0,0,0,0.1),0_4px_16px_-2px_rgba(0,0,0,0.04)] backdrop-blur-md cream:bg-[#faf7ee]/25 cream:border-stone-400/35 dark:border-white/12 dark:bg-[#141416]/35 dark:shadow-[0_16px_48px_rgba(0,0,0,0.6)] px-3.5">
         {/* Top 1px Specular Light Shelf */}
         <div
-          className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/80 cream:via-white/95 dark:via-white/20 to-transparent"
+          className="pointer-events-none absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/70 cream:via-white/75 dark:via-white/20 to-transparent"
           aria-hidden="true"
         />
 

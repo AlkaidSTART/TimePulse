@@ -75,8 +75,17 @@ export async function triggerHaptic(type: HapticType = 'item_complete'): Promise
       await tauriVibrate(80);
       return true;
     }
-  } catch {
-    // 非 Tauri 原生环境或插件未初始化，自动转入 Web API 兜底
+  } catch (error) {
+    // 非 Tauri 原生环境或插件未初始化，自动转入 Web API 兜底。
+    // 仅在 Tauri 环境且开发模式下告警：正常运行在浏览器时降级属于预期行为，
+    // 而 Tauri 环境失败通常意味着插件未注册或 capabilities 权限缺失（如 haptics:default 不存在）。
+    if (
+      import.meta.env.DEV &&
+      typeof window !== 'undefined' &&
+      '__TAURI_INTERNALS__' in window
+    ) {
+      console.warn('[Vibration] Tauri 原生 Haptics 调用失败，已降级为 Web 振动 API:', error);
+    }
   }
 
   // 2. 兜底使用 HTML5 标准 Vibration API (Android Chrome / WebView / PWA)

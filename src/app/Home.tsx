@@ -25,6 +25,7 @@ const CheerPage = lazy(() => import('@/features/cheer/components/CheerPage'));
 const TodoPage = lazy(() => import('@/features/todo/components/TodoPage'));
 const TodoListWidget = lazy(() => import('@/features/todo/components/TodoListWidget'));
 const PersonalSettingsPage = lazy(() => import('@/features/settings/components/PersonalSettingsPage'));
+const AuthPage = lazy(() => import('@/features/auth/components/AuthPage'));
 
 export default function Home() {
   const shouldReduceMotion = useReducedMotion();
@@ -36,6 +37,7 @@ export default function Home() {
   const showCheerPage = view === 'cheer';
   const showTodoPage = view === 'todo';
   const showSettingsPage = view === 'settings';
+  const showAuthPage = view === 'auth';
   const showMainPage = view === 'main';
   const [headerHeight, setHeaderHeight] = useState(0);
   
@@ -271,6 +273,38 @@ export default function Home() {
             >
               <Suspense fallback={null}>
                 <PersonalSettingsPage />
+              </Suspense>
+            </motion.div>
+          ) : showAuthPage ? (
+            <motion.div
+              key="auth-page-visible"
+              custom={direction}
+              variants={{
+                initial: (value: unknown) => ({
+                  opacity: 0,
+                  y: shouldReduceMotion ? 0 : (value === 1 ? 56 : -56),
+                }),
+                animate: {
+                  opacity: 1,
+                  y: 0,
+                  transition: {
+                    duration: shouldReduceMotion ? 0 : 0.36,
+                    ease: 'easeOut',
+                  },
+                },
+                exit: (value: unknown) => ({
+                  opacity: 0,
+                  y: shouldReduceMotion ? 0 : (value === 1 ? -56 : 56),
+                  transition: { duration: shouldReduceMotion ? 0 : 0.28, ease: 'easeIn' },
+                }),
+              }}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="absolute inset-0 z-10"
+            >
+              <Suspense fallback={null}>
+                <AuthPage />
               </Suspense>
             </motion.div>
           ) : null}

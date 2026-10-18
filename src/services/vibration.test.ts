@@ -73,4 +73,39 @@ describe('vibration service', () => {
     });
     expect(isVibrationSupported()).toBe(true);
   });
+
+  it('warns in dev when Tauri env is present but native haptics call fails', async () => {
+    const warnMock = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    Object.defineProperty(navigator, 'vibrate', {
+      value: vi.fn().mockReturnValue(true),
+      writable: true,
+      configurable: true,
+    });
+    // 模拟 Tauri 环境，但 __TAURI_INTERNALS__ 缺失 invoke 导致原生调用失败
+    // （等价于插件未注册或 capabilities 权限缺失）
+    (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {};
+
+    try {
+      const result = await triggerHaptic('item_complete');
+      expect(result).toBe(true);
+      expect(warnMock).toHaveBeenCalledWith(
+        expect.stringContaining('[Vibration]'),
+        expect.anything(),
+      );
+    } finally {
+      delete (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__;
+    }
+  });
+
+  it('does not warn in plain browser env when falling back to navigator.vibrate', async () => {
+    const warnMock = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    Object.defineProperty(navigator, 'vibrate', {
+      value: vi.fn().mockReturnValue(true),
+      writable: true,
+      configurable: true,
+    });
+
+    await triggerHaptic('item_complete');
+    expect(warnMock).not.toHaveBeenCalled();
+  });
 });

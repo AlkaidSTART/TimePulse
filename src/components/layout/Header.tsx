@@ -21,7 +21,7 @@ import AnimatedLogo from './AnimatedLogo';
 import RouteNavigation from './RouteNavigation';
 import { usePageTransition } from '@/hooks/usePageTransition';
 import { useOrientation } from '@/hooks/useOrientation';
-import { useTodoStore, useVersionStore } from '@/stores';
+import { useTodoStore, useVersionStore, useAuthStore } from '@/stores';
 import { FiList } from 'react-icons/fi';
 import { throttle, debounce } from '@/utils/performance';
 
@@ -75,6 +75,8 @@ function TimerManageRow({
       dragListener={false}
       dragControls={dragControls}
       onDragEnd={onDragEnd}
+      whileDrag={{ scale: 1.02, boxShadow: '0 16px 32px -4px rgba(0, 0, 0, 0.15)', zIndex: 50 }}
+      transition={{ type: 'spring', damping: 26, stiffness: 320 }}
       className="flex items-center justify-between gap-2 rounded-lg border border-white/20 bg-white/30 p-3 backdrop-blur-sm hover:bg-white/50 dark:border-white/10 dark:bg-black/30 dark:hover:bg-black/50"
       style={{ borderLeft: `4px solid ${timer.color || '#0ea5e9'}` }}
     >
@@ -160,6 +162,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const { view, transitionTo } = usePageTransition();
   const { isLandscape, toggleOrientation } = useOrientation();
   const { t, currentLang, changeLanguage } = useTranslation();
+  const user = useAuthStore((s) => s.user);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>(() => (view === 'main' ? 'timer' : (view as MobileTab)));
   const [isManageOpen, setIsManageOpen] = useState(false);
@@ -815,11 +818,30 @@ export default function Header({ onHeightChange }: HeaderProps) {
                     type="button"
                     onClick={() => {
                       setIsToolsOpen(false);
+                      transitionTo('auth');
+                    }}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FiUser className="size-4 text-emerald-500" />
+                      <span>{user ? '账号信息' : '登录 / 注册'}</span>
+                    </div>
+                    {user ? (
+                      <span className="size-2 rounded-full bg-emerald-500" title="已登录" />
+                    ) : (
+                      <span className="text-[10px] text-gray-400">Supabase</span>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsToolsOpen(false);
                       transitionTo('settings');
                     }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
                   >
-                    <FiUser className="size-4 text-primary-500" />
+                    <FiSettings className="size-4 text-primary-500" />
                     <span>{t('header.settingsTab', '个人设置中心')}</span>
                   </button>
 
@@ -852,7 +874,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
         }}
       >
         {/* Brand Logo with subtle ambient highlight & Quick Timer List Entry */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           <motion.div
             initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
             animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
@@ -880,14 +902,14 @@ export default function Header({ onHeightChange }: HeaderProps) {
           {/* 列表 (List of Timers) - Left Side Header Entry */}
           <button
             type="button"
-            className="relative inline-flex size-8 items-center justify-center rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
+            className="relative inline-flex size-10 sm:size-11 items-center justify-center rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
             onClick={() => setMobileTab('list')}
             aria-label={t('header.manageShort', '列表')}
             title={t('header.manageShort', '列表')}
           >
-            <FiList className="size-3.5" />
+            <FiList className="size-4.5 sm:size-5" />
             {timers.length > 0 && (
-              <span className="pointer-events-none absolute -top-1.5 -right-1.5 flex min-w-4 h-4 px-1 items-center justify-center rounded-full text-[9px] font-bold leading-none text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 shadow-xs ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee]">
+              <span className="pointer-events-none absolute -top-1 -right-1 flex min-w-4.5 h-4.5 px-1 items-center justify-center rounded-full text-[10px] font-bold leading-none text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 shadow-xs ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee]">
                 {timers.length}
               </span>
             )}
@@ -895,32 +917,32 @@ export default function Header({ onHeightChange }: HeaderProps) {
         </div>
 
         {/* Right Side: Quick Action Group (Timezone, Share, Orientation, Settings) */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {timezoneInfo && (
             <div
-              className="inline-flex h-8 items-center gap-1 px-2.5 rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-[11px] font-medium text-gray-700 dark:text-gray-200 shadow-xs backdrop-blur-xl select-none shrink-0"
+              className="inline-flex h-10 sm:h-11 items-center gap-1.5 px-3 sm:px-3.5 rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 shadow-xs backdrop-blur-xl select-none shrink-0"
               title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
             >
-              <FiGlobe className="size-3 shrink-0" style={{ color: accentColor || '#0ea5e9' }} />
-              <span className="truncate max-w-[80px] xs:max-w-[120px]">{timezoneInfo.text}</span>
+              <FiGlobe className="size-3.5 sm:size-4 shrink-0" style={{ color: accentColor || '#0ea5e9' }} />
+              <span className="truncate max-w-[90px] xs:max-w-[130px] sm:max-w-[200px]">{timezoneInfo.text}</span>
             </div>
           )}
 
           {/* 分享 (Share & QR Code) */}
           <button
             type="button"
-            className="inline-flex size-8 items-center justify-center rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
+            className="inline-flex size-10 sm:size-11 items-center justify-center rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
             onClick={() => setIsShareOpen(true)}
             aria-label="分享"
             title={t('share.title', '分享与二维码')}
           >
-            <FiShare2 className="size-3.5" />
+            <FiShare2 className="size-4.5 sm:size-5" />
           </button>
 
           {/* 横竖屏切换 (Toggle Screen Orientation) */}
           <button
             type="button"
-            className={`inline-flex size-8 items-center justify-center rounded-full border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all ${
+            className={`inline-flex size-10 sm:size-11 items-center justify-center rounded-full border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all ${
               isLandscape
                 ? 'bg-black/10 dark:bg-white/20 text-gray-900 dark:text-white'
                 : 'bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14]'
@@ -931,13 +953,13 @@ export default function Header({ onHeightChange }: HeaderProps) {
             data-insightflare-event="orientation_toggle"
             data-insightflare-event-to={isLandscape ? 'portrait' : 'landscape'}
           >
-            <FiRotateCw className={`size-3.5 transition-transform duration-300 ${isLandscape ? 'rotate-90 text-primary-500' : ''}`} />
+            <FiRotateCw className={`size-4.5 sm:size-5 transition-transform duration-300 ${isLandscape ? 'rotate-90 text-primary-500' : ''}`} />
           </button>
 
           {/* 个人设置 (Personal Settings Route) */}
           <button
             type="button"
-            className={`relative inline-flex size-8 items-center justify-center rounded-full border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all ${
+            className={`relative inline-flex size-10 sm:size-11 items-center justify-center rounded-full border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all ${
               view === 'settings'
                 ? 'bg-black/10 dark:bg-white/20 text-gray-900 dark:text-white'
                 : 'bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14]'
@@ -949,10 +971,12 @@ export default function Header({ onHeightChange }: HeaderProps) {
             aria-label={t('header.settingsTab', '个人设置')}
             title={t('header.settingsTab', '个人设置')}
           >
-            <FiUser className="size-3.5" />
-            {hasUpdate && (
-              <span className="pointer-events-none absolute -top-0.5 -right-0.5 size-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee] animate-pulse" />
-            )}
+            <FiUser className="size-4.5 sm:size-5" />
+            {hasUpdate ? (
+              <span className="pointer-events-none absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee] animate-pulse" />
+            ) : user ? (
+              <span className="pointer-events-none absolute -top-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee]" />
+            ) : null}
           </button>
         </div>
       </div>

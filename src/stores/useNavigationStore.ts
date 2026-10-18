@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type PageView = 'cheer' | 'main' | 'todo' | 'settings';
+export type PageView = 'cheer' | 'main' | 'todo' | 'settings' | 'auth';
 
 export interface NavigationState {
   view: PageView;
@@ -10,6 +10,7 @@ export interface NavigationState {
   isCheer: boolean;
   isMain: boolean;
   isSettings: boolean;
+  isAuth: boolean;
   transitionTo: (nextView: PageView) => void;
   setView: (view: PageView, direction?: 1 | -1) => void;
 }
@@ -19,6 +20,7 @@ export const PAGE_ORDER: Record<PageView, number> = {
   main: 1,
   todo: 2,
   settings: 3,
+  auth: 4,
 };
 
 function getInitialView(): PageView {
@@ -28,6 +30,7 @@ function getInitialView(): PageView {
   if (rawHash === 'todo') return 'todo';
   if (rawHash === 'settings' || rawHash === 'profile') return 'settings';
   if (rawHash === 'main' || rawHash === 'timer') return 'main';
+  if (rawHash === 'auth' || rawHash === 'login' || rawHash === 'register') return 'auth';
 
   // 默认无指定路由时，进入元气打气页面
   return 'cheer';
@@ -43,6 +46,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
   isMain: initialView === 'main',
   isTodo: initialView === 'todo',
   isSettings: initialView === 'settings',
+  isAuth: initialView === 'auth',
 
   setView: (nextView: PageView, customDirection?: 1 | -1) => {
     const currentView = get().view;
@@ -58,6 +62,7 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
         isMain: nextView === 'main',
         isTodo: nextView === 'todo',
         isSettings: nextView === 'settings',
+        isAuth: nextView === 'auth',
         isAbout: false,
       });
     }
@@ -97,6 +102,8 @@ if (typeof window !== 'undefined') {
       useNavigationStore.getState().setView('todo');
     } else if (rawHash === 'settings' || rawHash === 'profile') {
       useNavigationStore.getState().setView('settings');
+    } else if (rawHash === 'auth' || rawHash === 'login' || rawHash === 'register') {
+      useNavigationStore.getState().setView('auth');
     } else if (rawHash === '' || rawHash === '/') {
       // 访问根路径，按初始设置进入打气或主页
       const defaultStart = getInitialView();
@@ -120,6 +127,7 @@ export function usePageTransition() {
   const isMain = useNavigationStore((s) => s.isMain);
   const isTodo = useNavigationStore((s) => s.isTodo);
   const isSettings = useNavigationStore((s) => s.isSettings);
+  const isAuth = useNavigationStore((s) => s.isAuth);
   const transitionTo = useNavigationStore((s) => s.transitionTo);
 
   return {
@@ -130,6 +138,7 @@ export function usePageTransition() {
     isMain,
     isTodo,
     isSettings,
+    isAuth,
     transitionTo,
   };
 }

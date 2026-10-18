@@ -1,5 +1,5 @@
 import { useState, useReducer, useEffect, useMemo, useRef } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import {
   FiCheckCircle,
@@ -63,6 +63,15 @@ export default function TodoListWidget({
       setInternalIsOpen(open);
     }
   };
+
+  const shouldReduceMotion = useReducedMotion();
+  const tabSpringTransition = useMemo(
+    () =>
+      shouldReduceMotion
+        ? { duration: 0 }
+        : { type: 'spring' as const, stiffness: 450, damping: 32 },
+    [shouldReduceMotion],
+  );
 
   const [state, dispatch] = useReducer(todoReducer, {
     items: [],
@@ -224,35 +233,49 @@ export default function TodoListWidget({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 12 }}
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-            className="fixed bottom-[calc(5.25rem+var(--tp-safe-bottom,0px))] right-4 z-40 flex w-[calc(100vw-2rem)] sm:w-96 flex-col rounded-3xl border border-white/20 bg-white/75 p-4 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-[#141416]/80 md:bottom-6 md:right-6"
+            className="fixed bottom-[calc(5.75rem+var(--tp-safe-bottom,0px))] sm:bottom-[calc(6.25rem+var(--tp-safe-bottom,0px))] right-4 z-40 flex w-[calc(100vw-2rem)] sm:w-96 flex-col rounded-3xl border border-white/20 bg-white/75 p-4 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-[#141416]/80 md:bottom-6 md:right-6"
             style={{ maxHeight: 'min(580px, calc(100vh - 120px))' }}
           >
             {/* 顶部标题与控制栏 */}
             <div className="flex items-center justify-between pb-3 border-b border-gray-200/50 dark:border-white/10">
-              <div className="flex items-center gap-1.5 rounded-xl bg-black/5 p-1 dark:bg-white/10">
+              <div className="relative flex items-center gap-1.5 rounded-xl bg-black/5 p-1 dark:bg-white/10">
                 <button
                   type="button"
                   aria-label={t('todo.switchToTodo', '切换到待办事项')}
                   onClick={() => dispatch({ type: 'set_tab', tab: 'todo' })}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                  className={`relative rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition-colors cursor-pointer select-none ${
                     state.activeTab === 'todo'
-                      ? 'bg-white text-gray-900 shadow-xs dark:bg-neutral-800 dark:text-white'
+                      ? 'text-gray-900 dark:text-white'
                       : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                   }`}
                 >
-                  {t('todo.tabTodo', '待办事项')}
+                  {state.activeTab === 'todo' && (
+                    <motion.div
+                      layoutId="todo-widget-active-tab-pill"
+                      transition={tabSpringTransition}
+                      className="absolute inset-0 rounded-lg bg-white shadow-xs dark:bg-neutral-800"
+                    />
+                  )}
+                  <span className="relative z-10">{t('todo.tabTodo', '待办事项')}</span>
                 </button>
                 <button
                   type="button"
                   aria-label={t('todo.switchToChecklist', '切换到核对清单')}
                   onClick={() => dispatch({ type: 'set_tab', tab: 'checklist' })}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                  className={`relative rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition-colors cursor-pointer select-none ${
                     state.activeTab === 'checklist'
-                      ? 'bg-white text-gray-900 shadow-xs dark:bg-neutral-800 dark:text-white'
+                      ? 'text-gray-900 dark:text-white'
                       : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                   }`}
                 >
-                  {t('todo.tabChecklist', '核对清单')}
+                  {state.activeTab === 'checklist' && (
+                    <motion.div
+                      layoutId="todo-widget-active-tab-pill"
+                      transition={tabSpringTransition}
+                      className="absolute inset-0 rounded-lg bg-white shadow-xs dark:bg-neutral-800"
+                    />
+                  )}
+                  <span className="relative z-10">{t('todo.tabChecklist', '核对清单')}</span>
                 </button>
               </div>
 
@@ -262,18 +285,18 @@ export default function TodoListWidget({
                 <button
                   type="button"
                   onClick={() => dispatch({ type: 'sort_by_priority' })}
-                  className="rounded-lg p-1.5 text-gray-500 hover:bg-black/5 hover:text-primary-600 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-primary-400 transition-colors cursor-pointer"
+                  className="rounded-lg p-2 text-gray-500 hover:bg-black/5 hover:text-primary-600 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-primary-400 transition-colors cursor-pointer active:scale-95"
                   title={t('todo.sortByPriorityTip', '根据设置的优先级颜色自动由高到低排列')}
                   aria-label={t('todo.sortByPriority', '按优先级排序')}
                 >
-                  <FiBarChart2 className="size-3.5" />
+                  <FiBarChart2 className="size-4" />
                 </button>
 
                 {/* 触觉反馈开关 */}
                 <button
                   type="button"
                   onClick={handleToggleHaptic}
-                  className={`rounded-lg p-1.5 transition-colors cursor-pointer ${
+                  className={`rounded-lg p-2 transition-colors cursor-pointer active:scale-95 ${
                     hapticActive
                       ? 'text-emerald-500 hover:bg-emerald-500/10'
                       : 'text-gray-400 hover:bg-black/5 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300'
@@ -289,7 +312,7 @@ export default function TodoListWidget({
                       : t('todo.hapticDisabled', '触觉反馈已关闭')
                   }
                 >
-                  <FiSmartphone className="size-3.5" />
+                  <FiSmartphone className="size-4" />
                 </button>
 
                 {/* 在新页面打开 */}
@@ -297,11 +320,11 @@ export default function TodoListWidget({
                   <button
                     type="button"
                     onClick={onOpenAsPage}
-                    className="rounded-lg p-1.5 text-gray-500 hover:bg-black/5 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white transition-colors cursor-pointer"
+                    className="rounded-lg p-2 text-gray-500 hover:bg-black/5 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white transition-colors cursor-pointer active:scale-95"
                     title={t('todo.openInPage', '在独立新页面打开')}
                     aria-label={t('todo.openInPage', '在独立新页面打开')}
                   >
-                    <FiMaximize2 className="size-3.5" />
+                    <FiMaximize2 className="size-4" />
                   </button>
                 )}
 
@@ -309,11 +332,11 @@ export default function TodoListWidget({
                 <button
                   type="button"
                   onClick={() => handleOpenChange(false)}
-                  className="rounded-lg p-1.5 text-gray-500 hover:bg-black/5 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white transition-colors cursor-pointer"
+                  className="rounded-lg p-2 text-gray-500 hover:bg-black/5 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white transition-colors cursor-pointer active:scale-95"
                   title={t('todo.minimize', '收起为桌面小胶囊')}
                   aria-label={t('todo.minimize', '收起为桌面小胶囊')}
                 >
-                  <FiMinimize2 className="size-3.5" />
+                  <FiMinimize2 className="size-4" />
                 </button>
 
                 {/* 隐藏悬浮球 */}
@@ -321,14 +344,14 @@ export default function TodoListWidget({
                   <button
                     type="button"
                     onClick={onHideWidget}
-                    className="rounded-lg p-1.5 text-gray-400 hover:bg-black/5 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                    className="rounded-lg p-2 text-gray-400 hover:bg-black/5 hover:text-gray-700 dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
                     title={t(
                       'todo.hideWidget',
                       '隐藏桌面悬浮挂件 (可随时在顶栏菜单重新开启)',
                     )}
                     aria-label={t('todo.hideWidgetAria', '隐藏桌面悬浮挂件')}
                   >
-                    <FiEyeOff className="size-3.5" />
+                    <FiEyeOff className="size-4" />
                   </button>
                 )}
               </div>
@@ -406,7 +429,13 @@ export default function TodoListWidget({
 
             {/* 列表主体：使用 @hello-pangea/dnd 进行拖拽排序 */}
             <div className="flex-1 overflow-y-auto pr-1 my-1 min-h-[140px] max-h-[260px] space-y-1.5">
-              {currentTabItems.length === 0 ? (
+              <motion.div
+                key={state.activeTab}
+                initial={shouldReduceMotion ? false : { opacity: 0.45, y: 3 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.18, ease: 'easeOut' }}
+              >
+                {currentTabItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center text-xs text-gray-400 dark:text-gray-500">
                   <FiList className="size-8 stroke-[1.5] mb-2 opacity-50" />
                   <p>
@@ -439,11 +468,15 @@ export default function TodoListWidget({
                       );
                     }}
                   >
-                    {(provided) => (
+                    {(provided, snapshot) => (
                       <div
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        className="flex flex-col gap-1.5"
+                        className={`flex flex-col gap-1.5 rounded-xl transition-colors duration-200 ${
+                          snapshot.isDraggingOver
+                            ? 'bg-primary-500/[0.02] dark:bg-primary-500/[0.04]'
+                            : ''
+                        }`}
                       >
                         {currentTabItems.map((item, index) => (
                           <Draggable key={item.id} draggableId={item.id} index={index}>
@@ -470,6 +503,7 @@ export default function TodoListWidget({
                   </Droppable>
                 </DragDropContext>
               )}
+              </motion.div>
             </div>
 
             {/* 快速添加栏（支持预选优先级颜色） */}
@@ -561,17 +595,17 @@ export default function TodoListWidget({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => handleOpenChange(true)}
-            className="fixed bottom-[calc(5.25rem+var(--tp-safe-bottom,0px))] right-4 z-40 flex items-center gap-2 rounded-full border border-white/30 bg-white/75 px-3.5 py-2 shadow-lg backdrop-blur-2xl dark:border-white/12 dark:bg-black/65 md:bottom-6 md:right-6 cursor-pointer"
+            className="fixed bottom-[calc(5.75rem+var(--tp-safe-bottom,0px))] sm:bottom-[calc(6.25rem+var(--tp-safe-bottom,0px))] right-4 z-40 flex items-center gap-2.5 rounded-full border border-white/30 bg-white/80 px-4 py-2.5 sm:px-4.5 sm:py-3 shadow-lg backdrop-blur-2xl dark:border-white/12 dark:bg-black/75 md:bottom-6 md:right-6 cursor-pointer"
             aria-label={t('todo.openWidgetAria', '打开待办与核对清单')}
           >
-            <div className="flex size-6 items-center justify-center rounded-full text-white bg-sky-500">
-              <FiCheckCircle className="size-3.5 stroke-[2.5]" />
+            <div className="flex size-7 sm:size-8 items-center justify-center rounded-full text-white bg-sky-500 shadow-xs shrink-0">
+              <FiCheckCircle className="size-4 sm:size-4.5 stroke-[2.5]" />
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-xs font-semibold text-gray-900 dark:text-white">
+              <span className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
                 {t('todo.tabTodo', '待办清单')}
               </span>
-              <span className="text-[10px] text-gray-500 dark:text-gray-400">
+              <span className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
                 {completedCount}/{totalCount} {t('todo.completedBadge', '完成')}
               </span>
             </div>

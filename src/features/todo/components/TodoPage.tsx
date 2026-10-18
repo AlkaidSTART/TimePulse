@@ -1,5 +1,5 @@
 import { useState, useReducer, useEffect, useMemo, useRef } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import {
   FiArrowLeft,
@@ -45,6 +45,14 @@ interface TodoPageProps {
 export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: TodoPageProps) {
   const { accentColor } = useTheme();
   const { t, currentLang } = useTranslation();
+  const shouldReduceMotion = useReducedMotion();
+  const tabSpringTransition = useMemo(
+    () =>
+      shouldReduceMotion
+        ? { duration: 0 }
+        : { type: 'spring' as const, stiffness: 450, damping: 32 },
+    [shouldReduceMotion],
+  );
 
   const [state, dispatch] = useReducer(todoReducer, {
     items: [],
@@ -343,21 +351,30 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
             </div>
 
             {/* 顶部分类切换 Tabs */}
-            <div className="flex w-full md:w-auto items-center gap-1 sm:gap-1.5 rounded-xl sm:rounded-2xl bg-black/5 p-1 sm:p-1.5 dark:bg-white/10">
+            <div className="relative flex w-full md:w-auto items-center gap-1 sm:gap-1.5 rounded-xl sm:rounded-2xl bg-black/5 p-1 sm:p-1.5 dark:bg-white/10">
               <button
                 type="button"
                 aria-label={t('todo.switchToTodo', '切换到待办事项')}
                 onClick={() => dispatch({ type: 'set_tab', tab: 'todo' })}
-                className={`relative flex flex-1 md:flex-initial items-center justify-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
+                className={`relative flex flex-1 md:flex-initial items-center justify-center rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs md:text-sm font-semibold transition-colors cursor-pointer select-none ${
                   state.activeTab === 'todo'
-                    ? 'bg-white text-gray-950 shadow-xs sm:shadow-sm dark:bg-neutral-800 dark:text-white'
+                    ? 'text-gray-950 dark:text-white'
                     : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                 }`}
               >
-                <FiList className="size-3.5 sm:size-4" />
-                <span>{t('todo.tabTodo', '待办事项')}</span>
-                <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-bold dark:bg-white/10">
-                  {todoCount}
+                {state.activeTab === 'todo' && (
+                  <motion.div
+                    layoutId="todo-page-active-tab-pill"
+                    transition={tabSpringTransition}
+                    className="absolute inset-0 rounded-lg sm:rounded-xl bg-white shadow-xs sm:shadow-sm dark:bg-neutral-800"
+                  />
+                )}
+                <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2">
+                  <FiList className="size-3.5 sm:size-4" />
+                  <span>{t('todo.tabTodo', '待办事项')}</span>
+                  <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-bold dark:bg-white/10">
+                    {todoCount}
+                  </span>
                 </span>
               </button>
 
@@ -365,16 +382,25 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                 type="button"
                 aria-label={t('todo.switchToChecklist', '切换到核对清单')}
                 onClick={() => dispatch({ type: 'set_tab', tab: 'checklist' })}
-                className={`relative flex flex-1 md:flex-initial items-center justify-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs md:text-sm font-semibold transition-all cursor-pointer ${
+                className={`relative flex flex-1 md:flex-initial items-center justify-center rounded-lg sm:rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs md:text-sm font-semibold transition-colors cursor-pointer select-none ${
                   state.activeTab === 'checklist'
-                    ? 'bg-white text-gray-950 shadow-xs sm:shadow-sm dark:bg-neutral-800 dark:text-white'
+                    ? 'text-gray-950 dark:text-white'
                     : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
                 }`}
               >
-                <FiCheckCircle className="size-3.5 sm:size-4" />
-                <span>{t('todo.tabChecklist', '核对清单')}</span>
-                <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-bold dark:bg-white/10">
-                  {checklistCount}
+                {state.activeTab === 'checklist' && (
+                  <motion.div
+                    layoutId="todo-page-active-tab-pill"
+                    transition={tabSpringTransition}
+                    className="absolute inset-0 rounded-lg sm:rounded-xl bg-white shadow-xs sm:shadow-sm dark:bg-neutral-800"
+                  />
+                )}
+                <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2">
+                  <FiCheckCircle className="size-3.5 sm:size-4" />
+                  <span>{t('todo.tabChecklist', '核对清单')}</span>
+                  <span className="rounded-full bg-black/5 px-1.5 py-0.5 text-[10px] font-bold dark:bg-white/10">
+                    {checklistCount}
+                  </span>
                 </span>
               </button>
             </div>
@@ -479,7 +505,14 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
 
         {/* 任务列表主体 */}
         <div className="flex flex-col gap-2 rounded-2xl md:rounded-3xl border border-black/[0.06] bg-white/80 p-3 sm:p-4 md:p-5 shadow-xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-[#141416]/90 min-h-[220px] sm:min-h-[280px]">
-          {currentTabItems.length === 0 ? (
+          <motion.div
+            key={state.activeTab}
+            initial={shouldReduceMotion ? false : { opacity: 0.45, y: 3 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="flex flex-col flex-1"
+          >
+            {currentTabItems.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center py-8 sm:py-12 text-center text-gray-400 dark:text-gray-500">
               <div className="flex size-12 sm:size-14 items-center justify-center rounded-2xl bg-black/5 dark:bg-white/5 mb-2.5 sm:mb-3">
                 <FiList className="size-6 sm:size-7 stroke-[1.5] opacity-60" />
@@ -561,11 +594,15 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                     );
                   }}
                 >
-                  {(provided) => (
+                  {(provided, snapshot) => (
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className="flex flex-col gap-2"
+                      className={`flex flex-col gap-2 rounded-2xl transition-colors duration-200 ${
+                        snapshot.isDraggingOver
+                          ? 'bg-primary-500/[0.02] dark:bg-primary-500/[0.04]'
+                          : ''
+                      }`}
                     >
                       {currentTabItems.map((item, index) => (
                         <Draggable key={item.id} draggableId={item.id} index={index}>
@@ -593,6 +630,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
               </DragDropContext>
             </div>
           )}
+          </motion.div>
 
           {/* 底部功能工具栏 */}
           <div className="mt-3 sm:mt-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 border-t border-gray-200/50 pt-2.5 sm:pt-3 text-xs text-gray-500 dark:border-white/10 dark:text-gray-400">

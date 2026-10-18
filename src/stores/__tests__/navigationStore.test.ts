@@ -32,4 +32,11 @@ describe('useNavigationStore', () => {
     expect(useNavigationStore.getState().view).toBe('cheer');
     expect(useNavigationStore.getState().direction).toBe(-1);
   });
+
+  it('navigates to auth route correctly', () => {
+    const { setView } = useNavigationStore.getState();
+    setView('auth');
+    expect(useNavigationStore.getState().view).toBe('auth');
+    expect(useNavigationStore.getState().isAuth).toBe(true);
+  });
 });

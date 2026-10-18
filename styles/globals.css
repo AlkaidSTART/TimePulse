@@ -187,6 +187,24 @@ html[data-mobile-landscape="true"]:not([data-desktop="true"]) .todo-page-contain
   }
 }
 
+/* 拖拽排序流畅动画过渡体系 */
+[data-rfd-droppable-id] [data-rfd-draggable-id] {
+  transition: transform 0.28s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  will-change: transform;
+}
+
+/* 处于被拖拽中的元素跟随指针无额外延时 */
+[data-rfd-droppable-id] [data-rfd-draggable-id][data-rfd-dragging="true"],
+body > [data-rfd-draggable-id] {
+  will-change: transform, box-shadow;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-rfd-droppable-id] [data-rfd-draggable-id] {
+    transition: none !important;
+  }
+}
+
 /* 替换为所有元素的过渡效果，改为更具体的选择器，减少对性能的影响 */
 .transition-enabled {
   -webkit-transition: color var(--text-color-transition-duration) var(--transition-timing),
@@ -695,7 +713,7 @@ select,
     }
   }
 
-  /* 移动端底部导航 - 苹果液态玻璃纯透明水滴指示器 (Apple Liquid Glass Water Droplet) */
+  /* 移动端底部导航 - 苹果液态玻璃高透水滴指示器 (Apple Liquid Glass Water Droplet) */
   .liquid-droplet-pill {
     position: absolute;
     border-radius: 9999px;
@@ -703,21 +721,21 @@ select,
     pointer-events: none;
     background: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.45) 0%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0.3) 100%
+      rgba(255, 255, 255, 0.32) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.2) 100%
     );
-    -webkit-backdrop-filter: blur(18px) saturate(180%) contrast(105%);
-    backdrop-filter: blur(18px) saturate(180%) contrast(105%);
-    border: 1px solid rgba(0, 0, 0, 0.32);
+    -webkit-backdrop-filter: blur(8px) saturate(160%) contrast(102%);
+    backdrop-filter: blur(8px) saturate(160%) contrast(102%);
+    border: 1px solid rgba(0, 0, 0, 0.22);
     box-shadow:
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.95),
-      inset 1px 0 1px 0 rgba(255, 255, 255, 0.35),
-      inset -1px 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.35),
-      inset 0 0 12px 0 rgba(255, 255, 255, 0.14),
-      0 4px 14px -1px rgba(0, 0, 0, 0.08),
-      0 2px 6px -1px rgba(0, 0, 0, 0.04);
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.8),
+      inset 1px 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset -1px 0 1px 0 rgba(255, 255, 255, 0.15),
+      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.25),
+      inset 0 0 8px 0 rgba(255, 255, 255, 0.1),
+      0 4px 14px -1px rgba(0, 0, 0, 0.06),
+      0 2px 6px -1px rgba(0, 0, 0, 0.03);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
   }
@@ -725,38 +743,38 @@ select,
   .cream .liquid-droplet-pill {
     background: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.55) 0%,
-      rgba(255, 252, 245, 0.16) 50%,
-      rgba(255, 250, 240, 0.38) 100%
+      rgba(255, 255, 255, 0.38) 0%,
+      rgba(255, 252, 245, 0.1) 50%,
+      rgba(255, 250, 240, 0.22) 100%
     );
-    border: 1px solid rgba(0, 0, 0, 0.32);
+    border: 1px solid rgba(0, 0, 0, 0.22);
     box-shadow:
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.98),
-      inset 1px 0 1px 0 rgba(255, 255, 255, 0.4),
-      inset -1px 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.4),
-      inset 0 0 12px 0 rgba(255, 250, 240, 0.16),
-      0 4px 14px -1px rgba(120, 95, 65, 0.09),
-      0 2px 6px -1px rgba(120, 95, 65, 0.04);
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.85),
+      inset 1px 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset -1px 0 1px 0 rgba(255, 255, 255, 0.15),
+      inset 0 -1px 1.5px 0 rgba(255, 255, 255, 0.3),
+      inset 0 0 8px 0 rgba(255, 250, 240, 0.12),
+      0 4px 14px -1px rgba(120, 95, 65, 0.07),
+      0 2px 6px -1px rgba(120, 95, 65, 0.03);
   }
 
   .dark .liquid-droplet-pill {
     background: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.15) 0%,
+      rgba(255, 255, 255, 0.14) 0%,
       rgba(255, 255, 255, 0.03) 50%,
-      rgba(255, 255, 255, 0.09) 100%
+      rgba(255, 255, 255, 0.08) 100%
     );
-    border: 1px solid rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.22);
     box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.2),
-      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.45),
-      inset 1px 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset -1px 0 1px 0 rgba(255, 255, 255, 0.1),
-      inset 0 -1px 1px 0 rgba(255, 255, 255, 0.18),
-      inset 0 0 12px 0 rgba(255, 255, 255, 0.05),
-      0 4px 16px -2px rgba(0, 0, 0, 0.45),
-      0 2px 6px -1px rgba(0, 0, 0, 0.25);
+      inset 0 0 0 1px rgba(255, 255, 255, 0.15),
+      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.35),
+      inset 1px 0 1px 0 rgba(255, 255, 255, 0.15),
+      inset -1px 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 1px 0 rgba(255, 255, 255, 0.14),
+      inset 0 0 8px 0 rgba(255, 255, 255, 0.04),
+      0 4px 16px -2px rgba(0, 0, 0, 0.4),
+      0 2px 6px -1px rgba(0, 0, 0, 0.2);
   }
 
   /* 移动端独立液态水滴按钮（可交互、不带 absolute/inset） */
@@ -767,17 +785,17 @@ select,
     pointer-events: auto;
     background: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.85) 0%,
-      rgba(255, 255, 255, 0.5) 100%
+      rgba(255, 255, 255, 0.42) 0%,
+      rgba(255, 255, 255, 0.15) 100%
     );
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(0, 0, 0, 0.28);
+    -webkit-backdrop-filter: blur(10px) saturate(160%);
+    backdrop-filter: blur(10px) saturate(160%);
+    border: 1px solid rgba(0, 0, 0, 0.2);
     box-shadow:
-      0 4px 16px -2px rgba(0, 0, 0, 0.08),
-      0 2px 6px -1px rgba(0, 0, 0, 0.04),
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
-      inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04);
+      0 4px 16px -2px rgba(0, 0, 0, 0.06),
+      0 2px 6px -1px rgba(0, 0, 0, 0.03),
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.85),
+      inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.03);
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
   }
@@ -785,30 +803,30 @@ select,
   .cream .liquid-droplet-button {
     background: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.88) 0%,
-      rgba(250, 244, 232, 0.6) 100%
+      rgba(255, 255, 255, 0.48) 0%,
+      rgba(250, 244, 232, 0.2) 100%
     );
-    border: 1px solid rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(0, 0, 0, 0.2);
     box-shadow:
-      0 4px 16px -2px rgba(130, 105, 75, 0.14),
-      0 2px 6px -1px rgba(130, 105, 75, 0.07),
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 1),
-      inset 0 -1px 1.5px 0 rgba(190, 170, 140, 0.25);
+      0 4px 16px -2px rgba(130, 105, 75, 0.1),
+      0 2px 6px -1px rgba(130, 105, 75, 0.05),
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 1.5px 0 rgba(190, 170, 140, 0.18);
   }
 
   .dark .liquid-droplet-button {
     background: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.16) 0%,
-      rgba(255, 255, 255, 0.06) 100%
+      rgba(255, 255, 255, 0.15) 0%,
+      rgba(255, 255, 255, 0.04) 100%
     );
-    border: 1px solid rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.22);
     box-shadow:
-      0 4px 16px -2px rgba(0, 0, 0, 0.45),
-      0 2px 6px -1px rgba(0, 0, 0, 0.25),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
-      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.45),
-      inset 0 -1px 1px 0 rgba(255, 255, 255, 0.18);
+      0 4px 16px -2px rgba(0, 0, 0, 0.4),
+      0 2px 6px -1px rgba(0, 0, 0, 0.2),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.15),
+      inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.35),
+      inset 0 -1px 1px 0 rgba(255, 255, 255, 0.14);
   }
 
   .btn {

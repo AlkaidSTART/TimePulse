@@ -241,25 +241,25 @@ export default function CheerPage() {
           className="relative w-full rounded-2xl border border-black/[0.05] dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-4 sm:p-5 backdrop-blur-xl h-[148px] sm:h-[140px] flex flex-col justify-between overflow-hidden group select-none"
         >
           <div className="flex items-center justify-end pb-2 mb-2 border-b border-black/[0.04] dark:border-white/[0.06] shrink-0">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 disabled={isCopied}
                 onClick={handleCopyQuote}
                 title="复制此句"
                 className={cn(
-                  'flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer',
+                  'flex items-center gap-1.5 text-xs sm:text-sm px-2.5 sm:px-3 py-1 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer active:scale-95',
                   isCopied && 'cursor-default'
                 )}
               >
                 {isCopied ? (
                   <>
-                    <FiCheck className="size-3 text-emerald-500" />
+                    <FiCheck className="size-3.5 sm:size-4 text-emerald-500" />
                     <span className="text-emerald-600 dark:text-emerald-400">已复制</span>
                   </>
                 ) : (
                   <>
-                    <FiCopy className="size-3" />
+                    <FiCopy className="size-3.5 sm:size-4" />
                     <span>复制</span>
                   </>
                 )}
@@ -270,11 +270,11 @@ export default function CheerPage() {
                 onClick={() => handleNextQuote(true)}
                 title="换一句"
                 className={cn(
-                  'flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer',
+                  'flex items-center gap-1.5 text-xs sm:text-sm px-2.5 sm:px-3 py-1 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer active:scale-95',
                   isRefreshing && 'opacity-60 cursor-not-allowed'
                 )}
               >
-                <FiRefreshCw className={cn('size-3 transition-transform duration-500', isRefreshing && 'rotate-180')} />
+                <FiRefreshCw className={cn('size-3.5 sm:size-4 transition-transform duration-500', isRefreshing && 'rotate-180')} />
                 <span>换一句</span>
               </button>
             </div>
@@ -288,7 +288,7 @@ export default function CheerPage() {
                 preset="fade-in-blur"
                 speedReveal={1.6}
                 speedSegment={1.2}
-                className="text-xs sm:text-[13px] text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic select-text"
+                className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic select-text"
               >
                 {`“${currentQuote.text}”`}
               </TextEffect>
@@ -298,7 +298,7 @@ export default function CheerPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.35, delay: 0.15 }}
-              className="mt-1 text-right text-[11px] text-gray-400 dark:text-gray-500 shrink-0"
+              className="mt-1 text-right text-[11px] sm:text-xs text-gray-400 dark:text-gray-500 shrink-0"
             >
               —— {currentQuote.author}
             </motion.div>
@@ -310,42 +310,42 @@ export default function CheerPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.12 }}
-          className="flex flex-wrap items-center justify-center gap-2 pt-0.5"
+          className="flex flex-wrap items-center justify-center gap-2.5 pt-0.5"
         >
           {/* 前往时钟主页胶囊 */}
           <button
             type="button"
             onClick={() => transitionTo('main')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-gray-600 dark:text-gray-300 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] border border-black/[0.05] dark:border-white/10 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] border border-black/[0.05] dark:border-white/10 transition-colors cursor-pointer active:scale-95"
           >
-            <FiClock className="size-3.5 text-primary-500" />
+            <FiClock className="size-4 sm:size-4.5 text-primary-500" />
             <span>时钟主页</span>
-            <FiArrowRight className="size-3 text-gray-400" />
+            <FiArrowRight className="size-3.5 text-gray-400" />
           </button>
 
           {/* 前往待办清单胶囊 */}
           <button
             type="button"
             onClick={() => transitionTo('todo')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-gray-600 dark:text-gray-300 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] border border-black/[0.05] dark:border-white/10 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] border border-black/[0.05] dark:border-white/10 transition-colors cursor-pointer active:scale-95"
           >
-            <FiCheckSquare className="size-3.5 text-emerald-500" />
+            <FiCheckSquare className="size-4 sm:size-4.5 text-emerald-500" />
             <span>今日待办</span>
             {pendingTodosCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+              <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] sm:text-xs font-bold">
                 {pendingTodosCount}
               </span>
             )}
-            <FiArrowRight className="size-3 text-gray-400" />
+            <FiArrowRight className="size-3.5 text-gray-400" />
           </button>
 
           {/* 个人设置胶囊 */}
           <button
             type="button"
             onClick={() => transitionTo('settings')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-gray-600 dark:text-gray-300 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] border border-black/[0.05] dark:border-white/10 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.07] dark:hover:bg-white/[0.1] border border-black/[0.05] dark:border-white/10 transition-colors cursor-pointer active:scale-95"
           >
-            <FiUser className="size-3.5 text-gray-400" />
+            <FiUser className="size-4 sm:size-4.5 text-gray-400" />
             <span>个人设置</span>
           </button>
         </motion.div>

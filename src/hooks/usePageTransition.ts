@@ -14,6 +14,7 @@ export type PageTransitionContextValue = {
   isMain: boolean;
   isTodo: boolean;
   isSettings: boolean;
+  isAuth: boolean;
   direction: 1 | -1;
   transitionTo: (view: PageView) => void;
 };
