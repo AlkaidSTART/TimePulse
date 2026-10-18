@@ -172,14 +172,20 @@ export default function AuthPage() {
     }
   };
 
-  // 处理自定义头像上传至 Supabase touxiang 存储桶
+  // 处理自定义头像上传至 Supabase touxiang 存储桶（受 5MB 总空间约束）
   const handleAvatarUpload = async (file: File) => {
     setIsUploadingAvatar(true);
     setAvatarFeedback(null);
+    if (!user) {
+      setIsUploadingAvatar(false);
+      setAvatarFeedback({ type: 'error', message: '云端存储空间仅 5MB，请先登录账号后再上传专属头像' });
+      setTimeout(() => setAvatarFeedback(null), 4500);
+      return;
+    }
     const res = await uploadAvatar(file);
     setIsUploadingAvatar(false);
     if (res.success) {
-      setAvatarFeedback({ type: 'success', message: '头像已成功上传至云端并同步！' });
+      setAvatarFeedback({ type: 'success', message: '头像已自动优化至轻量 WebP 并同步至云端！' });
       setTimeout(() => setAvatarFeedback(null), 3500);
     } else {
       setAvatarFeedback({ type: 'error', message: res.error || '头像上传失败，请稍后重试' });
@@ -462,7 +468,7 @@ export default function AuthPage() {
                 <input
                   ref={avatarFileInputRef}
                   type="file"
-                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  accept="image/png,image/jpeg,image/webp"
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -505,16 +511,20 @@ export default function AuthPage() {
                       onClick={handleRemoveAvatar}
                       disabled={isUploadingAvatar}
                       className="inline-flex items-center gap-1 px-2 py-1 rounded-xl text-xs font-medium text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50"
-                      title="重置为默认文字头像"
+                      title="重置为默认文字头像并释放云端空间"
                     >
                       <FiTrash2 className="size-3.5" />
                       <span>移除</span>
                     </button>
                   )}
+                </div>
 
-                  <span className="text-[10px] sm:text-[11px] text-gray-400 cream:text-[#8a7f72]">
-                    支持 JPG/PNG/WEBP/GIF，最大 5MB
+                {/* 5MB 对象存储空间约束指引 */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-[10px] sm:text-[11px] text-gray-400 cream:text-[#8a7f72]">
+                  <span className="inline-block px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-mono text-[9px] sm:text-[10px]">
+                    5MB 配额
                   </span>
+                  <span>限 JPG/PNG/WEBP · 单图 ≤ 2MB · 自动裁剪为 256×256 WebP · 覆盖防冗余</span>
                 </div>
 
                 {/* 头像上传成功或错误提示 */}

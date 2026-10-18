@@ -215,17 +215,30 @@ describe('useAuthStore', () => {
   it('validates file type and size on uploadAvatar', async () => {
     const { uploadAvatar } = useAuthStore.getState();
 
-    // 格式不符合
+    // 格式不符合（如文本文件）
     const invalidFile = new File(['text'], 'test.txt', { type: 'text/plain' });
     const res1 = await uploadAvatar(invalidFile);
     expect(res1.success).toBe(false);
-    expect(res1.error).toBe('不支持的图片格式，仅支持 PNG、JPG、WEBP、GIF 格式');
+    expect(res1.error).toBe('不支持的图片格式，仅支持 PNG、JPG、WEBP 格式');
 
-    // 体积超过 5MB
-    const bigFile = new File([new Uint8Array(6 * 1024 * 1024)], 'big.png', { type: 'image/png' });
+    // 不支持 GIF 动图
+    const gifFile = new File(['gif'], 'test.gif', { type: 'image/gif' });
+    const resGif = await uploadAvatar(gifFile);
+    expect(resGif.success).toBe(false);
+    expect(resGif.error).toContain('不支持 GIF 动图');
+
+    // 体积超过 2MB
+    const bigFile = new File([new Uint8Array(3 * 1024 * 1024)], 'big.png', { type: 'image/png' });
     const res2 = await uploadAvatar(bigFile);
     expect(res2.success).toBe(false);
-    expect(res2.error).toBe('头像图片文件大小不能超过 5MB');
+    expect(res2.error).toBe('头像图片文件大小不能超过 2MB（云端存储总容量仅 5MB）');
+
+    // 未登录用户拦截
+    useAuthStore.setState({ user: null });
+    const validFile = new File(['valid'], 'avatar.png', { type: 'image/png' });
+    const res3 = await uploadAvatar(validFile);
+    expect(res3.success).toBe(false);
+    expect(res3.error).toContain('云端对象存储仅 5MB 配额，请先登录账号后再上传专属头像');
   });
 
   it('handles successful uploadAvatar with Supabase storage', async () => {
@@ -233,11 +246,13 @@ describe('useAuthStore', () => {
       user: { id: 'u123', email: 'user@example.com', user_metadata: {} } as any,
     });
 
-    const mockPublicUrl = 'https://ikdbwkrqlfksmjgrzchm.supabase.co/storage/v1/object/public/touxiang/u123/avatar.png';
+    const mockPublicUrl = 'https://ikdbwkrqlfksmjgrzchm.supabase.co/storage/v1/object/public/touxiang/u123/avatar.webp';
 
     const mockStorageFrom = vi.fn().mockReturnValue({
-      upload: vi.fn().mockResolvedValue({ data: { path: 'u123/avatar.png' }, error: null }),
+      upload: vi.fn().mockResolvedValue({ data: { path: 'u123/avatar.webp' }, error: null }),
       getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: mockPublicUrl } }),
+      list: vi.fn().mockResolvedValue({ data: [{ name: 'avatar-old.png' }], error: null }),
+      remove: vi.fn().mockResolvedValue({ data: [], error: null }),
     });
     vi.spyOn(supabase.storage, 'from').mockImplementation(mockStorageFrom as any);
     vi.spyOn(supabase.auth, 'updateUser').mockResolvedValueOnce({
@@ -256,19 +271,25 @@ describe('useAuthStore', () => {
     const res = await uploadAvatar(file);
 
     expect(res.success).toBe(true);
-    expect(res.avatarUrl).toBe(mockPublicUrl);
+    expect(res.avatarUrl).toContain(mockPublicUrl);
     expect(mockStorageFrom).toHaveBeenCalledWith('touxiang');
-    expect(useAuthStore.getState().user?.user_metadata.avatar_url).toBe(mockPublicUrl);
   });
 
-  it('handles removeAvatar correctly', async () => {
+  it('handles removeAvatar correctly and clears storage', async () => {
     useAuthStore.setState({
       user: {
         id: 'u123',
         email: 'user@example.com',
-        user_metadata: { avatar_url: 'https://example.com/avatar.png' },
+        user_metadata: { avatar_url: 'https://example.com/avatar.webp' },
       } as any,
     });
+
+    const mockRemove = vi.fn().mockResolvedValue({ data: [], error: null });
+    const mockStorageFrom = vi.fn().mockReturnValue({
+      list: vi.fn().mockResolvedValue({ data: [{ name: 'avatar.webp' }], error: null }),
+      remove: mockRemove,
+    });
+    vi.spyOn(supabase.storage, 'from').mockImplementation(mockStorageFrom as any);
 
     vi.spyOn(supabase.auth, 'updateUser').mockResolvedValueOnce({
       data: {
@@ -286,5 +307,7 @@ describe('useAuthStore', () => {
 
     expect(res.success).toBe(true);
     expect(useAuthStore.getState().user?.user_metadata.avatar_url).toBe('');
+    expect(mockStorageFrom).toHaveBeenCalledWith('touxiang');
+    expect(mockRemove).toHaveBeenCalledWith(['u123/avatar.webp']);
   });
 });

@@ -53,34 +53,45 @@ export default function PersonalSettingsPage() {
   const [avatarFeedback, setAvatarFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const settingsFileInputRef = useRef<HTMLInputElement>(null);
 
-  const userDisplayName = user?.user_metadata?.nickname || (nickname === '阳光旅人' ? '' : nickname) || (user?.email ? user.email.split('@')[0] : 'TimePulse 会员');
+  const userDisplayName = user?.user_metadata?.nickname || (nickname === '阳光旅人' ? '' : nickname) || (user?.email ? user.email.split('@')[0] : t('personalSettings.memberDefaultName', 'TimePulse 会员'));
   const userAvatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || (avatar && (avatar.startsWith('http') || avatar.startsWith('data:')) ? avatar : null);
 
   const handleAvatarUpload = async (file: File) => {
     setIsUploadingAvatar(true);
     setAvatarFeedback(null);
+
+    if (!user) {
+      setIsUploadingAvatar(false);
+      setAvatarFeedback({
+        type: 'error',
+        message: '云端存储空间仅 5MB，请先登录账号后再上传专属头像',
+      });
+      setTimeout(() => setAvatarFeedback(null), 4500);
+      return;
+    }
+
     const res = await uploadAvatar(file);
     setIsUploadingAvatar(false);
     if (res.success) {
-      setAvatarFeedback({ type: 'success', message: '头像已成功上传至云端并同步！' });
+      setAvatarFeedback({ type: 'success', message: '头像已自动优化至轻量 WebP 并同步至云端！' });
       setTimeout(() => setAvatarFeedback(null), 3500);
     } else {
-      setAvatarFeedback({ type: 'error', message: res.error || '头像上传失败，请稍后重试' });
+      setAvatarFeedback({ type: 'error', message: res.error || t('personalSettings.avatarUploadFailed', '头像上传失败，请稍后重试') });
       setTimeout(() => setAvatarFeedback(null), 4500);
     }
   };
 
   const handleRemoveAvatar = async () => {
-    if (!window.confirm('确定要恢复默认头像吗？')) return;
+    if (!window.confirm(t('personalSettings.avatarResetConfirm', '确定要恢复默认头像吗？'))) return;
     setIsUploadingAvatar(true);
     setAvatarFeedback(null);
     const res = await removeAvatar();
     setIsUploadingAvatar(false);
     if (res.success) {
-      setAvatarFeedback({ type: 'success', message: '已恢复默认头像' });
+      setAvatarFeedback({ type: 'success', message: t('personalSettings.avatarResetSuccess', '已恢复默认头像') });
       setTimeout(() => setAvatarFeedback(null), 3000);
     } else {
-      setAvatarFeedback({ type: 'error', message: res.error || '重置头像失败' });
+      setAvatarFeedback({ type: 'error', message: res.error || t('personalSettings.avatarResetFailed', '重置头像失败') });
       setTimeout(() => setAvatarFeedback(null), 4000);
     }
   };
@@ -111,16 +122,16 @@ export default function PersonalSettingsPage() {
                 }
               }}
               className="glass-circle-button size-10 sm:size-11 shrink-0"
-              title="返回"
+              title={t('common.back', '返回')}
             >
               <FiArrowLeft className="size-4.5 sm:size-5" />
             </button>
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-gray-950 dark:text-white cream:text-[#26211e]">
-                个人设置中心
+                {t('personalSettings.title', '个人设置中心')}
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 cream:text-[#786e63] mt-0.5">
-                定制主题外观、语言偏好与系统设置
+                {t('personalSettings.subtitle', '定制主题外观、语言偏好与系统设置')}
               </p>
             </div>
           </div>
@@ -128,14 +139,14 @@ export default function PersonalSettingsPage() {
           <button
             type="button"
             onClick={() => {
-              if (window.confirm('确定要恢复默认设置吗？已记录的打气数据将重置。')) {
+              if (window.confirm(t('personalSettings.resetConfirm', '确定要恢复默认设置吗？已记录的打气数据将重置。'))) {
                 resetSettings();
               }
             }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 cream:text-[#786e63] cream:hover:text-red-600 transition-colors"
           >
             <FiRotateCcw className="size-3.5" />
-            <span className="hidden sm:inline">恢复默认</span>
+            <span className="hidden sm:inline">{t('personalSettings.resetDefault', '恢复默认')}</span>
           </button>
         </div>
 
@@ -160,14 +171,20 @@ export default function PersonalSettingsPage() {
                       {userDisplayName}
                     </span>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                      <FiCheckCircle className="size-2.5" /> 已登录
+                      <FiCheckCircle className="size-2.5" /> {t('personalSettings.signedIn', '已登录')}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#786e63] truncate mt-0.5">
                     {user.email}
                   </p>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[11px] text-gray-500 dark:text-gray-400 cream:text-[#786e63]">
+                    <span className="inline-block px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 font-mono text-[10px]">
+                      5MB 配额
+                    </span>
+                    <span>限 JPG/PNG/WEBP · 单图 ≤ 2MB · 自动优化为 256×256 WebP · 覆盖防冗余</span>
+                  </div>
                   {avatarFeedback && (
-                    <p className={`text-xs mt-1 font-medium ${avatarFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                    <p className={`text-xs mt-1.5 font-medium ${avatarFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
                       {avatarFeedback.message}
                     </p>
                   )}
@@ -180,10 +197,10 @@ export default function PersonalSettingsPage() {
                   onClick={() => settingsFileInputRef.current?.click()}
                   disabled={isUploadingAvatar}
                   className="px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-gray-800 dark:text-gray-200 cream:text-[#26211e] shadow-2xs transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-                  title="上传自定义头像到 Supabase touxiang 存储桶"
+                  title="上传自定义头像（自动压缩并覆盖旧头像）"
                 >
                   <FiUploadCloud className="size-3.5 text-primary-500" />
-                  <span>{isUploadingAvatar ? '上传中...' : '更换头像'}</span>
+                  <span>{isUploadingAvatar ? t('personalSettings.uploading', '上传中...') : t('personalSettings.changeAvatar', '更换头像')}</span>
                 </button>
                 {userAvatarUrl && (
                   <button
@@ -191,10 +208,10 @@ export default function PersonalSettingsPage() {
                     onClick={handleRemoveAvatar}
                     disabled={isUploadingAvatar}
                     className="px-2.5 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50"
-                    title="恢复默认文字头像"
+                    title={t('personalSettings.removeAvatar', '移除')}
                   >
                     <FiTrash2 className="size-3.5" />
-                    <span>移除</span>
+                    <span>{t('personalSettings.removeAvatar', '移除')}</span>
                   </button>
                 )}
                 <button
@@ -202,7 +219,7 @@ export default function PersonalSettingsPage() {
                   onClick={() => transitionTo('auth')}
                   className="px-3.5 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-gray-800 dark:text-gray-200 cream:text-[#26211e] shadow-2xs transition-colors cursor-pointer"
                 >
-                  管理账号
+                  {t('personalSettings.manageAccount', '管理账号')}
                 </button>
                 <button
                   type="button"
@@ -212,7 +229,7 @@ export default function PersonalSettingsPage() {
                   className="px-3 py-1.5 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-1 cursor-pointer"
                 >
                   <FiLogOut className="size-3.5" />
-                  <span>退出</span>
+                  <span>{t('personalSettings.signOut', '退出')}</span>
                 </button>
               </div>
 
@@ -220,7 +237,7 @@ export default function PersonalSettingsPage() {
               <input
                 ref={settingsFileInputRef}
                 type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
+                accept="image/png,image/jpeg,image/webp"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -239,18 +256,27 @@ export default function PersonalSettingsPage() {
                   size="lg"
                   editable
                   isUploading={isUploadingAvatar}
-                  onUpload={handleAvatarUpload}
+                  onUpload={() => {
+                    setAvatarFeedback({
+                      type: 'error',
+                      message: '云端存储空间仅 5MB，请先登录账号后再上传专属头像',
+                    });
+                    setTimeout(() => transitionTo('auth'), 800);
+                  }}
                   accentColor={accentColor || '#10A37F'}
                 />
                 <div>
                   <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-white cream:text-[#26211e]">
-                    登录 / 注册 TimePulse 账号
+                    {t('personalSettings.signInPrompt', '登录 / 注册 TimePulse 账号')}
                   </h3>
                   <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#786e63] mt-0.5">
-                    基于 Supabase BaaS 云端身份认证，数据安全有保障
+                    {t('personalSettings.signInPromptDesc', '基于 Supabase BaaS 云端身份认证，数据安全有保障')}
+                  </p>
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500 cream:text-[#8a7f72] mt-0.5">
+                    登录后可上传个人专属云端头像（配额 5MB，单图≤2MB，覆盖防冗余）
                   </p>
                   {avatarFeedback && (
-                    <p className={`text-xs mt-1 font-medium ${avatarFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                    <p className={`text-xs mt-1.5 font-medium ${avatarFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
                       {avatarFeedback.message}
                     </p>
                   )}
@@ -260,13 +286,19 @@ export default function PersonalSettingsPage() {
               <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
                 <button
                   type="button"
-                  onClick={() => settingsFileInputRef.current?.click()}
+                  onClick={() => {
+                    setAvatarFeedback({
+                      type: 'error',
+                      message: '云端存储空间仅 5MB，请先登录账号后再上传专属头像',
+                    });
+                    setTimeout(() => transitionTo('auth'), 800);
+                  }}
                   disabled={isUploadingAvatar}
                   className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-gray-800 dark:text-gray-200 cream:text-[#26211e] transition-colors cursor-pointer disabled:opacity-50"
-                  title="上传自定义头像到 Supabase touxiang 存储桶"
+                  title="登录后上传自定义头像到 Supabase touxiang 存储桶"
                 >
                   <FiUploadCloud className="size-4 text-primary-500" />
-                  <span>{isUploadingAvatar ? '上传中...' : '上传头像'}</span>
+                  <span>{isUploadingAvatar ? t('personalSettings.uploading', '上传中...') : t('personalSettings.uploadAvatar', '上传头像')}</span>
                 </button>
                 <button
                   type="button"
@@ -275,7 +307,7 @@ export default function PersonalSettingsPage() {
                   style={{ backgroundColor: accentColor || '#10A37F' }}
                 >
                   <FiLogIn className="size-4" />
-                  <span>立即登录 / 注册</span>
+                  <span>{t('personalSettings.signInNow', '立即登录 / 注册')}</span>
                 </button>
               </div>
 
@@ -283,7 +315,7 @@ export default function PersonalSettingsPage() {
               <input
                 ref={settingsFileInputRef}
                 type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
+                accept="image/png,image/jpeg,image/webp"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -300,13 +332,13 @@ export default function PersonalSettingsPage() {
         <section className="rounded-2xl border border-black/[0.06] dark:border-white/10 cream:border-[#dfd3c0] bg-white/85 dark:bg-white/[0.05] cream:bg-[#faf5ea]/90 p-5 sm:p-6 backdrop-blur-xl shadow-xs cream:shadow-[0_4px_20px_-2px_rgba(120,95,65,0.06)] space-y-4">
           <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
             <LuPalette className="size-4 text-teal-500" />
-            <span>外观主题与色彩</span>
+            <span>{t('personalSettings.appearance', '外观主题与色彩')}</span>
           </div>
 
           {/* 主题明暗模式 */}
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 cream:text-[#3d362f]">
-              界面模式：{theme === 'cream' ? '米白模式' : '白色模式'}
+              {t('personalSettings.themeMode', '界面模式')}：{theme === 'cream' ? t('personalSettings.themeCream', '米白模式') : t('personalSettings.themeLight', '白色模式')}
             </span>
             <button
               type="button"
@@ -314,14 +346,14 @@ export default function PersonalSettingsPage() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-xs font-semibold text-gray-800 dark:text-gray-200 cream:text-[#26211e] shadow-2xs transition-colors cursor-pointer"
             >
               <FiSun className="size-3.5 text-amber-500" />
-              <span>切换模式</span>
+              <span>{t('personalSettings.toggleMode', '切换模式')}</span>
             </button>
           </div>
 
           {/* 常用预设强调色 */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-gray-600 dark:text-gray-400 cream:text-[#52493f]">
-              快速点选应用强调色 (Accent Color)
+              {t('personalSettings.accentColor', '快速点选应用强调色 (Accent Color)')}
             </label>
             <div className="flex items-center gap-2.5 pt-1 overflow-x-auto scrollbar-hide py-1">
               {CHATGPT_THEME_PRESETS.map((preset) => {
@@ -356,7 +388,7 @@ export default function PersonalSettingsPage() {
                   {t('mobile.language', '语言偏好 / Language')}
                 </span>
                 <p className="text-[11px] sm:text-xs text-gray-400 cream:text-[#8a7f72]">
-                  {currentLang === 'zh-CN' ? '当前：简体中文' : 'Current: English'}
+                  {currentLang === 'zh-CN' ? t('personalSettings.currentChinese', '当前：简体中文') : t('personalSettings.currentEnglish', 'Current: English')}
                 </p>
               </div>
             </div>
@@ -370,7 +402,7 @@ export default function PersonalSettingsPage() {
                     : 'text-gray-500 dark:text-gray-400 cream:text-[#7d7164] hover:text-gray-900 dark:hover:text-white cream:hover:text-[#26211e]'
                 }`}
               >
-                中文
+                {t('personalSettings.chinese', '中文')}
               </button>
               <button
                 type="button"
@@ -381,7 +413,7 @@ export default function PersonalSettingsPage() {
                     : 'text-gray-500 dark:text-gray-400 cream:text-[#7d7164] hover:text-gray-900 dark:hover:text-white cream:hover:text-[#26211e]'
                 }`}
               >
-                EN
+                {t('personalSettings.english', 'EN')}
               </button>
             </div>
           </div>
@@ -442,13 +474,13 @@ export default function PersonalSettingsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm sm:text-base font-bold text-gray-900 dark:text-white cream:text-[#26211e]">
               <FiCoffee className="size-4 text-amber-500" />
-              <span>{t('version.supportAuthor', '支持与联系作者')}</span>
+              <span>{t('personalSettings.supportSection', '支持与联系作者')}</span>
             </div>
             <span className="text-xs text-gray-400 cream:text-[#8a7f72]">TimePulse · Alkaid</span>
           </div>
 
           <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#52493f] leading-relaxed">
-            TimePulse 专为专注与沉浸流而生。如果这款应用给你的工作和日常带来了陪伴与便利，欢迎支持作者或交流反馈！
+            {t('personalSettings.supportDesc', 'TimePulse 专为专注与沉浸流而生。如果这款应用给你的工作和日常带来了陪伴与便利，欢迎支持作者或交流反馈！')}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -466,7 +498,7 @@ export default function PersonalSettingsPage() {
                     {t('version.buyMeACoffee', '请作者喝咖啡')}
                   </div>
                   <div className="text-[11px] text-gray-500 dark:text-gray-400 cream:text-[#786e63]">
-                    Buy Me a Coffee · 赞赏码
+                    {t('personalSettings.buyMeACoffeeSubtitle', 'Buy Me a Coffee · 赞赏码')}
                   </div>
                 </div>
               </div>
@@ -487,7 +519,7 @@ export default function PersonalSettingsPage() {
                     {t('version.contactAuthor', '联系作者')}
                   </div>
                   <div className="text-[11px] text-gray-500 dark:text-gray-400 cream:text-[#786e63]">
-                    微信扫码 · 交流反馈
+                    {t('personalSettings.contactAuthorSubtitle', '微信扫码 · 交流反馈')}
                   </div>
                 </div>
               </div>
@@ -518,7 +550,7 @@ export default function PersonalSettingsPage() {
               onClick={() => openAboutModal('version')}
               className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-primary-500/10 text-primary-600 dark:bg-primary-500/15 dark:text-primary-400 cream:bg-primary-500/20 cream:text-primary-700 hover:bg-primary-500/25 transition-colors cursor-pointer"
             >
-              {hasUpdate ? '立即升级' : '查看详情'}
+              {hasUpdate ? t('personalSettings.upgradeNow', '立即升级') : t('personalSettings.viewDetails', '查看详情')}
             </button>
           </div>
         </section>

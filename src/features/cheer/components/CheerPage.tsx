@@ -22,6 +22,7 @@ import {
 } from '../cheerData';
 import { useQuotesStore } from '@/stores/useQuotesStore';
 import { formatQuoteAuthor, formatQuoteForCopy } from '@/services/quotes';
+import { useTranslation } from '@/i18n/useTranslation';
 
 // 15秒无限轮播间隔（落在用户期望的10-20s区间，兼顾阅读节奏与动态感）
 const QUOTE_AUTO_ROTATE_MS = 15000;
@@ -31,6 +32,7 @@ const QUOTE_AUTO_ROTATE_MS = 15000;
  * 隔离开秒级重渲染，父组件（金句卡片、快捷入口）不再每秒跟着渲染。
  */
 const CheerClock = memo(function CheerClock() {
+  const { t, currentLang } = useTranslation();
   const [currentTime, setCurrentTime] = useState(() => new Date());
 
   useEffect(() => {
@@ -80,26 +82,59 @@ const CheerClock = memo(function CheerClock() {
     const year = currentTime.getFullYear();
     const month = currentTime.getMonth() + 1;
     const date = currentTime.getDate();
-    const dayNames = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-    const dayOfWeek = dayNames[currentTime.getDay()];
+    const dayIndex = currentTime.getDay();
+    const dayKeys = [
+      'cheer.weekdaySun',
+      'cheer.weekdayMon',
+      'cheer.weekdayTue',
+      'cheer.weekdayWed',
+      'cheer.weekdayThu',
+      'cheer.weekdayFri',
+      'cheer.weekdaySat',
+    ];
+    const defaultDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const dayOfWeek = t(dayKeys[dayIndex], defaultDays[dayIndex]);
 
     let lunarText = '';
     try {
       const lunar = solarlunar.solar2lunar(year, month, date);
       if (typeof lunar === 'object' && lunar !== null) {
-        lunarText = `农历${lunar.monthCn}${lunar.dayCn}`;
+        const prefix = t('cheer.lunarPrefix', '农历');
+        lunarText = `${prefix} ${lunar.monthCn}${lunar.dayCn}`;
       }
     } catch {
       // fallback
     }
 
+    const isZh = currentLang === 'zh-CN';
+    const formattedDate = isZh
+      ? `${month}月${date}日`
+      : currentTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const fullDate = isZh
+      ? `${year}年${month}月${date}日`
+      : currentTime.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
     return {
-      formattedDate: `${month}月${date}日`,
-      fullDate: `${year}年${month}月${date}日`,
+      formattedDate,
+      fullDate,
       dayOfWeek,
       lunarText,
     };
-  }, [dateKey]);
+  }, [dateKey, currentLang, t, currentTime]);
+
+  const timeSlotName = useMemo(() => {
+    const slotKeyMap: Record<string, string> = {
+      early_morning: 'cheer.timeSlotEarlyMorning',
+      morning: 'cheer.timeSlotMorning',
+      noon: 'cheer.timeSlotNoon',
+      afternoon: 'cheer.timeSlotAfternoon',
+      evening: 'cheer.timeSlotEvening',
+      night: 'cheer.timeSlotNight',
+      late_night: 'cheer.timeSlotLateNight',
+    };
+    const key = slotKeyMap[timeSlot.id];
+    return key ? t(key, timeSlot.name) : timeSlot.name;
+  }, [timeSlot, t]);
 
   return (
     <motion.div
@@ -137,7 +172,7 @@ const CheerClock = memo(function CheerClock() {
         )}
         <span>·</span>
         <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[11px] font-medium text-gray-600 dark:text-gray-300">
-          {timeSlot.name}
+          {timeSlotName}
         </span>
       </div>
     </motion.div>
@@ -148,6 +183,7 @@ export default function CheerPage() {
   const shouldReduceMotion = useReducedMotion();
   const { transitionTo } = usePageTransition();
   const { isFullscreen, isHeaderVisible } = useFullscreen();
+  const { t } = useTranslation();
 
   const quotes = useQuotesStore((s) => s.quotes);
   const currentIndex = useQuotesStore((s) => s.currentIndex);

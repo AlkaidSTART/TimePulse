@@ -4,13 +4,13 @@ VALUES (
   'touxiang',
   'touxiang',
   true,
-  5242880,
-  ARRAY['image/png', 'image/jpeg', 'image/gif', 'image/webp']
+  204800,
+  ARRAY['image/png', 'image/jpeg', 'image/webp']
 )
 ON CONFLICT (id) DO UPDATE SET
   public = true,
-  file_size_limit = 5242880,
-  allowed_mime_types = ARRAY['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+  file_size_limit = 204800,
+  allowed_mime_types = ARRAY['image/png', 'image/jpeg', 'image/webp'];
 
 -- 1. Public SELECT
 DROP POLICY IF EXISTS "Avatar images are publicly accessible" ON storage.objects;
@@ -28,15 +28,8 @@ WITH CHECK (
   AND (storage.foldername(name))[1] = (select auth.uid()::text)
 );
 
--- 3. Anon INSERT (guest folder)
+-- 3. Anon INSERT (彻底移除匿名访客上传权限，防止 5MB 总对象存储被恶意填满)
 DROP POLICY IF EXISTS "Anon users can upload guest avatars" ON storage.objects;
-CREATE POLICY "Anon users can upload guest avatars"
-ON storage.objects FOR INSERT
-TO anon
-WITH CHECK (
-  bucket_id = 'touxiang'
-  AND (storage.foldername(name))[1] = 'guest'
-);
 
 -- 4. Authenticated UPDATE (upsert requires SELECT + INSERT + UPDATE)
 DROP POLICY IF EXISTS "Authenticated users can update their own avatar" ON storage.objects;

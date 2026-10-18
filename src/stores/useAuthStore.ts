@@ -418,37 +418,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   uploadAvatar: async (file: File) => {
     set({ isLoading: true, error: null, successMessage: null });
     try {
-      // 1. 验证文件格式
-      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
-      if (!allowedTypes.includes(file.type)) {
-        const errorMsg = '不支持的图片格式，仅支持 PNG、JPG、WEBP、GIF 格式';
+      // 1. 约束校验：格式与原始体积限制（适配 5MB 总对象存储空间）
+      const validation = validateAvatarFile(file);
+      if (!validation.valid) {
+        const errorMsg = validation.error || '所选图片不符合要求';
         set({ isLoading: false, error: errorMsg });
         return { success: false, error: errorMsg };
       }
 
-      // 2. 限制文件体积不超过 5MB
-      const MAX_SIZE = 5 * 1024 * 1024;
-      if (file.size > MAX_SIZE) {
-        const errorMsg = '头像图片文件大小不能超过 5MB';
+      // 2. 身份约束：云存储仅 5MB，仅允许已登录用户上传个人专属云端头像
+      const currentUser = get().user;
+      if (!currentUser) {
+        const errorMsg = '云端对象存储仅 5MB 配额，请先登录账号后再上传专属头像';
         set({ isLoading: false, error: errorMsg });
         return { success: false, error: errorMsg };
       }
+
+      // 3. 前端轻量化优化：居中正方形裁剪、256×256 缩放抗锯齿、转码高压缩率 WebP
+      const optimizedFile = await processAndOptimizeAvatar(file);
 
       const supabase = await getSupabaseClient();
-      const currentUser = get().user;
 
-      // 确定存储文件路径：用户登录则存入专属用户目录，访客存入 guest 目录
-      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
-      const cleanExt = ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(fileExt) ? fileExt : 'png';
-      const folder = currentUser ? currentUser.id : 'guest';
-      const fileName = `avatar-${Date.now()}.${cleanExt}`;
+      // 4. 一人一图防冗余：固定用户专属路径 avatar.webp，使用 upsert 覆盖写入
+      const folder = currentUser.id;
+      const fileExt = optimizedFile.name.split('.').pop()?.toLowerCase() || 'webp';
+      const fileName = `avatar.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
 
       // 上传至 Supabase Storage touxiang 存储桶
       const { error: uploadError } = await supabase.storage
         .from('touxiang')
-        .upload(filePath, file, {
-          contentType: file.type,
+        .upload(filePath, optimizedFile, {
+          contentType: optimizedFile.type || 'image/webp',
           cacheControl: '3600',
           upsert: true,
         });
@@ -459,37 +460,53 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, error: formatted };
       }
 
-      // 获取公开可访问 URL
+      // 5. 存储防冗余清理：自动清理该用户目录下可能遗留的历史冗余文件
+      try {
+        const { data: existingFiles } = await supabase.storage
+          .from('touxiang')
+          .list(folder);
+        if (existingFiles && existingFiles.length > 0) {
+          const toDelete = existingFiles
+            .filter((f) => f.name !== fileName)
+            .map((f) => `${folder}/${f.name}`);
+          if (toDelete.length > 0) {
+            await supabase.storage.from('touxiang').remove(toDelete);
+          }
+        }
+      } catch (cleanErr) {
+        console.warn('清理旧头像历史文件提示:', cleanErr);
+      }
+
+      // 6. 获取公开可访问 URL 并添加时间戳避免客户端缓存
       const { data: publicUrlData } = supabase.storage
         .from('touxiang')
         .getPublicUrl(filePath);
 
-      const avatarUrl = publicUrlData.publicUrl;
+      const rawAvatarUrl = publicUrlData.publicUrl;
+      const avatarUrl = `${rawAvatarUrl}?t=${Date.now()}`;
 
       // 同步到本地设置 store
       usePersonalSettingsStore.getState().updateSettings({
         avatar: avatarUrl,
       });
 
-      // 如果是云端已登录用户，同步更新 Supabase User Metadata
-      if (currentUser) {
-        const { data: updateData, error: updateError } = await supabase.auth.updateUser({
-          data: {
-            avatar_url: avatarUrl,
-          },
-        });
+      // 同步更新 Supabase User Metadata
+      const { data: updateData, error: updateError } = await supabase.auth.updateUser({
+        data: {
+          avatar_url: avatarUrl,
+        },
+      });
 
-        if (updateError) {
-          console.warn('更新用户头像元数据异常:', updateError.message);
-        } else if (updateData.user) {
-          set({ user: updateData.user });
-        }
+      if (updateError) {
+        console.warn('更新用户头像元数据异常:', updateError.message);
+      } else if (updateData.user) {
+        set({ user: updateData.user });
       }
 
       set({
         isLoading: false,
         error: null,
-        successMessage: '头像上传成功！',
+        successMessage: '头像上传成功！已自动优化至轻量体积并同步云端。',
       });
 
       return { success: true, avatarUrl };
@@ -510,6 +527,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const currentUser = get().user;
       if (currentUser) {
         const supabase = await getSupabaseClient();
+
+        // 彻底释放云端 5MB 对象存储：清空用户专属目录下的所有头像文件
+        try {
+          const { data: userFiles } = await supabase.storage.from('touxiang').list(currentUser.id);
+          if (userFiles && userFiles.length > 0) {
+            const pathsToRemove = userFiles.map((f) => `${currentUser.id}/${f.name}`);
+            await supabase.storage.from('touxiang').remove(pathsToRemove);
+          }
+        } catch (storageErr) {
+          console.warn('移除云端头像文件提示:', storageErr);
+        }
+
         const { data, error } = await supabase.auth.updateUser({
           data: {
             avatar_url: '',
@@ -530,7 +559,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         isLoading: false,
         error: null,
-        successMessage: '已恢复默认头像',
+        successMessage: '已恢复默认头像并释放云端存储空间',
       });
       return { success: true };
     } catch (err) {
