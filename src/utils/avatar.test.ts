@@ -3,6 +3,7 @@ import {
   AVATAR_CONSTRAINTS,
   validateAvatarFile,
   processAndOptimizeAvatar,
+  getEffectiveAvatarUrl,
 } from './avatar';
 
 describe('avatar utils - 5MB 对象存储约束校验', () => {
