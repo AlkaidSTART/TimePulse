@@ -21,6 +21,7 @@ import {
   scheduleTimersWrite,
   writeActiveTimerId,
 } from '@/services/storage';
+import { isApplyingRemoteSync, notifyLocalTimerChange } from '@/services/timerSync';
 import { useThemeStore } from './useThemeStore';
 
 export type TimerInput = {
@@ -161,6 +162,9 @@ export const useTimerStore = create<TimerState>((set, get) => ({
         }
         if (next.activeTimerId !== state.activeTimerId && next.activeTimerId) {
           void writeActiveTimerId(next.activeTimerId);
+        }
+        if (!isApplyingRemoteSync()) {
+          notifyLocalTimerChange(next.timers, next.activeTimerId, action);
         }
       }
       syncActiveTimerColor(next.timers, next.activeTimerId);

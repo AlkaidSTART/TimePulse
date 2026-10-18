@@ -552,6 +552,9 @@ export default function TimerDisplay() {
         setIsStopwatchStopDialogOpen(false);
         setIsRunning(timerType === 'stopwatch' && (timer as StopwatchTimer).isRunning === true);
         if (timerType !== 'countdown') setIsFinished(false);
+      } else if (timerType === 'stopwatch') {
+        const swRunning = (timer as StopwatchTimer).isRunning === true;
+        setIsRunning((prev) => (prev !== swRunning ? swRunning : prev));
       }
 
       // Use one timestamp for both the displayed value and its next boundary.
