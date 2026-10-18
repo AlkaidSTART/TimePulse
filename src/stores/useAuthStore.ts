@@ -104,6 +104,95 @@ export interface AuthState {
 
 let authSubscriptionInitialized = false;
 
+/**
+ * 智能同步云端用户 Profile（昵称、签名及头像）
+ * 核心设计：
+ * 1. 优先检查 Supabase Storage 的 touxiang 存储桶中当前用户专属目录是否有已上传头像；
+ * 2. 若存在有效头像图片，提取公开 URL 并设为当前头像，防止被 Google OAuth 等第三方下发的默认头像覆盖；
+ * 3. 兜底回退至 getEffectiveAvatarUrl。
+ */
+async function syncUserCloudProfile(
+  user: User | null,
+  supabaseClient: SupabaseClient,
+  setUser?: (user: User) => void
+) {
+  if (!user) return;
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('timepulse_has_registered', 'true');
+      if (user.email) {
+        localStorage.setItem('timepulse_registered_email', user.email);
+      }
+    } catch {}
+  }
+
+  // 同步昵称
+  if (user.user_metadata?.nickname) {
+    const currentNickname = usePersonalSettingsStore.getState().nickname;
+    if (!currentNickname || currentNickname === '阳光旅人') {
+      usePersonalSettingsStore.getState().updateSettings({
+        nickname: String(user.user_metadata.nickname),
+      });
+    }
+  }
+
+  // 同步自定义座右铭
+  if (user.user_metadata?.custom_motto) {
+    usePersonalSettingsStore.getState().updateSettings({
+      customMotto: String(user.user_metadata.custom_motto),
+    });
+  }
+
+  // 核心：优先从 touxiang 存储桶中解析用户专属目录下的头像文件
+  let resolvedAvatar: string | null = null;
+  try {
+    const { data: storageFiles } = await supabaseClient.storage.from('touxiang').list(user.id);
+    if (storageFiles && storageFiles.length > 0) {
+      const validImages = storageFiles.filter((f) => /\.(jpe?g|png|webp)$/i.test(f.name));
+      if (validImages.length > 0) {
+        // 优先匹配标准 avatar.webp/avatar.jpg，或取最新上传的文件
+        const avatarFile = validImages.find((f) => f.name.startsWith('avatar.')) || validImages[validImages.length - 1];
+        const { data: publicData } = supabaseClient.storage.from('touxiang').getPublicUrl(`${user.id}/${avatarFile.name}`);
+        if (publicData?.publicUrl) {
+          const timestamp = new Date(avatarFile.updated_at || avatarFile.created_at || Date.now()).getTime();
+          const storageUrl = `${publicData.publicUrl}?t=${timestamp}`;
+          resolvedAvatar = storageUrl;
+
+          // 若 user_metadata 未记录或被第三方覆盖，异步静默补齐
+          if (user.user_metadata?.custom_avatar_url !== storageUrl || user.user_metadata?.avatar_url !== storageUrl) {
+            void supabaseClient.auth.updateUser({
+              data: {
+                avatar_url: storageUrl,
+                custom_avatar_url: storageUrl,
+              },
+            }).then(({ data: updatedAuth }) => {
+              if (updatedAuth?.user && setUser) {
+                setUser(updatedAuth.user);
+              }
+            }).catch((err) => {
+              console.warn('静默同步 custom_avatar_url 提示:', err);
+            });
+          }
+        }
+      }
+    }
+  } catch (storageCheckErr) {
+    console.warn('检查云端 touxiang 存储桶头像提示:', storageCheckErr);
+  }
+
+  // 若存储桶中无文件，按规范降级处理（custom_avatar_url -> OAuth avatar）
+  if (!resolvedAvatar) {
+    resolvedAvatar = getEffectiveAvatarUrl(user, usePersonalSettingsStore.getState().avatar);
+  }
+
+  if (resolvedAvatar) {
+    usePersonalSettingsStore.getState().updateSettings({
+      avatar: String(resolvedAvatar),
+    });
+  }
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   session: null,
@@ -132,35 +221,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isInitialized: true,
       });
 
-      if (user && typeof window !== 'undefined') {
-        try {
-          localStorage.setItem('timepulse_has_registered', 'true');
-          if (user.email) {
-            localStorage.setItem('timepulse_registered_email', user.email);
-          }
-        } catch {}
-      }
-
-      // 同步昵称与签名（若云端有对应元数据）
-      if (user?.user_metadata?.nickname) {
-        const currentNickname = usePersonalSettingsStore.getState().nickname;
-        if (!currentNickname || currentNickname === '阳光旅人') {
-          usePersonalSettingsStore.getState().updateSettings({
-            nickname: String(user.user_metadata.nickname),
-          });
-        }
-      }
-      if (user?.user_metadata?.custom_motto) {
-        usePersonalSettingsStore.getState().updateSettings({
-          customMotto: String(user.user_metadata.custom_motto),
-        });
-      }
-      const cloudAvatar = user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
-      if (cloudAvatar) {
-        usePersonalSettingsStore.getState().updateSettings({
-          avatar: String(cloudAvatar),
-        });
-      }
+      await syncUserCloudProfile(user, supabase, (u) => set({ user: u }));
 
       if (!authSubscriptionInitialized) {
         authSubscriptionInitialized = true;
@@ -171,34 +232,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             user: newUser,
           });
 
-          if (newUser && typeof window !== 'undefined') {
-            try {
-              localStorage.setItem('timepulse_has_registered', 'true');
-              if (newUser.email) {
-                localStorage.setItem('timepulse_registered_email', newUser.email);
-              }
-            } catch {}
-          }
-
-          if (newUser?.user_metadata?.nickname) {
-            const currentNickname = usePersonalSettingsStore.getState().nickname;
-            if (!currentNickname || currentNickname === '阳光旅人') {
-              usePersonalSettingsStore.getState().updateSettings({
-                nickname: String(newUser.user_metadata.nickname),
-              });
-            }
-          }
-          if (newUser?.user_metadata?.custom_motto) {
-            usePersonalSettingsStore.getState().updateSettings({
-              customMotto: String(newUser.user_metadata.custom_motto),
-            });
-          }
-          const newCloudAvatar = newUser?.user_metadata?.avatar_url || newUser?.user_metadata?.picture;
-          if (newCloudAvatar) {
-            usePersonalSettingsStore.getState().updateSettings({
-              avatar: String(newCloudAvatar),
-            });
-          }
+          void syncUserCloudProfile(newUser, supabase, (u) => set({ user: u }));
         });
       }
     } catch (err) {
@@ -530,10 +564,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         avatar: avatarUrl,
       });
 
-      // 同步更新 Supabase User Metadata
+      // 同步更新 Supabase User Metadata (同时维护 custom_avatar_url 避免被 OAuth 冲掉)
       const { data: updateData, error: updateError } = await supabase.auth.updateUser({
         data: {
           avatar_url: avatarUrl,
+          custom_avatar_url: avatarUrl,
         },
       });
 
@@ -582,6 +617,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const { data, error } = await supabase.auth.updateUser({
           data: {
             avatar_url: '',
+            custom_avatar_url: '',
           },
         });
 

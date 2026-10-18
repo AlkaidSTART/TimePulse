@@ -820,46 +820,103 @@ export default function AuthPage() {
 
                 {/* 登录 / 注册 仿 Apple VisionOS 胶囊分段滑动切换器 */}
                 {mode !== 'forgot' ? (
-                  <div className="relative flex rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] cream:bg-black/[0.03] p-1 border border-black/[0.05] dark:border-white/[0.08]">
-                    <button
-                      type="button"
-                      onClick={() => handleModeChange('signin')}
-                      className={`relative flex-1 py-2 text-xs font-semibold rounded-xl transition-colors duration-200 z-10 flex items-center justify-center gap-1.5 cursor-pointer ${
-                        mode === 'signin'
-                          ? 'text-gray-950 dark:text-white font-bold'
-                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                      }`}
-                    >
-                      <FiLogIn className="size-3.5" />
-                      <span>登录账号</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleModeChange('signup')}
-                      className={`relative flex-1 py-2 text-xs font-semibold rounded-xl transition-colors duration-200 z-10 flex items-center justify-center gap-1.5 cursor-pointer ${
-                        mode === 'signup'
-                          ? 'text-gray-950 dark:text-white font-bold'
-                          : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                      }`}
-                    >
-                      <FiUserPlus className="size-3.5" />
-                      <span>免费注册</span>
-                    </button>
+                  <div className="space-y-2">
+                    <div className="relative flex rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] cream:bg-black/[0.03] p-1 border border-black/[0.05] dark:border-white/[0.08]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!hasRegistered) {
+                            setUnregisteredNotice(
+                              t('auth.registerFirstNotice', '要在注册账号之后，才允许切换到登录')
+                            );
+                            return;
+                          }
+                          setUnregisteredNotice(null);
+                          handleModeChange('signin');
+                        }}
+                        className={`relative flex-1 py-2 text-xs font-semibold rounded-xl transition-all duration-200 z-10 flex items-center justify-center gap-1.5 ${
+                          !hasRegistered
+                            ? 'opacity-40 cursor-not-allowed text-gray-400 dark:text-gray-500'
+                            : mode === 'signin'
+                            ? 'text-gray-950 dark:text-white font-bold cursor-pointer'
+                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer'
+                        }`}
+                        aria-disabled={!hasRegistered}
+                        title={!hasRegistered ? t('auth.registerFirstNotice', '要在注册账号之后，才允许切换到登录') : undefined}
+                      >
+                        <FiLogIn className="size-3.5" />
+                        <span>{t('auth.signInTab', '登录账号')}</span>
+                        {!hasRegistered && (
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-normal border border-amber-500/20">
+                            {t('auth.tabPendingRegister', '待注册')}
+                          </span>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUnregisteredNotice(null);
+                          handleModeChange('signup');
+                        }}
+                        className={`relative flex-1 py-2 text-xs font-semibold rounded-xl transition-colors duration-200 z-10 flex items-center justify-center gap-1.5 cursor-pointer ${
+                          mode === 'signup'
+                            ? 'text-gray-950 dark:text-white font-bold'
+                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+                        }`}
+                      >
+                        <FiUserPlus className="size-3.5" />
+                        <span>{t('auth.signUpTab', '免费注册')}</span>
+                      </button>
 
-                    <motion.div
-                      layoutId="auth-tab-pill"
-                      initial={false}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 420,
-                        damping: 32,
-                      }}
-                      className="absolute inset-y-1 rounded-xl bg-white dark:bg-zinc-800 shadow-sm"
-                      style={{
-                        left: mode === 'signin' ? '4px' : '50%',
-                        right: mode === 'signin' ? '50%' : '4px',
-                      }}
-                    />
+                      <motion.div
+                        layoutId="auth-tab-pill"
+                        initial={false}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 420,
+                          damping: 32,
+                        }}
+                        className="absolute inset-y-1 rounded-xl bg-white dark:bg-zinc-800 shadow-sm"
+                        style={{
+                          left: mode === 'signin' ? '4px' : '50%',
+                          right: mode === 'signin' ? '50%' : '4px',
+                        }}
+                      />
+                    </div>
+
+                    {/* 未注册拦截提示条（配有已有账号直达通道） */}
+                    <AnimatePresence>
+                      {unregisteredNotice && !hasRegistered && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0, y: -6 }}
+                          animate={{ opacity: 1, height: 'auto', y: 0 }}
+                          exit={{ opacity: 0, height: 0, y: -6 }}
+                          transition={{ duration: 0.2 }}
+                          className="rounded-2xl border border-amber-500/25 bg-amber-500/10 px-3.5 py-2 text-xs text-amber-700 dark:text-amber-300 flex items-center justify-between gap-2 backdrop-blur-sm shadow-2xs"
+                        >
+                          <div className="flex items-center gap-2">
+                            <FiAlertCircle className="size-4 shrink-0 text-amber-500" />
+                            <span className="font-medium">{unregisteredNotice}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setHasRegistered(true);
+                              if (typeof window !== 'undefined') {
+                                try {
+                                  localStorage.setItem('timepulse_has_registered', 'true');
+                                } catch {}
+                              }
+                              setUnregisteredNotice(null);
+                              handleModeChange('signin');
+                            }}
+                            className="text-primary-600 dark:text-primary-400 font-semibold underline hover:opacity-80 shrink-0 cursor-pointer text-[11px]"
+                          >
+                            {t('auth.alreadyHaveAccount', '已有账号？直接登录')}
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between pb-1">
@@ -886,8 +943,33 @@ export default function AuthPage() {
                       animate={{ opacity: 1, height: 'auto', y: 0 }}
                       exit={{ opacity: 0, height: 0, y: -6 }}
                       transition={{ duration: 0.2 }}
-                      className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-xs text-red-600 dark:text-red-400 flex items-start gap-2.5 backdrop-blur-sm shadow-xs"
+                      className="rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-xs text-red-600 dark:text-red-400 flex items-start justify-between gap-2.5 backdrop-blur-sm shadow-xs"
                     >
+                      <div className="flex items-start gap-2.5 flex-1">
+                        <FiAlertCircle className="size-4 shrink-0 mt-0.5 text-red-500" />
+                        <span className="leading-relaxed font-medium">{error || localValidation}</span>
+                      </div>
+                      {error?.includes('已被注册') && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setHasRegistered(true);
+                            if (typeof window !== 'undefined') {
+                              try {
+                                localStorage.setItem('timepulse_has_registered', 'true');
+                                localStorage.setItem('timepulse_registered_email', email.trim());
+                              } catch {}
+                            }
+                            handleModeChange('signin');
+                          }}
+                          className="text-primary-600 dark:text-primary-400 font-semibold underline hover:opacity-80 shrink-0 cursor-pointer text-[11px] self-center ml-2"
+                        >
+                          {t('auth.switchNow', '立即切换')}
+                        </button>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                       <FiAlertCircle className="size-4 shrink-0 mt-0.5 text-red-500" />
                       <span className="flex-1 leading-relaxed font-medium">{error || localValidation}</span>
                     </motion.div>

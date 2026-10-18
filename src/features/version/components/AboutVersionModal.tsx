@@ -323,7 +323,7 @@ export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
                     <div className="relative mx-auto w-fit p-3.5 rounded-2xl bg-white dark:bg-black/40 border border-amber-500/20 shadow-md">
                       <img
                         src="/buy-me-a-coffee.webp"
-                        alt="Buy Me a Coffee - Alkaid 的赞赏码"
+                        alt={t('version.coffeeAlt', 'Buy Me a Coffee - Alkaid 的赞赏码')}
                         className="size-52 sm:size-56 object-contain rounded-xl mx-auto"
                         loading="eager"
                         decoding="async"
@@ -406,12 +406,12 @@ export default function AboutVersionModal({ onClose }: AboutVersionModalProps) {
                         {copiedText ? (
                           <>
                             <FiCheck className="size-3.5 text-emerald-600" />
-                            <span>已复制微信号</span>
+                            <span>{t('version.wechatCopied', '已复制微信号')}</span>
                           </>
                         ) : (
                           <>
                             <FiCopy className="size-3.5" />
-                            <span>复制微信号 Alkaid</span>
+                            <span>{t('version.copyWechat', '复制微信号 Alkaid')}</span>
                           </>
                         )}
                       </button>
