@@ -1365,6 +1365,7 @@ export default function AuthPage() {
                       status={isLoading && submitStatus === 'idle' ? 'loading' : submitStatus}
                       accentColor={activeColor}
                       progressColor={activeColor}
+                      loadingAnimation="wave-dots"
                       idleText={
                         mode === 'forgot'
                           ? t('auth.submitForgot', '发送重置密码邮件')

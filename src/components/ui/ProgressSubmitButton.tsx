@@ -249,29 +249,139 @@ export const ProgressSubmitButton = React.forwardRef<HTMLButtonElement, Progress
 ProgressSubmitButton.displayName = 'ProgressSubmitButton';
 
 /**
- * 动效方案 1：时光脉搏律动柱（4-bar TimePulse Kinetic Waveform）
- * 模拟时间频率与心跳节拍，高低交错谐振，灵动而有生命力
+ * 动效方案 1：iOS 灵动呼吸波浪三点（Fluid Wave Dots - 默认）
+ * 模拟 iOS / iMessage 经典呼吸起伏三点动效：
+ * - 纯净克制，移除刺眼弥散的模糊发光
+ * - 黄金比例 6px 微圆点与 6px 间隙，垂直柔滑起伏与透明度律动
+ * - 物理平滑曲线 easeInOut，节奏温润轻盈
+ */
+function WaveDotsLoader({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn('inline-flex items-center gap-1.5 h-5 px-0.5 shrink-0', className)}
+      aria-hidden="true"
+    >
+      {[0, 1, 2].map((i) => (
+        <motion.span
+          key={i}
+          className="size-1.5 rounded-full bg-current"
+          animate={{
+            y: [0, -3.5, 0],
+            opacity: [0.35, 1, 0.35],
+            scale: [0.85, 1.15, 0.85],
+          }}
+          transition={{
+            duration: 0.95,
+            repeat: Infinity,
+            ease: [0.4, 0, 0.6, 1],
+            delay: i * 0.16,
+          }}
+        />
+      ))}
+    </span>
+  );
+}
+
+/**
+ * 动效方案 2：极简微光圆环（Spinner Ring - Apple / Linear 风格）
+ */
+function SpinnerLoader({ className }: { className?: string }) {
+  return (
+    <span className={cn('relative inline-flex items-center justify-center size-4 shrink-0', className)} aria-hidden="true">
+      <motion.svg
+        className="size-4 animate-spin text-current"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 0.85, repeat: Infinity, ease: 'linear' }}
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="2.75"
+        />
+        <path
+          className="opacity-95"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.75"
+          strokeLinecap="round"
+          d="M12 2a10 10 0 0 1 10 10"
+        />
+      </motion.svg>
+    </span>
+  );
+}
+
+/**
+ * 动效方案 3：灵动星轨光环（TimePulse Orbit）
+ */
+function OrbitLoader({ className }: { className?: string }) {
+  return (
+    <span className={cn('relative inline-flex items-center justify-center size-4 shrink-0', className)} aria-hidden="true">
+      <motion.span
+        className="size-1.5 rounded-full bg-current"
+        animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.span
+        className="absolute inset-0 rounded-full border border-current border-t-transparent opacity-80"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
+      />
+    </span>
+  );
+}
+
+/**
+ * 动效方案 4：呼吸微光涟漪波（Concentric Pulse Ripple）
+ */
+function RippleLoader({ className }: { className?: string }) {
+  return (
+    <span className={cn('relative inline-flex items-center justify-center size-4 shrink-0', className)} aria-hidden="true">
+      <motion.span
+        className="size-1.5 rounded-full bg-current"
+        animate={{ scale: [0.85, 1.2, 0.85], opacity: [0.75, 1, 0.75] }}
+        transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.span
+        className="absolute inset-0 rounded-full border border-current"
+        animate={{ scale: [0.5, 1.3], opacity: [0.55, 0] }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+      />
+      <motion.span
+        className="absolute inset-0 rounded-full border border-current"
+        animate={{ scale: [0.5, 1.3], opacity: [0.55, 0] }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut', delay: 0.75 }}
+      />
+    </span>
+  );
+}
+
+/**
+ * 动效方案 5：时光脉搏律动柱（4-bar TimePulse Kinetic Waveform）
  */
 function PulseBarsLoader({ className }: { className?: string }) {
   const bars = [
-    { minH: 5, maxH: 16, duration: 0.85, delay: 0 },
-    { minH: 8, maxH: 20, duration: 0.95, delay: 0.15 },
-    { minH: 4, maxH: 15, duration: 0.9, delay: 0.3 },
-    { minH: 7, maxH: 18, duration: 1.0, delay: 0.45 },
+    { minH: 5, maxH: 14, duration: 0.85, delay: 0 },
+    { minH: 7, maxH: 18, duration: 0.95, delay: 0.15 },
+    { minH: 4, maxH: 13, duration: 0.9, delay: 0.3 },
+    { minH: 6, maxH: 16, duration: 1.0, delay: 0.45 },
   ];
 
   return (
-    <span className={cn('inline-flex items-center gap-[3.5px] h-5 px-0.5 shrink-0', className)} aria-hidden="true">
+    <span className={cn('inline-flex items-center gap-[3px] h-5 px-0.5 shrink-0', className)} aria-hidden="true">
       {bars.map((bar, i) => (
         <motion.span
           key={i}
-          className="w-[3px] rounded-full bg-current"
-          style={{
-            boxShadow: '0 0 7px currentColor',
-          }}
+          className="w-[2.5px] rounded-full bg-current"
           animate={{
             height: [`${bar.minH}px`, `${bar.maxH}px`, `${bar.minH}px`],
-            opacity: [0.55, 1, 0.55],
+            opacity: [0.45, 0.95, 0.45],
           }}
           transition={{
             duration: bar.duration,
@@ -286,68 +396,10 @@ function PulseBarsLoader({ className }: { className?: string }) {
 }
 
 /**
- * 动效方案 2：灵动水波跳动点（3-dot Fluid Wave）
- * 宛如水面露珠浮沉起伏，轻盈通透
- */
-function WaveDotsLoader({ className }: { className?: string }) {
-  return (
-    <span className={cn('inline-flex items-center gap-1.5 h-5 px-0.5 shrink-0', className)} aria-hidden="true">
-      {[0, 1, 2].map((i) => (
-        <motion.span
-          key={i}
-          className="size-2 rounded-full bg-current"
-          style={{
-            boxShadow: '0 0 7px currentColor',
-          }}
-          animate={{
-            y: [-3.5, 3.5, -3.5],
-            scale: [0.85, 1.15, 0.85],
-            opacity: [0.5, 1, 0.5],
-          }}
-          transition={{
-            duration: 0.9,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: i * 0.15,
-          }}
-        />
-      ))}
-    </span>
-  );
-}
-
-/**
- * 动效方案 3：呼吸微光涟漪波（Concentric Pulse Ripple）
- * 发光微核向外发射扩散微光波，静谧克制
- */
-function RippleLoader({ className }: { className?: string }) {
-  return (
-    <span className={cn('relative inline-flex items-center justify-center size-5 shrink-0', className)} aria-hidden="true">
-      <motion.span
-        className="size-2 rounded-full bg-current"
-        animate={{ scale: [0.85, 1.2, 0.85], opacity: [0.75, 1, 0.75] }}
-        transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ boxShadow: '0 0 8px currentColor' }}
-      />
-      <motion.span
-        className="absolute inset-0 rounded-full border border-current"
-        animate={{ scale: [0.5, 1.35], opacity: [0.65, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
-      />
-      <motion.span
-        className="absolute inset-0 rounded-full border border-current"
-        animate={{ scale: [0.5, 1.35], opacity: [0.65, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut', delay: 0.7 }}
-      />
-    </span>
-  );
-}
-
-/**
  * 加载态指示器路由器
  */
 function LoadingIndicator({
-  animation = 'pulse-bars',
+  animation = 'wave-dots',
   shouldReduceMotion = false,
 }: {
   animation?: LoadingAnimationType;
@@ -355,27 +407,34 @@ function LoadingIndicator({
 }) {
   if (shouldReduceMotion) {
     return (
-      <span className="inline-flex items-center gap-[3px] h-5 px-0.5 shrink-0" aria-hidden="true">
-        {[8, 16, 11, 14].map((h, i) => (
+      <span className="inline-flex items-center gap-1.5 h-5 px-0.5 shrink-0" aria-hidden="true">
+        {[0, 1, 2].map((i) => (
           <span
             key={i}
-            className="w-[3px] rounded-full bg-current opacity-80"
-            style={{ height: `${h}px` }}
+            className="size-1.5 rounded-full bg-current opacity-60"
           />
         ))}
       </span>
     );
   }
 
-  if (animation === 'wave-dots') {
-    return <WaveDotsLoader />;
+  if (animation === 'spinner') {
+    return <SpinnerLoader />;
+  }
+
+  if (animation === 'orbit') {
+    return <OrbitLoader />;
   }
 
   if (animation === 'ripple') {
     return <RippleLoader />;
   }
 
-  return <PulseBarsLoader />;
+  if (animation === 'pulse-bars') {
+    return <PulseBarsLoader />;
+  }
+
+  return <WaveDotsLoader />;
 }
 
 /**
