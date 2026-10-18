@@ -1411,7 +1411,7 @@ export default function AuthPage() {
                 <div className="text-center pt-3 border-t border-black/[0.05] dark:border-white/[0.06]">
                   <p className="text-[11px] text-gray-400 dark:text-gray-500 flex items-center justify-center gap-1.5 font-medium">
                     <FiShield className="size-3.5 text-emerald-500 shrink-0" />
-                    <span>{t('auth.tlsNote', '数据均通过行业级 TLS 加密传输，由 Supabase 提供安全认证支持')}</span>
+                    <span>{t('auth.tlsNote', '数据均通过行业级 TLS 加密传输')}</span>
                   </p>
                 </div>
               </div>

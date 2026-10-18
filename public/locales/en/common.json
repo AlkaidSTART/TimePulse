@@ -671,7 +671,7 @@
     "goToSettings": "Personal Settings",
     "signOut": "Sign Out",
     "confirmSignOut": "Are you sure you want to sign out?",
-    "tlsNote": "Data is encrypted in transit via industry-standard TLS, secured by Supabase",
+    "tlsNote": "Data is encrypted in transit via industry-standard TLS",
     "tlsBadge": "TLS Encrypted",
     "supabasePowered": "Powered by Supabase",
     "enterHome": "Enter App",

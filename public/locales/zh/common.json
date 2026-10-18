@@ -671,7 +671,7 @@
     "goToSettings": "前往个人设置中心",
     "signOut": "退出当前账号",
     "confirmSignOut": "确定要退出当前账号吗？",
-    "tlsNote": "数据均通过行业级 TLS 加密传输，由 Supabase 提供安全认证支持",
+    "tlsNote": "数据均通过行业级 TLS 加密传输",
     "tlsBadge": "TLS 加密认证",
     "supabasePowered": "Supabase BaaS 驱动",
     "enterHome": "进入主页",
