@@ -62,6 +62,14 @@ function flush(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
+function createDeferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((r) => {
+    resolve = r;
+  });
+  return { promise, resolve };
+}
+
 describe('todoStorage 数据库写穿与水合', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -108,16 +116,14 @@ describe('todoStorage 数据库写穿与水合', () => {
 
   it('水合期间产生的新写入不会被数据库旧数据覆盖', async () => {
     const database = new FakeDatabase();
-    let resolveRead: ((items: TodoItem[]) => void) | null = null;
-    database.readImpl = () => new Promise((resolve) => {
-      resolveRead = resolve;
-    });
+    const deferred = createDeferred<TodoItem[]>();
+    database.readImpl = () => deferred.promise;
 
     const storage = await loadTodoStorage(database);
     const hydration = storage.hydrateTodoItemsFromDatabase();
 
     storage.writeTodoItems([makeTodo('t-new', '刚新建的任务')]);
-    resolveRead?.([makeTodo('t-old', '数据库旧任务')]);
+    deferred.resolve([makeTodo('t-old', '数据库旧任务')]);
     await hydration;
 
     expect(storage.readTodoItems()).toEqual([makeTodo('t-new', '刚新建的任务')]);
