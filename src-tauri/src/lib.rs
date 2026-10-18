@@ -54,6 +54,7 @@ CREATE INDEX IF NOT EXISTS idx_todo_items_sort_order ON todo_items (sort_order);
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_haptics::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(
