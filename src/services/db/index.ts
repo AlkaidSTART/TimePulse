@@ -16,6 +16,7 @@ let activeDatabase: TimePulseDatabase | null = null;
 export function getDatabase(): TimePulseDatabase {
   if (!activeDatabase) {
     activeDatabase = isTauriRuntime() ? new SqliteDatabase() : new IndexedDbDatabase();
+    console.log(`[存储] 当前数据库后端: ${activeDatabase.kind === 'sqlite' ? 'SQLite (Tauri 原生)' : 'IndexedDB (Web)'}`);
   }
   return activeDatabase;
 }

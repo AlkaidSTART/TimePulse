@@ -3,6 +3,7 @@ export * from './sharing';
 export * from './storage';
 export * from './urlState';
 export * from './analytics';
+export * from './db';
 export * from './imageStorage';
 export * from './notificationManager';
 export * from './notifications';
