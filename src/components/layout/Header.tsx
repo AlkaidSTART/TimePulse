@@ -11,7 +11,6 @@ import { useTheme } from '@/app/providers/ThemeProvider';
 import { useFullscreen } from '@/app/providers/FullscreenProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import type { Language } from '@/i18n/types';
-import TimerTabs from '@/features/timer-management/components/TimerTabs';
 import { PRESET_COLORS } from '@/constants/colors';
 import { AutoResizer } from '@/components/ui/auto-resizer';
 import { AutoTransition } from '@/components/ui/auto-transition';
@@ -33,6 +32,7 @@ const ShareModal = lazy(() => import('@/features/sharing/components/ShareModal')
 const TimerCreationFlow = lazy(() => import('@/features/timer-management/components/TimerCreationFlow'));
 const HexColorPicker = lazy(() => import('react-colorful').then((m) => ({ default: m.HexColorPicker })));
 const DatePicker = lazy(() => import('@/components/composed/DatePicker'));
+const TimerTabs = lazy(() => import('@/features/timer-management/components/TimerTabs'));
 
 type TimerUpdate = {
   name: string;
@@ -498,16 +498,18 @@ export default function Header({ onHeightChange }: HeaderProps) {
         {/* Center: Dynamic Island Capsule Switcher (Only on main timer view) */}
         {view === 'main' ? (
           <div className="flex items-center justify-center justify-self-center z-20 px-2 min-w-0">
-            <TimerTabs
-              timers={timers}
-              activeTimerId={activeTimerId}
-              setActiveTimerId={(id) => {
-                setActiveTimerId(id);
-                if (view !== 'main') {
-                  transitionTo('main');
-                }
-              }}
-            />
+            <Suspense fallback={<div className="h-8 w-40" aria-hidden="true" />}>
+              <TimerTabs
+                timers={timers}
+                activeTimerId={activeTimerId}
+                setActiveTimerId={(id) => {
+                  setActiveTimerId(id);
+                  if (view !== 'main') {
+                    transitionTo('main');
+                  }
+                }}
+              />
+            </Suspense>
           </div>
         ) : (
           <div className="justify-self-center" />

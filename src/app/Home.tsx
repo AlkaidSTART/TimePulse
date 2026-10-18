@@ -5,7 +5,6 @@ import { AutoTransition } from '@/components/ui/auto-transition';
 import Layout from '@/components/layout/Layout';
 import CustomBackground from '@/features/background/components/CustomBackground';
 import GradientBackground from '@/features/background/components/GradientBackground';
-import TimerDisplay from '@/features/countdown/components/TimerDisplay';
 import { useTimers } from './providers/TimerProvider';
 import { useTheme } from './providers/ThemeProvider';
 import { useFullscreen } from './providers/FullscreenProvider';
@@ -28,6 +27,7 @@ const CheerPage = lazy(() => import('@/features/cheer/components/CheerPage'));
 const TodoPage = lazy(() => import('@/features/todo/components/TodoPage'));
 const TodoListWidget = lazy(() => import('@/features/todo/components/TodoListWidget'));
 const PersonalSettingsPage = lazy(() => import('@/features/settings/components/PersonalSettingsPage'));
+const TimerDisplay = lazy(() => import('@/features/countdown/components/TimerDisplay'));
 const AuthPage = lazy(() => import('@/features/auth/components/AuthPage'));
 
 export default function Home() {
@@ -238,7 +238,9 @@ export default function Home() {
                 data-page-view="main"
               >
                 <AutoResizer className="flex w-full items-center justify-center" initial={false} overflow="visible">
-                  <TimerDisplay />
+                  <Suspense fallback={<div className="min-h-[160px] w-full" aria-hidden="true" />}>
+                    <TimerDisplay />
+                  </Suspense>
                 </AutoResizer>
               </motion.main>
             </motion.div>

@@ -67,8 +67,10 @@ function preloadLazyComponents(): void {
     void import('@/features/todo/components/TodoPage');
   }, 2200);
 
-  // Step 2: Preload secondary modals gradually
+  // Step 2: Preload the main-view widgets and secondary modals gradually
   runIdle(() => {
+    void import('@/features/countdown/components/TimerDisplay');
+    void import('@/features/timer-management/components/TimerTabs');
     void import('@/features/todo/components/TodoListWidget');
     void import('@/features/background/components/BackgroundSettingsModal');
   }, 3800);
