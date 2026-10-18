@@ -118,8 +118,9 @@ export function hydrateTodoItemsFromDatabase(): Promise<void> {
         }
 
         const nextJson = JSON.stringify(stored);
-        if (localStorage.getItem(TODO_STORAGE_KEY) !== nextJson) {
-          localStorage.setItem(TODO_STORAGE_KEY, nextJson);
+        const storage = typeof window !== 'undefined' ? window.localStorage : (typeof localStorage !== 'undefined' ? localStorage : null);
+        if (storage && storage.getItem(TODO_STORAGE_KEY) !== nextJson) {
+          storage.setItem(TODO_STORAGE_KEY, nextJson);
           lastWrittenItemsJson = nextJson;
           dispatchTodoStorageEvent('items');
         }

@@ -287,8 +287,8 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   },
 }));
 
-// 浏览器环境中自动触发初始化
-if (typeof window !== 'undefined') {
+// 浏览器环境中自动触发初始化（测试环境下由测试用例显式控制或组件挂载触发）
+if (typeof window !== 'undefined' && import.meta.env?.MODE !== 'test') {
   void useTimerStore.getState().initTimers();
 }
 

@@ -1,6 +1,13 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
-import { readActiveTimerId, readTimers, writeActiveTimerId, writeTimers } from './storage';
+import {
+  readActiveTimerId,
+  readCachedActiveTimerId,
+  readCachedTimers,
+  readTimers,
+  writeActiveTimerId,
+  writeTimers,
+} from './storage';
 import type { Timer } from '../domain/timer';
 
 function makeTimer(id: string, name: string): Timer {
@@ -54,5 +61,10 @@ describe('storage: IndexedDB 计时器存储', () => {
     await writeActiveTimerId(null);
     expect(await readActiveTimerId()).toBeNull();
     expect(localStorage.getItem('activeTimerId')).toBeNull();
+  });
+
+  it('当 localStorage 不可用或传入 null 时安全降级且不抛出异常', () => {
+    expect(readCachedTimers(null)).toEqual([]);
+    expect(readCachedActiveTimerId(null)).toBeNull();
   });
 });

@@ -155,6 +155,8 @@ if (typeof window !== 'undefined') {
   window.addEventListener(TODO_STORAGE_EVENT, syncStorage);
   window.addEventListener('storage', syncStorage);
 
-  // 首屏使用本地缓存同步渲染，随后从数据库（IndexedDB / SQLite）水合
-  void hydrateTodoItemsFromDatabase();
+  // 首屏使用本地缓存同步渲染，随后从数据库（IndexedDB / SQLite）水合（测试环境除外）
+  if (import.meta.env?.MODE !== 'test') {
+    void hydrateTodoItemsFromDatabase();
+  }
 }
