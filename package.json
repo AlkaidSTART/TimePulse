@@ -26,6 +26,8 @@
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
     "@number-flow/react": "0.6.2",
+    "@supabase/server": "^1.9.2",
+    "@supabase/supabase-js": "^2.118.0",
     "@tauri-apps/plugin-haptics": "^2.4.2",
     "@tauri-apps/plugin-notification": "^2.7.0",
     "clsx": "^2.1.1",
@@ -61,6 +63,7 @@
     "jsdom": "^30.0.1",
     "playwright": "^1.63.0",
     "postcss": "^8.5.28",
+    "prisma": "8.0.0-rc.23",
     "radix-ui": "^1.6.7",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3",
