@@ -119,12 +119,14 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
 
   updateAccentColor: (color: string) => {
     if (!color) return;
+    const matchedPreset = findMatchingPresetId(color);
+    const current = get();
+    if (current.accentColor === color && current.themePresetId === matchedPreset) return;
     try {
       localStorage.setItem('accent-color', color);
     } catch {
       // Ignore storage errors
     }
-    const matchedPreset = findMatchingPresetId(color);
     try {
       localStorage.setItem('theme-preset', matchedPreset);
     } catch {

@@ -108,6 +108,46 @@ export async function writeTimers(timers: Timer[]): Promise<void> {
   }
 }
 
+const TIMERS_WRITE_DEBOUNCE_MS = 300;
+
+let pendingTimersWrite: Timer[] | null = null;
+let pendingTimersWriteTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * 合并高频计时器写入（例如拖动颜色滑杆时的连续更新）：
+ * 至多每 300ms 落库一次，最后一批数据等待防抖窗口结束后写入。
+ */
+export function scheduleTimersWrite(timers: Timer[]): void {
+  pendingTimersWrite = timers;
+  if (pendingTimersWriteTimer !== null) return;
+  pendingTimersWriteTimer = setTimeout(() => {
+    flushTimersWrite();
+  }, TIMERS_WRITE_DEBOUNCE_MS);
+}
+
+/**
+ * 立即冲刷尚未写入的计时器数据（页面隐藏/关闭前调用，避免数据丢失）。
+ */
+export function flushTimersWrite(): void {
+  if (pendingTimersWriteTimer !== null) {
+    clearTimeout(pendingTimersWriteTimer);
+    pendingTimersWriteTimer = null;
+  }
+  const timers = pendingTimersWrite;
+  if (!timers) return;
+  pendingTimersWrite = null;
+  void writeTimers(timers);
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', flushTimersWrite);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      flushTimersWrite();
+    }
+  });
+}
+
 export async function readActiveTimerId(): Promise<string | null> {
   try {
     const value = await getDatabase().readState<unknown>(ACTIVE_TIMER_ID_KEY);

@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from 'react';
+import { useCallback, useState, type ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiCheck, FiX, FiSliders } from 'react-icons/fi';
 import { LuPalette } from 'react-icons/lu';
@@ -7,6 +7,7 @@ import { useTheme } from '@/app/providers/ThemeProvider';
 import { useTimers } from '@/app/providers/TimerProvider';
 import { useTranslation } from '@/i18n/useTranslation';
 import { CHATGPT_THEME_PRESETS, PRESET_COLORS, type ThemePreset } from '@/constants/colors';
+import { useDebouncedCallback } from '@/utils/performance';
 import { vibrateLight } from '@/services/vibration';
 
 interface ThemeLibraryModalProps {
@@ -26,6 +27,15 @@ export default function ThemeLibraryModal({
   const [isCustomOpen, setIsCustomOpen] = useState(themePresetId === 'custom');
   const [customHex, setCustomHex] = useState(accentColor || '#10A37F');
 
+  // 拖动取色会高频触发：即时预览，但计时器颜色合并防抖后再落库
+  const commitTimerColor = useCallback((color: string) => {
+    const activeTimer = timers.find((item) => item.id === activeTimerId);
+    if (activeTimer && activeTimer.color !== color) {
+      updateTimer(activeTimer.id, { color });
+    }
+  }, [timers, activeTimerId, updateTimer]);
+  const commitTimerColorDebounced = useDebouncedCallback(commitTimerColor, 300);
+
   if (!isOpen && !embedded) return null;
 
   const handleSelectPreset = (preset: ThemePreset) => {
@@ -34,10 +44,8 @@ export default function ThemeLibraryModal({
     setIsCustomOpen(false);
 
     // 同步更新当前活动计时器的颜色，保持全站一致
-    const activeTimer = timers.find((item) => item.id === activeTimerId);
-    if (activeTimer) {
-      updateTimer(activeTimer.id, { color: preset.color });
-    }
+    commitTimerColorDebounced.cancel();
+    commitTimerColor(preset.color);
   };
 
   const handleSelectCustom = () => {
@@ -49,10 +57,22 @@ export default function ThemeLibraryModal({
   const handleCustomColorChange = (newColor: string) => {
     setCustomHex(newColor);
     updateAccentColor(newColor);
-    const activeTimer = timers.find((item) => item.id === activeTimerId);
-    if (activeTimer) {
-      updateTimer(activeTimer.id, { color: newColor });
-    }
+    commitTimerColorDebounced(newColor);
+  };
+
+  // 拖动结束（松手）时立即落库，避免松开后仍有延迟
+  const handleCustomColorCommit = (newColor: string) => {
+    commitTimerColorDebounced.cancel();
+    setCustomHex(newColor);
+    updateAccentColor(newColor);
+    commitTimerColor(newColor);
+  };
+
+  const handlePresetColorClick = (color: string) => {
+    commitTimerColorDebounced.cancel();
+    setCustomHex(color);
+    updateAccentColor(color);
+    commitTimerColor(color);
   };
 
   const handleHexInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -63,10 +83,7 @@ export default function ThemeLibraryModal({
     setCustomHex(val);
     if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(val)) {
       updateAccentColor(val);
-      const activeTimer = timers.find((item) => item.id === activeTimerId);
-      if (activeTimer) {
-        updateTimer(activeTimer.id, { color: val });
-      }
+      commitTimerColorDebounced(val);
     }
   };
 
@@ -185,6 +202,7 @@ export default function ThemeLibraryModal({
               <HexColorPicker
                 color={customHex}
                 onChange={handleCustomColorChange}
+                onChangeEnd={handleCustomColorCommit}
                 className="w-full !w-full"
               />
 
@@ -214,7 +232,7 @@ export default function ThemeLibraryModal({
                     <button
                       key={color}
                       type="button"
-                      onClick={() => handleCustomColorChange(color)}
+                      onClick={() => handlePresetColorClick(color)}
                       className={`w-full aspect-square rounded-full border border-black/10 dark:border-white/15 transition-transform hover:scale-110 active:scale-95 ${
                         customHex.toLowerCase() === color.toLowerCase()
                           ? 'ring-2 ring-black dark:ring-white'

@@ -18,8 +18,8 @@ import {
   readCachedActiveTimerId,
   readCachedTimers,
   readTimers,
+  scheduleTimersWrite,
   writeActiveTimerId,
-  writeTimers,
 } from '@/services/storage';
 import { useThemeStore } from './useThemeStore';
 
@@ -112,7 +112,10 @@ function syncActiveTimerColor(timers: Timer[], activeTimerId: string | null): vo
   if (!activeTimerId) return;
   const activeTimer = timers.find((t) => t.id === activeTimerId);
   if (activeTimer?.color) {
-    useThemeStore.getState().updateAccentColor(activeTimer.color);
+    const themeStore = useThemeStore.getState();
+    if (themeStore.accentColor !== activeTimer.color) {
+      themeStore.updateAccentColor(activeTimer.color);
+    }
   }
 }
 
@@ -148,7 +151,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
       const next = timerReducer({ timers: state.timers, activeTimerId: state.activeTimerId }, action);
       if (state.isLoaded) {
         if (next.timers !== state.timers && next.timers.length > 0) {
-          void writeTimers(next.timers);
+          scheduleTimersWrite(next.timers);
         }
         if (next.activeTimerId !== state.activeTimerId && next.activeTimerId) {
           void writeActiveTimerId(next.activeTimerId);
