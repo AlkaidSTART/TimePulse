@@ -54,8 +54,12 @@ export default defineConfig({
           if (pkg?.startsWith('@radix-ui') || pkg?.startsWith('@floating-ui')) {
             return 'vendor-radix';
           }
+          if (pkg?.startsWith('@supabase')) {
+            return 'vendor-supabase';
+          }
           if (pkg === '@hello-pangea/dnd') {
-            return 'vendor-dnd';
+            // 仅被懒加载的待办视图使用：交给 Rollup 放入动态依赖图，避免首屏静态加载
+            return undefined;
           }
           if (pkg?.includes('number-flow') || pkg === 'overlayscrollbars' || pkg === 'clsx' || pkg === 'tailwind-merge' || pkg === 'class-variance-authority') {
             return 'vendor-ui';
