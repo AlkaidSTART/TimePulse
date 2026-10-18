@@ -41,7 +41,9 @@ describe('deepLink service', () => {
 
     const unlisten = await setupDeepLink();
 
-    expect(unlisten).toBe(mockUnlisten);
+    expect(typeof unlisten).toBe('function');
+    unlisten?.();
+    expect(mockUnlisten).toHaveBeenCalledTimes(1);
     expect(handleCallbackSpy).toHaveBeenCalledWith(
       `${TAURI_CUSTOM_SCHEME}://auth/callback#access_token=token123&refresh_token=refresh456`
     );

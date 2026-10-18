@@ -29,6 +29,7 @@ export async function setupDeepLink(): Promise<(() => void) | undefined> {
     const handleUrl = (url: string) => {
       if (!url) return;
       if (url.startsWith(`${TAURI_CUSTOM_SCHEME}://`) || url.startsWith(`${TAURI_CUSTOM_SCHEME}:`)) {
+        console.log('[DeepLink] 收到授权回调 URL:', url);
         void useAuthStore.getState().handleOAuthCallback(url);
       }
     };
@@ -48,8 +49,12 @@ export async function setupDeepLink(): Promise<(() => void) | undefined> {
       }
     });
 
-    return unlisten;
+    return () => {
+      deepLinkInitialized = false;
+      unlisten();
+    };
   } catch (err) {
+    deepLinkInitialized = false;
     console.warn('[setupDeepLink] 注册 Deep Link 监听失败:', err);
   }
 }
