@@ -2,8 +2,20 @@ import {
   APP_VERSION,
   GITHUB_RELEASES_URL,
   GITHUB_LATEST_RELEASE_API,
+  APP_VERSIONS_TABLE,
   VERSION_STORAGE_KEYS,
 } from '@/constants/version';
+
+type SupabaseModule = typeof import('@/lib/supabase');
+let supabaseModulePromise: Promise<SupabaseModule | null> | null = null;
+
+function getSupabaseModule(): Promise<SupabaseModule | null> {
+  supabaseModulePromise ??= import('@/lib/supabase').catch((err) => {
+    console.warn('[Version] 动态加载 Supabase 模块失败:', err);
+    return null;
+  });
+  return supabaseModulePromise;
+}
 
 export interface ReleaseAsset {
   name: string;
@@ -19,6 +31,20 @@ export interface ReleaseInfo {
   publishedAt: string;
   htmlUrl: string;
   assets?: ReleaseAsset[];
+  source?: 'database' | 'github';
+}
+
+export interface AppVersionRecord {
+  id?: string;
+  version: string;
+  title: string;
+  release_notes?: string | null;
+  download_url?: string;
+  is_latest?: boolean;
+  min_version?: string | null;
+  force_update?: boolean;
+  published_at?: string;
+  created_at?: string;
 }
 
 export interface VersionParts {
@@ -36,6 +62,7 @@ export interface VersionCheckResult {
   shouldNotify: boolean;
   releaseInfo?: ReleaseInfo;
   downloadUrl: string;
+  source?: 'database' | 'github';
   error?: string;
 }
 
@@ -137,7 +164,127 @@ export function clearNotifiedVersion(): void {
 }
 
 /**
- * 从 GitHub 获取最新发布信息
+ * 从云端 Supabase 数据库 app_versions 表读取最新版本信息
+ */
+export async function fetchLatestReleaseFromDatabase(timeoutMs = 6000): Promise<ReleaseInfo | null> {
+  const sb = await getSupabaseModule();
+  if (!sb || !sb.isSupabaseConfigured) {
+    return null;
+  }
+  const { supabase } = sb;
+
+  const timeoutPromise = new Promise<null>((_, reject) => {
+    const timer = setTimeout(() => {
+      clearTimeout(timer);
+      reject(new Error('云端数据库版本请求超时'));
+    }, timeoutMs);
+  });
+
+  const queryPromise = (async (): Promise<ReleaseInfo | null> => {
+    try {
+      const { data, error } = await supabase
+        .from(APP_VERSIONS_TABLE)
+        .select('*')
+        .order('published_at', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.warn('[Version] 从云端数据库读取版本信息失败:', error.message);
+        return null;
+      }
+
+      if (!data || data.length === 0) {
+        return null;
+      }
+
+      // 优先根据语义化版本大小排序，选出最高的版本；若有相同版本则以 published_at 降序为准
+      const records = (data as AppVersionRecord[]).slice();
+      records.sort((a, b) => compareVersions(b.version, a.version));
+      const latest = records[0];
+
+      return {
+        tagName: `v${normalizeVersion(latest.version)}`,
+        version: normalizeVersion(latest.version),
+        name: latest.title || `TimePulse v${normalizeVersion(latest.version)}`,
+        body: latest.release_notes || '',
+        publishedAt: latest.published_at || '',
+        htmlUrl: latest.download_url || GITHUB_RELEASES_URL,
+        source: 'database',
+      };
+    } catch (err) {
+      console.warn('[Version] 数据库查询出现异常:', err);
+      return null;
+    }
+  })();
+
+  return Promise.race([queryPromise, timeoutPromise]);
+}
+
+/**
+ * 将指定版本号记录落库到 Supabase 数据库（用于发布新版本时同步落库）
+ */
+export async function recordAppVersion(versionData: {
+  version: string;
+  title?: string;
+  releaseNotes?: string;
+  downloadUrl?: string;
+  isLatest?: boolean;
+}): Promise<boolean> {
+  const sb = await getSupabaseModule();
+  if (!sb || !sb.isSupabaseConfigured) {
+    return false;
+  }
+  const { supabase } = sb;
+
+  try {
+    const payload = {
+      version: normalizeVersion(versionData.version),
+      title: versionData.title || `TimePulse ${normalizeVersion(versionData.version)}`,
+      release_notes: versionData.releaseNotes || '',
+      download_url: versionData.downloadUrl || GITHUB_RELEASES_URL,
+      is_latest: versionData.isLatest ?? true,
+      published_at: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from(APP_VERSIONS_TABLE)
+      .upsert(payload, { onConflict: 'version' });
+
+    if (error) {
+      console.warn('[Version] 版本落库失败:', error.message);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.warn('[Version] 版本落库异常:', err);
+    return false;
+  }
+}
+
+/**
+ * 自动从 GitHub 抓取最新 Release 并同步落库到数据库（双向打通）
+ */
+export async function syncLatestReleaseFromGitHub(): Promise<boolean> {
+  try {
+    const release = await fetchLatestRelease();
+    if (!release || !release.version) return false;
+    return await recordAppVersion({
+      version: release.version,
+      title: release.name,
+      releaseNotes: release.body,
+      downloadUrl: release.htmlUrl || GITHUB_RELEASES_URL,
+      isLatest: true,
+    });
+  } catch (err) {
+    console.warn('[Version] 从 GitHub 抓取并落库失败:', err);
+    return false;
+  }
+}
+
+
+/**
+ * 从 GitHub 获取最新发布信息（作为灾备降级）
  */
 export async function fetchLatestRelease(
   apiUrl: string = GITHUB_LATEST_RELEASE_API,
@@ -170,6 +317,7 @@ export async function fetchLatestRelease(
       publishedAt: data.published_at || '',
       htmlUrl: data.html_url || GITHUB_RELEASES_URL,
       assets: data.assets,
+      source: 'github',
     };
   } finally {
     clearTimeout(timer);
@@ -177,18 +325,41 @@ export async function fetchLatestRelease(
 }
 
 /**
- * 检查应用版本更新，并结合本地历史判断是否需要乐观提醒（只提醒一次）
+ * 检查应用版本更新
+ * 优先从云端数据库 app_versions 表自检最新版本；
+ * 若云端数据库未配置或获取失败，自动平滑回退至 GitHub Releases API。
+ * 结合本地历史判断是否需要乐观提醒（只提醒一次）。
  */
 export async function checkAppUpdate(options?: {
   currentVersion?: string;
   apiUrl?: string;
   timeoutMs?: number;
+  preferSource?: 'database' | 'github' | 'auto';
 }): Promise<VersionCheckResult> {
   const currentVersion = options?.currentVersion ?? APP_VERSION;
   const normalizedCurrent = normalizeVersion(currentVersion);
+  // 当显式指定 apiUrl 时，默认为 GitHub 来源以满足特定测试与调用需求
+  const preferSource = options?.preferSource ?? (options?.apiUrl ? 'github' : 'auto');
 
   try {
-    const releaseInfo = await fetchLatestRelease(options?.apiUrl, options?.timeoutMs);
+    let releaseInfo: ReleaseInfo | null = null;
+    let usedSource: 'database' | 'github' = 'database';
+
+    // 1. 若优先数据库源且非指定 GitHub，首先从云端数据库读取
+    if (preferSource !== 'github') {
+      try {
+        releaseInfo = await fetchLatestReleaseFromDatabase(options?.timeoutMs ?? 6000);
+      } catch (dbErr) {
+        console.warn('[Version] 云端数据库检测失败，将尝试 GitHub API 回退:', dbErr);
+      }
+    }
+
+    // 2. 若数据库无记录或不可用，回退至 GitHub Releases API
+    if (!releaseInfo) {
+      usedSource = 'github';
+      releaseInfo = await fetchLatestRelease(options?.apiUrl, options?.timeoutMs);
+    }
+
     const normalizedLatest = normalizeVersion(releaseInfo.version);
     const hasUpdate = isNewerVersion(normalizedLatest, normalizedCurrent);
     const lastNotified = getLastNotifiedVersion();
@@ -202,7 +373,8 @@ export async function checkAppUpdate(options?: {
       hasUpdate,
       shouldNotify,
       releaseInfo,
-      downloadUrl: GITHUB_RELEASES_URL,
+      downloadUrl: releaseInfo.htmlUrl || GITHUB_RELEASES_URL,
+      source: usedSource,
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -217,3 +389,4 @@ export async function checkAppUpdate(options?: {
     };
   }
 }
+

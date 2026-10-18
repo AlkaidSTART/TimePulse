@@ -23,6 +23,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "capture:screenshots": "node scripts/capture-docs-screenshots.mjs",
+    "sync:releases": "node scripts/sync-github-releases.mjs",
+    "seed:quotes": "node scripts/seed-quotes.mjs",
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
@@ -52,6 +54,7 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^26.5.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
@@ -60,6 +63,7 @@
     "eslint": "^9.39.5",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^30.0.1",
+    "pg": "^8.23.1",
     "playwright": "^1.63.0",
     "postcss": "^8.5.28",
     "prisma": "8.0.0-rc.23",
