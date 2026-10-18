@@ -4,7 +4,12 @@ import { FiCheck } from 'react-icons/fi';
 import { cn } from './utils';
 
 export type SubmitButtonStatus = 'idle' | 'loading' | 'success' | 'error';
-export type LoadingAnimationType = 'pulse-bars' | 'wave-dots' | 'ripple';
+export type LoadingAnimationType =
+  | 'wave-dots'
+  | 'spinner'
+  | 'orbit'
+  | 'ripple'
+  | 'pulse-bars';
 
 export interface ProgressSubmitButtonProps
   extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
@@ -14,7 +19,7 @@ export interface ProgressSubmitButtonProps
   accentColor?: string;
   /** 兼容旧属性：强调色 */
   progressColor?: string;
-  /** 加载中动效样式（默认 'pulse-bars' 灵动时光脉冲条，亦支持 'wave-dots' 水波露珠 或 'ripple' 呼吸涟漪） */
+  /** 加载中动效样式（默认 'wave-dots' 灵动波浪三点，亦支持 'spinner' 极简圆环、'orbit' 星轨、'ripple' 呼吸涟漪或 'pulse-bars' 律动柱） */
   loadingAnimation?: LoadingAnimationType;
   /** 空闲/初始状态下的文字 */
   idleText?: React.ReactNode;
@@ -62,7 +67,7 @@ export const ProgressSubmitButton = React.forwardRef<HTMLButtonElement, Progress
       status = 'idle',
       accentColor,
       progressColor,
-      loadingAnimation = 'pulse-bars',
+      loadingAnimation = 'wave-dots',
       idleText = '立即提交',
       loadingText = '正在安全验证...',
       successText = '提交成功',
