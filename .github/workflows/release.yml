@@ -133,6 +133,7 @@ jobs:
 
       - name: Sync Release to Supabase Database
         if: steps.check_release.outputs.release_exists == 'false'
+        continue-on-error: true
         run: node scripts/sync-github-releases.mjs
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://ikdbwkrqlfksmjgrzchm.supabase.co' }}
