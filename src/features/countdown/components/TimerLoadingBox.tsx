@@ -1,5 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
 import { animate, useReducedMotion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 export interface TimerLoadingBoxProps {
   color?: string;
@@ -7,6 +8,7 @@ export interface TimerLoadingBoxProps {
 }
 
 export default function TimerLoadingBox({ color, className = '' }: TimerLoadingBoxProps) {
+  const { t } = useTranslation();
   const boxRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
 
@@ -34,8 +36,9 @@ export default function TimerLoadingBox({ color, className = '' }: TimerLoadingB
         backgroundColor: 'var(--hue-1)',
       } as CSSProperties}
       role="status"
-      aria-label="加载中"
+      aria-label={t('common.loading', '加载中')}
       data-testid="timer-loading-box"
     />
   );
 }
+
