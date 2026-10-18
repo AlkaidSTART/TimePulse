@@ -27,6 +27,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import { FiList } from 'react-icons/fi';
 import { throttle, debounce } from '@/utils/performance';
+import { getEffectiveAvatarUrl } from '@/utils/avatar';
 
 const ThemeLibraryModal = lazy(() => import('@/components/composed/ThemeLibraryModal'));
 const ShareModal = lazy(() => import('@/features/sharing/components/ShareModal'));
@@ -180,7 +181,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
   const { t, currentLang, changeLanguage } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const avatar = usePersonalSettingsStore((s) => s.avatar);
-  const userAvatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || (avatar && (avatar.startsWith('http') || avatar.startsWith('data:')) ? avatar : null);
+  const userAvatarUrl = getEffectiveAvatarUrl(user, avatar);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>(() => (view === 'main' ? 'timer' : (view as MobileTab)));
   const [isManageOpen, setIsManageOpen] = useState(false);

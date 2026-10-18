@@ -23,6 +23,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { usePersonalSettingsStore } from '@/stores/usePersonalSettingsStore';
 import { useTranslation } from '@/i18n/useTranslation';
 import { readTodoItems, TODO_STORAGE_EVENT } from '@/features/todo/todoStorage';
+import { getEffectiveAvatarUrl } from '@/utils/avatar';
 import { cn } from '@/lib/utils';
 
 export interface WebDockProps {
