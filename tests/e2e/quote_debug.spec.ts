@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('render 3-line quote on mobile', async ({ page }) => {
+test('render 3-line quote on mobile after animation completes', async ({ page }) => {
   const dummyUser = {
     id: 'test-user-id',
     email: 'test@example.com',
@@ -45,7 +45,7 @@ test('render 3-line quote on mobile', async ({ page }) => {
 
   await page.setViewportSize({ width: 375, height: 667 }); // iPhone SE / small screen
   await page.goto('/#cheer');
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(500);
 
   await page.evaluate(async () => {
     const { useQuotesStore } = await import('/src/stores/useQuotesStore.ts');
@@ -60,7 +60,8 @@ test('render 3-line quote on mobile', async ({ page }) => {
     });
   });
 
-  await page.waitForTimeout(1000);
+  // Wait 2.5s for text-effect reveal animation to complete fully
+  await page.waitForTimeout(2500);
 
   const refreshButton = page.getByTitle('换一句');
   await expect(refreshButton).toBeVisible();
