@@ -42,6 +42,8 @@ export const TODO_STORAGE_EVENT = 'timepulse_todo_storage_updated';
 
 let lastWrittenItemsJson = '';
 let lastWrittenTab: TodoType | '';
+/** 写入版本号：用于避免水合期间覆盖用户刚产生的新数据 */
+let writeRevision = 0;
 
 /** 数据库写穿（Web: IndexedDB / 原生: SQLite），失败仅告警，不影响本地缓存 */
 async function persistTodoItems(items: TodoItem[]): Promise<void> {
@@ -62,6 +64,7 @@ function dispatchTodoStorageEvent(type: string, detail: Record<string, unknown> 
 export function writeTodoItems(items: TodoItem[]): void {
   if (typeof window === 'undefined') return;
   try {
+    writeRevision += 1;
     const json = JSON.stringify(items);
     if (json !== lastWrittenItemsJson) {
       lastWrittenItemsJson = json;
@@ -85,8 +88,13 @@ export function hydrateTodoItemsFromDatabase(): Promise<void> {
   if (typeof window === 'undefined') return Promise.resolve();
   if (!hydrationPromise) {
     hydrationPromise = (async () => {
+      const revisionAtStart = writeRevision;
       try {
         const stored = sanitizeTodoItems(await getDatabase().readTodoItems());
+
+        // 水合期间用户已写入新数据（或已写穿数据库），放弃覆盖本地缓存
+        if (writeRevision !== revisionAtStart) return;
+
         if (stored.length === 0) {
           const cached = readTodoItems();
           if (cached.length > 0) {
