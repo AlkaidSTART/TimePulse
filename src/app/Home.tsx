@@ -18,6 +18,8 @@ import {
   writeTodoWidgetVisible,
   TODO_STORAGE_EVENT,
 } from '@/features/todo/todoStorage';
+import { useAuthStore } from '@/stores/useAuthStore';
+import AnimatedLogo from '@/components/layout/AnimatedLogo';
 import type { Timer } from '../domain/timer';
 
 const BackgroundSettingsModal = lazy(() => import('@/features/background/components/BackgroundSettingsModal'));
@@ -34,11 +36,12 @@ export default function Home() {
   const { theme, accentColor } = useTheme();
   const { isFullscreen, isHeaderVisible } = useFullscreen();
   const { view, direction, transitionTo } = usePageTransition();
+  const user = useAuthStore((s) => s.user);
+  const isAuthInitialized = useAuthStore((s) => s.isInitialized);
   const { t } = useTranslation();
   const showCheerPage = view === 'cheer';
   const showTodoPage = view === 'todo';
   const showSettingsPage = view === 'settings';
-  const showAuthPage = view === 'auth';
   const showMainPage = view === 'main';
   const [headerHeight, setHeaderHeight] = useState(0);
   
@@ -117,6 +120,41 @@ export default function Home() {
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // 1. 首屏初始化认证检查未完成：呈现温润禅意的 TimePulse 呼吸光环加载态，避免受保护内容产生任何泄露或闪烁
+  if (!isAuthInitialized) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background-light dark:bg-background-dark cream:bg-background-cream select-none transition-colors duration-300">
+        <div className="relative flex flex-col items-center gap-6">
+          <div className="relative">
+            <div
+              className="absolute -inset-4 rounded-full blur-xl opacity-25 animate-pulse"
+              style={{ backgroundColor: accentColor || '#10A37F' }}
+            />
+            <AnimatedLogo accentColor={accentColor} size="lg" />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="relative flex size-2 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+            </span>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider font-mono">
+              正在连接时光空间...
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. 独立登录注册路由与未登录拦截（未登录禁止放行，直接展示独立美化后的登录注册页）
+  if (view === 'auth' || !user) {
+    return (
+      <Suspense fallback={null}>
+        <AuthPage />
+      </Suspense>
+    );
+  }
 
   return (
     <>
@@ -274,38 +312,6 @@ export default function Home() {
             >
               <Suspense fallback={null}>
                 <PersonalSettingsPage />
-              </Suspense>
-            </motion.div>
-          ) : showAuthPage ? (
-            <motion.div
-              key="auth-page-visible"
-              custom={direction}
-              variants={{
-                initial: (value: unknown) => ({
-                  opacity: 0,
-                  y: shouldReduceMotion ? 0 : (value === 1 ? 56 : -56),
-                }),
-                animate: {
-                  opacity: 1,
-                  y: 0,
-                  transition: {
-                    duration: shouldReduceMotion ? 0 : 0.36,
-                    ease: 'easeOut',
-                  },
-                },
-                exit: (value: unknown) => ({
-                  opacity: 0,
-                  y: shouldReduceMotion ? 0 : (value === 1 ? -56 : 56),
-                  transition: { duration: shouldReduceMotion ? 0 : 0.28, ease: 'easeIn' },
-                }),
-              }}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="absolute inset-0 z-10"
-            >
-              <Suspense fallback={null}>
-                <AuthPage />
               </Suspense>
             </motion.div>
           ) : null}
