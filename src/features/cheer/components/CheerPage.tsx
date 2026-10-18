@@ -318,7 +318,7 @@ export default function CheerPage() {
           onTouchStart={handleMouseEnter}
           onTouchEnd={handleMouseLeave}
           onTouchCancel={handleMouseLeave}
-          className="relative w-full rounded-2xl border border-black/[0.05] dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-4 sm:p-5 backdrop-blur-xl h-[148px] sm:h-[140px] flex flex-col justify-between overflow-hidden group select-none"
+          className="relative w-full rounded-2xl border border-black/[0.05] dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-4 sm:p-5 backdrop-blur-xl min-h-[156px] sm:min-h-[144px] h-auto flex flex-col justify-between overflow-hidden group select-none"
         >
           <div className="flex items-center justify-end pb-2 mb-2 border-b border-black/[0.04] dark:border-white/[0.06] shrink-0">
             <div className="flex items-center gap-1.5">
@@ -360,15 +360,15 @@ export default function CheerPage() {
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col justify-between min-h-0 pt-0.5">
-            <div className="flex-1 flex items-center min-h-0 overflow-hidden">
+          <div className="flex-1 flex flex-col justify-between min-h-[64px] pt-1">
+            <div className="flex-1 flex items-center py-1">
               <TextEffect
                 key={currentQuote.text}
                 per="char"
                 preset="fade-in-blur"
                 speedReveal={1.6}
                 speedSegment={1.2}
-                className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic select-text"
+                className="w-full text-xs sm:text-sm text-gray-700 dark:text-gray-200 leading-relaxed font-serif select-text"
               >
                 {`“${currentQuote.text}”`}
               </TextEffect>
@@ -378,7 +378,7 @@ export default function CheerPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.35, delay: 0.15 }}
-              className="mt-1 text-right text-[11px] sm:text-xs text-gray-400 dark:text-gray-500 shrink-0 select-text"
+              className="mt-2 text-right text-[11px] sm:text-xs text-gray-400 dark:text-gray-500 shrink-0 select-text"
             >
               —— {displayAuthor}
             </motion.div>
