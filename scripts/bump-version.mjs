@@ -90,8 +90,11 @@ export function main() {
       forcedType = 'minor';
     } else if (arg === '--major') {
       forcedType = 'major';
+    } else if (arg === '--auto') {
+      forcedType = null;
     } else if (arg === '--type' && args[i + 1]) {
-      forcedType = args[++i];
+      const nextArg = args[++i];
+      forcedType = nextArg === 'auto' ? null : nextArg;
     } else if (arg === '--version' && args[i + 1]) {
       forcedVersion = args[++i];
     }
