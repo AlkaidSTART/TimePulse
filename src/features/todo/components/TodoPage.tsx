@@ -1,6 +1,6 @@
-import { useState, useReducer, useEffect, useMemo, useRef } from 'react';
+import { useState, useReducer, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, type DropResult, type DraggableProvided, type DraggableStateSnapshot, type DraggableRubric } from '@hello-pangea/dnd';
 import {
   FiArrowLeft,
   FiCheckCircle,
@@ -65,6 +65,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
   const [inputPriority, setInputPriority] = useState<PriorityLevel | undefined>();
   const [hapticActive, setHapticActive] = useState(() => isHapticEnabled());
   const [justCompletedAll, setJustCompletedAll] = useState(false);
+  const [clearingCompletedIds, setClearingCompletedIds] = useState<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -140,7 +141,9 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
   }, [state.items]);
 
   // 切换完成状态并触发振动
-  const handleToggle = async (id: string) => {
+  // 说明：以下回调用 useCallback 保持稳定引用，配合 memo(TodoItemRow)，
+  // 拖拽期间只有真正变化的行会重渲染。
+  const handleToggle = useCallback(async (id: string) => {
     const targetItem = state.items.find((item) => item.id === id);
     if (!targetItem) return;
 
@@ -161,7 +164,41 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
         await triggerHaptic('item_complete');
       }
     }
-  };
+  }, [state.items, state.activeTab]);
+
+  const handleDeleteItem = useCallback((id: string) => {
+    dispatch({ type: 'delete', id });
+  }, []);
+
+  const handleEditItem = useCallback((id: string, text: string) => {
+    dispatch({ type: 'edit', id, text });
+  }, []);
+
+  const handleSetItemPriority = useCallback((id: string, color?: string, priority?: PriorityLevel) => {
+    dispatch({ type: 'set_priority', id, color, priority });
+  }, []);
+
+  const renderTodoClone = useCallback(
+    (dragProvided: DraggableProvided, dragSnapshot: DraggableStateSnapshot, rubric: DraggableRubric) => {
+      const item = currentTabItems[rubric.source.index];
+      if (!item) return null;
+      return (
+        <TodoItemRow
+          item={item}
+          index={rubric.source.index}
+          provided={dragProvided}
+          snapshot={dragSnapshot}
+          accentColor={accentColor}
+          isDeleting={clearingCompletedIds.has(item.id)}
+          onToggle={handleToggle}
+          onDelete={handleDeleteItem}
+          onEdit={handleEditItem}
+          onSetPriority={handleSetItemPriority}
+        />
+      );
+    },
+    [currentTabItems, accentColor, clearingCompletedIds, handleToggle, handleDeleteItem, handleEditItem, handleSetItemPriority],
+  );
 
   const handleAddItem = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -212,6 +249,21 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
 
   const handleTestVibrate = async () => {
     await triggerHaptic('test');
+  };
+
+  const handleClearCompleted = () => {
+    const completedItems = currentTabItems.filter((i) => i.completed);
+    if (completedItems.length === 0) return;
+    if (shouldReduceMotion) {
+      dispatch({ type: 'clear_completed', itemType: state.activeTab });
+      return;
+    }
+    const ids = new Set(completedItems.map((i) => i.id));
+    setClearingCompletedIds(ids);
+    setTimeout(() => {
+      dispatch({ type: 'clear_completed', itemType: state.activeTab });
+      setClearingCompletedIds(new Set());
+    }, 350);
   };
 
   // 一键载入专注预设清单（附带优先级颜色标记）
@@ -504,7 +556,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
         </form>
 
         {/* 任务列表主体 */}
-        <div className="flex flex-col gap-2 rounded-2xl md:rounded-3xl border border-black/[0.06] bg-white/80 p-3 sm:p-4 md:p-5 shadow-xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-[#141416]/90 min-h-[220px] sm:min-h-[280px]">
+        <div className="flex flex-col gap-2 rounded-2xl md:rounded-3xl border border-black/[0.06] bg-white/80 p-3 sm:p-4 md:p-5 shadow-xl backdrop-blur-2xl dark:border-white/[0.08] dark:bg-[#141416]/90 min-h-[220px] sm:min-h-[280px] overflow-x-hidden">
           <motion.div
             key={state.activeTab}
             initial={shouldReduceMotion ? false : { opacity: 0.45, y: 3 }}
@@ -574,25 +626,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
               <DragDropContext onDragEnd={handleDragEnd}>
                 <Droppable
                   droppableId="todo-page-list"
-                  renderClone={(dragProvided, dragSnapshot, rubric) => {
-                    const item = currentTabItems[rubric.source.index];
-                    if (!item) return null;
-                    return (
-                      <TodoItemRow
-                        item={item}
-                        index={rubric.source.index}
-                        provided={dragProvided}
-                        snapshot={dragSnapshot}
-                        accentColor={accentColor}
-                        onToggle={handleToggle}
-                        onDelete={(id) => dispatch({ type: 'delete', id })}
-                        onEdit={(id, text) => dispatch({ type: 'edit', id, text })}
-                        onSetPriority={(id, color, priority) =>
-                          dispatch({ type: 'set_priority', id, color, priority })
-                        }
-                      />
-                    );
-                  }}
+                  renderClone={renderTodoClone}
                 >
                   {(provided, snapshot) => (
                     <div
@@ -613,12 +647,11 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
                               provided={dragProvided}
                               snapshot={dragSnapshot}
                               accentColor={accentColor}
+                              isDeleting={clearingCompletedIds.has(item.id)}
                               onToggle={handleToggle}
-                              onDelete={(id) => dispatch({ type: 'delete', id })}
-                              onEdit={(id, text) => dispatch({ type: 'edit', id, text })}
-                              onSetPriority={(id, color, priority) =>
-                                dispatch({ type: 'set_priority', id, color, priority })
-                              }
+                              onDelete={handleDeleteItem}
+                              onEdit={handleEditItem}
+                              onSetPriority={handleSetItemPriority}
                             />
                           )}
                         </Draggable>
@@ -648,7 +681,7 @@ export default function TodoPage({ onBack, onOpenAsWidget, className = '' }: Tod
               ) : (
                 <button
                   type="button"
-                  onClick={() => dispatch({ type: 'clear_completed', itemType: 'todo' })}
+                  onClick={handleClearCompleted}
                   className="inline-flex items-center gap-1.5 rounded-lg px-2 sm:px-2.5 py-1.5 hover:bg-red-500/10 hover:text-red-500 transition-colors cursor-pointer"
                   title={t('todo.clearCompletedTip', '清理所有已完成的项目')}
                 >

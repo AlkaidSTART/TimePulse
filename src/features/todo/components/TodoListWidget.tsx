@@ -1,6 +1,6 @@
-import { useState, useReducer, useEffect, useMemo, useRef } from 'react';
+import { useState, useReducer, useEffect, useMemo, useRef, useCallback } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, type DropResult, type DraggableProvided, type DraggableStateSnapshot, type DraggableRubric } from '@hello-pangea/dnd';
 import {
   FiCheckCircle,
   FiList,
@@ -84,6 +84,7 @@ export default function TodoListWidget({
   const [inputPriority, setInputPriority] = useState<PriorityLevel | undefined>();
   const [hapticActive, setHapticActive] = useState(() => isHapticEnabled());
   const [justCompletedAll, setJustCompletedAll] = useState(false);
+  const [clearingCompletedIds, setClearingCompletedIds] = useState<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
@@ -150,7 +151,8 @@ export default function TodoListWidget({
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   // 切换完成状态并触发振动
-  const handleToggle = async (id: string) => {
+  // 说明：回调保持稳定引用，配合 memo(TodoItemRow)，拖拽期间只重渲染变化的行。
+  const handleToggle = useCallback(async (id: string) => {
     const targetItem = state.items.find((item) => item.id === id);
     if (!targetItem) return;
 
@@ -171,7 +173,41 @@ export default function TodoListWidget({
         await triggerHaptic('item_complete');
       }
     }
-  };
+  }, [state.items, state.activeTab]);
+
+  const handleDeleteItem = useCallback((id: string) => {
+    dispatch({ type: 'delete', id });
+  }, []);
+
+  const handleEditItem = useCallback((id: string, text: string) => {
+    dispatch({ type: 'edit', id, text });
+  }, []);
+
+  const handleSetItemPriority = useCallback((id: string, color?: string, priority?: PriorityLevel) => {
+    dispatch({ type: 'set_priority', id, color, priority });
+  }, []);
+
+  const renderTodoClone = useCallback(
+    (dragProvided: DraggableProvided, dragSnapshot: DraggableStateSnapshot, rubric: DraggableRubric) => {
+      const item = currentTabItems[rubric.source.index];
+      if (!item) return null;
+      return (
+        <TodoItemRow
+          item={item}
+          index={rubric.source.index}
+          provided={dragProvided}
+          snapshot={dragSnapshot}
+          accentColor={accentColor}
+          isDeleting={clearingCompletedIds.has(item.id)}
+          onToggle={handleToggle}
+          onDelete={handleDeleteItem}
+          onEdit={handleEditItem}
+          onSetPriority={handleSetItemPriority}
+        />
+      );
+    },
+    [currentTabItems, accentColor, clearingCompletedIds, handleToggle, handleDeleteItem, handleEditItem, handleSetItemPriority],
+  );
 
   const handleAddItem = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -221,6 +257,21 @@ export default function TodoListWidget({
 
   const handleTestVibrate = async () => {
     await triggerHaptic('test');
+  };
+
+  const handleClearCompleted = () => {
+    const completedItems = currentTabItems.filter((i) => i.completed);
+    if (completedItems.length === 0) return;
+    if (shouldReduceMotion) {
+      dispatch({ type: 'clear_completed', itemType: state.activeTab });
+      return;
+    }
+    const ids = new Set(completedItems.map((i) => i.id));
+    setClearingCompletedIds(ids);
+    setTimeout(() => {
+      dispatch({ type: 'clear_completed', itemType: state.activeTab });
+      setClearingCompletedIds(new Set());
+    }, 350);
   };
 
   return (
@@ -428,7 +479,7 @@ export default function TodoListWidget({
             )}
 
             {/* 列表主体：使用 @hello-pangea/dnd 进行拖拽排序 */}
-            <div className="flex-1 overflow-y-auto pr-1 my-1 min-h-[140px] max-h-[260px] space-y-1.5">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 my-1 min-h-[140px] max-h-[260px] space-y-1.5">
               <motion.div
                 key={state.activeTab}
                 initial={shouldReduceMotion ? false : { opacity: 0.45, y: 3 }}
@@ -448,25 +499,7 @@ export default function TodoListWidget({
                 <DragDropContext onDragEnd={handleDragEnd}>
                   <Droppable
                     droppableId="todo-widget-list"
-                    renderClone={(dragProvided, dragSnapshot, rubric) => {
-                      const item = currentTabItems[rubric.source.index];
-                      if (!item) return null;
-                      return (
-                        <TodoItemRow
-                          item={item}
-                          index={rubric.source.index}
-                          provided={dragProvided}
-                          snapshot={dragSnapshot}
-                          accentColor={accentColor}
-                          onToggle={handleToggle}
-                          onDelete={(id) => dispatch({ type: 'delete', id })}
-                          onEdit={(id, text) => dispatch({ type: 'edit', id, text })}
-                          onSetPriority={(id, color, priority) =>
-                            dispatch({ type: 'set_priority', id, color, priority })
-                          }
-                        />
-                      );
-                    }}
+                    renderClone={renderTodoClone}
                   >
                     {(provided, snapshot) => (
                       <div
@@ -487,12 +520,11 @@ export default function TodoListWidget({
                                 provided={dragProvided}
                                 snapshot={dragSnapshot}
                                 accentColor={accentColor}
+                                isDeleting={clearingCompletedIds.has(item.id)}
                                 onToggle={handleToggle}
-                                onDelete={(id) => dispatch({ type: 'delete', id })}
-                                onEdit={(id, text) => dispatch({ type: 'edit', id, text })}
-                                onSetPriority={(id, color, priority) =>
-                                  dispatch({ type: 'set_priority', id, color, priority })
-                                }
+                                onDelete={handleDeleteItem}
+                                onEdit={handleEditItem}
+                                onSetPriority={handleSetItemPriority}
                               />
                             )}
                           </Draggable>
@@ -560,7 +592,7 @@ export default function TodoListWidget({
               ) : (
                 <button
                   type="button"
-                  onClick={() => dispatch({ type: 'clear_completed', itemType: 'todo' })}
+                  onClick={handleClearCompleted}
                   className="inline-flex items-center gap-1 hover:text-red-500 transition-colors cursor-pointer"
                   title={t('todo.clearCompletedTip', '清除所有已完成待办')}
                 >

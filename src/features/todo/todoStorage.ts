@@ -26,12 +26,24 @@ function sanitizeTodoItems(value: unknown): TodoItem[] {
  * 读取本地缓存的所有待办/清单项，默认返回空数组。
  * 同步读取保证首屏即时渲染，数据库水合由 hydrateTodoItemsFromDatabase 完成。
  */
+let cachedReadRaw: string | null = null;
+let cachedReadItems: TodoItem[] = [];
+
 export function readTodoItems(): TodoItem[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(TODO_STORAGE_KEY);
-    if (!raw) return [];
-    return sanitizeTodoItems(JSON.parse(raw));
+    if (!raw) {
+      cachedReadRaw = null;
+      cachedReadItems = [];
+      return cachedReadItems;
+    }
+    // 多个订阅者会在同一轮事件里各读一次；按原始字符串缓存解析结果，
+    // 一次写入只付一次 JSON.parse + 清洗的成本。
+    if (raw === cachedReadRaw) return cachedReadItems;
+    cachedReadItems = sanitizeTodoItems(JSON.parse(raw));
+    cachedReadRaw = raw;
+    return cachedReadItems;
   } catch (error) {
     console.error('[TodoStorage] 读取待办项失败:', error);
     return [];
@@ -70,8 +82,9 @@ export function writeTodoItems(items: TodoItem[]): void {
       lastWrittenItemsJson = json;
       localStorage.setItem(TODO_STORAGE_KEY, json);
       dispatchTodoStorageEvent('items');
+      // 仅在内容真正变化时写穿数据库，避免 reducer 空转带来的重复写入
+      void persistTodoItems(items);
     }
-    void persistTodoItems(items);
   } catch (error) {
     console.warn('[TodoStorage] 保存待办项失败:', error);
   }

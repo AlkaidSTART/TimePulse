@@ -78,4 +78,46 @@ describe('TodoItemRow component', () => {
 
     expect(screen.queryByRole('button', { name: /修改或清除优先级颜色|设置优先级颜色/i })).not.toBeInTheDocument();
   });
+
+  it('triggers rightward rolling exit animation and invokes onDelete after animation delay', async () => {
+    vi.useFakeTimers();
+    try {
+      const onDelete = vi.fn();
+      const { container } = renderRow({ onDelete });
+
+      const card = container.firstChild as HTMLElement;
+      const deleteBtn = screen.getByRole('button', { name: '删除' });
+
+      // 点击删除按钮触发删除动画
+      fireEvent.click(deleteBtn);
+
+      // 应立即应用向右滚动移出的 transform 与退出样式
+      expect(card.style.transform).toContain('translateX(120%)');
+      expect(card.style.transform).toContain('rotate(8deg)');
+      expect(card.style.opacity).toBe('0');
+      expect(card.style.maxHeight).toBe('0px');
+      expect(card.style.overflow).toBe('hidden');
+
+      // 动画完成前不应立即触发 onDelete
+      expect(onDelete).not.toHaveBeenCalled();
+
+      // 快进动画时间
+      vi.advanceTimersByTime(360);
+
+      expect(onDelete).toHaveBeenCalledTimes(1);
+      expect(onDelete).toHaveBeenCalledWith('test-1');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('applies rightward roll-out transform when isDeleting prop is true', () => {
+    const { container } = renderRow({ isDeleting: true });
+    const card = container.firstChild as HTMLElement;
+
+    expect(card.style.transform).toContain('translateX(120%)');
+    expect(card.style.transform).toContain('rotate(8deg)');
+    expect(card.style.opacity).toBe('0');
+    expect(card.style.maxHeight).toBe('0px');
+  });
 });

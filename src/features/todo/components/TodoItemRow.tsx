@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { FiCheck, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import { RxDragHandleDots2 } from 'react-icons/rx';
@@ -21,7 +21,7 @@ export interface TodoItemRowProps {
   onDragEnd?: () => void;
 }
 
-export default function TodoItemRow({
+function TodoItemRow({
   item,
   provided,
   snapshot,
@@ -311,3 +311,9 @@ export default function TodoItemRow({
     </div>
   );
 }
+
+/**
+ * 拖拽期间 dnd 会高频重渲染列表；memo 让未受影响的行动保持不动，
+ * 前提是父级回调保持稳定引用（见 TodoPage / TodoListWidget 的 useCallback）。
+ */
+export default memo(TodoItemRow);
