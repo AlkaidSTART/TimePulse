@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { User, Session } from '@supabase/supabase-js';
 import { usePersonalSettingsStore } from './usePersonalSettingsStore';
 import { validateAvatarFile, processAndOptimizeAvatar, getEffectiveAvatarUrl } from '@/utils/avatar';
+import { openExternalUrl } from '@/utils/browser';
 
 type SupabaseClient = typeof import('@/lib/supabase')['supabase'];
 
@@ -339,8 +340,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           return { success: false, error: formatted };
         }
 
-        // 跳转到第三方授权页；回跳时由 detectSessionInUrl 自动建立会话
-        window.location.assign(url);
+        // 新开独立浏览器标签页（Web 端）或唤起系统默认浏览器（Tauri 桌面端）辅助登录，
+        // 避免在应用/WebView 内部直接跳转导致页面丢失或被 Google 403 拦截。
+        await openExternalUrl(url);
+        set({ isLoading: false, successMessage: '已在浏览器中打开授权页，请在浏览器中完成登录' });
       }
 
       return { success: true };

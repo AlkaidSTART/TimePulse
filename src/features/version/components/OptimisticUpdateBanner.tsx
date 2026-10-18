@@ -4,6 +4,7 @@ import { FiArrowUpCircle, FiExternalLink, FiX } from 'react-icons/fi';
 import { useVersionStore } from '@/stores/useVersionStore';
 import { useTranslation } from '@/i18n/useTranslation';
 import { GITHUB_RELEASES_URL } from '@/constants/version';
+import { openExternalUrl } from '@/utils/browser';
 
 export default function OptimisticUpdateBanner() {
   const { t } = useTranslation();
@@ -24,9 +25,7 @@ export default function OptimisticUpdateBanner() {
 
   const handleOpenDownload = () => {
     const targetUrl = downloadUrl || GITHUB_RELEASES_URL;
-    if (typeof window !== 'undefined') {
-      window.open(targetUrl, '_blank', 'noopener,noreferrer');
-    }
+    void openExternalUrl(targetUrl);
     // 用户点击后关闭浮窗（只提醒一次）
     dismissBanner();
   };
@@ -46,7 +45,7 @@ export default function OptimisticUpdateBanner() {
           {/* Header */}
           <div className="flex items-start justify-between gap-2.5">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-primary-600 to-amber-500 text-white shadow-md shadow-primary-500/25">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-500/10 text-primary-600 dark:bg-primary-500/20 dark:text-primary-300">
                 <FiArrowUpCircle className="size-5" />
               </div>
               <div className="min-w-0">
@@ -97,7 +96,7 @@ export default function OptimisticUpdateBanner() {
             <button
               type="button"
               onClick={handleOpenDownload}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-primary-500 to-amber-500 text-white text-xs font-semibold shadow-md shadow-primary-500/25 hover:opacity-95 active:scale-95 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-primary-500 hover:bg-primary-600 active:scale-95 text-white text-xs font-medium shadow-xs transition-colors cursor-pointer"
             >
               <span>{t('version.goToDownload', '前往下载')}</span>
               <FiExternalLink className="size-3.5" />
