@@ -17,7 +17,7 @@ export const STORAGE_KEYS = {
 const ACTIVE_TIMER_ID_KEY = 'activeTimerId';
 
 function getSafeStorage(storage?: Storage | null): Storage | null {
-  if (storage) return storage;
+  if (storage !== undefined) return storage;
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
       return window.localStorage;
