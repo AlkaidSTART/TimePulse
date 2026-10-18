@@ -44,6 +44,11 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+/** 测试注入：清空缓存的连接，便于隔离用例 */
+export function __resetSqliteConnectionForTests(): void {
+  connectionPromise = null;
+}
+
 function parseRowData<T>(row: SqliteRow | undefined): T | null {
   if (!row || typeof row.data !== 'string') return null;
   try {

@@ -28,5 +28,9 @@ export async function blobToBase64(blob: Blob): Promise<string> {
 }
 
 export function base64ToBlob(base64: string, mimeType: string): Blob {
-  return new Blob([decodeBase64(base64)], { type: mimeType || 'application/octet-stream' });
+  const bytes = decodeBase64(base64);
+  // 复制到独立的 ArrayBuffer，避免 Uint8Array 视图与 BlobPart 的类型歧义
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  return new Blob([buffer], { type: mimeType || 'application/octet-stream' });
 }
