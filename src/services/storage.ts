@@ -16,9 +16,26 @@ export const STORAGE_KEYS = {
 
 const ACTIVE_TIMER_ID_KEY = 'activeTimerId';
 
-function readLegacyTimers(storage: Storage = localStorage): Timer[] {
+function getSafeStorage(storage?: Storage | null): Storage | null {
+  if (storage) return storage;
   try {
-    const raw = storage.getItem(STORAGE_KEYS.timers);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage;
+    }
+    if (typeof localStorage !== 'undefined') {
+      return localStorage;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+function readLegacyTimers(storage?: Storage | null): Timer[] {
+  const s = getSafeStorage(storage);
+  if (!s) return [];
+  try {
+    const raw = s.getItem(STORAGE_KEYS.timers);
     return raw ? parseTimers(JSON.parse(raw)) : [];
   } catch (error) {
     console.error('读取旧版 localStorage 计时器失败:', error);
@@ -29,16 +46,18 @@ function readLegacyTimers(storage: Storage = localStorage): Timer[] {
 /**
  * 同步从 localStorage 缓存中读取计时器，供 store 首屏预水合使用
  */
-export function readCachedTimers(storage: Storage = localStorage): Timer[] {
+export function readCachedTimers(storage?: Storage | null): Timer[] {
   return readLegacyTimers(storage);
 }
 
 /**
  * 同步从 localStorage 缓存中读取活动计时器 ID
  */
-export function readCachedActiveTimerId(storage: Storage = localStorage): string | null {
+export function readCachedActiveTimerId(storage?: Storage | null): string | null {
+  const s = getSafeStorage(storage);
+  if (!s) return null;
   try {
-    return storage.getItem(STORAGE_KEYS.activeTimerId);
+    return s.getItem(STORAGE_KEYS.activeTimerId);
   } catch (error) {
     console.warn('读取 localStorage 缓存活动计时器失败:', error);
     return null;
@@ -47,16 +66,20 @@ export function readCachedActiveTimerId(storage: Storage = localStorage): string
 
 function writeLegacyValue(key: string, value: string | null): void {
   try {
-    if (value === null) localStorage.removeItem(key);
-    else localStorage.setItem(key, value);
+    const s = getSafeStorage();
+    if (!s) return;
+    if (value === null) s.removeItem(key);
+    else s.setItem(key, value);
   } catch (error) {
     console.warn(`写入 localStorage 备份 ${key} 失败:`, error);
   }
 }
 
-export function readJson<T>(key: string, fallback: T, storage: Storage = localStorage): T {
+export function readJson<T>(key: string, fallback: T, storage?: Storage | null): T {
+  const s = getSafeStorage(storage);
+  if (!s) return fallback;
   try {
-    const raw = storage.getItem(key);
+    const raw = s.getItem(key);
     if (!raw) return fallback;
     const parsed: unknown = JSON.parse(raw);
     return parsed as T;
@@ -66,7 +89,11 @@ export function readJson<T>(key: string, fallback: T, storage: Storage = localSt
   }
 }
 
-export function readSettings<T extends BackgroundSettings | FullscreenSettings>(key: string, fallback: T, storage: Storage = localStorage): T {
+export function readSettings<T extends BackgroundSettings | FullscreenSettings>(
+  key: string,
+  fallback: T,
+  storage?: Storage | null,
+): T {
   const value = readJson<unknown>(key, fallback, storage);
   if (typeof value !== 'object' || value === null) return fallback;
   return { ...fallback, ...(value as Partial<T>) };
@@ -153,7 +180,8 @@ export async function readActiveTimerId(): Promise<string | null> {
     const value = await getDatabase().readState<unknown>(ACTIVE_TIMER_ID_KEY);
     if (typeof value === 'string') return value;
 
-    const legacyId = localStorage.getItem(STORAGE_KEYS.activeTimerId);
+    const s = getSafeStorage();
+    const legacyId = s ? s.getItem(STORAGE_KEYS.activeTimerId) : null;
     if (legacyId) {
       await writeActiveTimerId(legacyId);
       return legacyId;
@@ -161,7 +189,12 @@ export async function readActiveTimerId(): Promise<string | null> {
     return null;
   } catch (error) {
     console.error('[存储] 数据库读取活动计时器失败，回退到 localStorage:', error);
-    return localStorage.getItem(STORAGE_KEYS.activeTimerId);
+    try {
+      const s = getSafeStorage();
+      return s ? s.getItem(STORAGE_KEYS.activeTimerId) : null;
+    } catch {
+      return null;
+    }
   }
 }
 
