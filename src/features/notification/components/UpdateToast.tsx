@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { FiRefreshCw, FiX } from 'react-icons/fi';
 import { useTranslation } from '@/i18n/useTranslation';
 import { track } from '@/services/analytics';
-import { AutoResizer, AutoTransition } from '@/components/ui';
+import { AutoResizer } from '@/components/ui/auto-resizer';
+import { AutoTransition } from '@/components/ui/auto-transition';
 
 export default function UpdateToast() {
   const { t } = useTranslation();

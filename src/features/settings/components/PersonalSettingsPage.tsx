@@ -100,7 +100,7 @@ export default function PersonalSettingsPage() {
                   transitionTo('main');
                 }
               }}
-              className="flex items-center justify-center size-10 sm:size-11 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 text-gray-700 dark:text-gray-200 transition-colors active:scale-95 cursor-pointer"
+              className="glass-circle-button size-10 sm:size-11 shrink-0"
               title="返回"
             >
               <FiArrowLeft className="size-4.5 sm:size-5" />

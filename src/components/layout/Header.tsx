@@ -609,7 +609,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
             data-insightflare-event="orientation_toggle"
             data-insightflare-event-to={isLandscape ? 'portrait' : 'landscape'}
           >
-            <FiRotateCw className={`size-4.5 transition-transform duration-300 ${isLandscape ? 'rotate-90 text-primary-500' : ''}`} />
+            <FiRotateCw className={`size-4.5 transition-transform duration-300 ${isLandscape ? 'rotate-90' : ''}`} />
           </button>
 
           {/* More Tools Popover Menu */}
@@ -921,14 +921,14 @@ export default function Header({ onHeightChange }: HeaderProps) {
           {/* 列表 (List of Timers) - Left Side Header Entry */}
           <button
             type="button"
-            className="relative inline-flex size-10 sm:size-11 items-center justify-center rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
+            className="glass-circle-button size-10 sm:size-11 shrink-0"
             onClick={() => setMobileTab('list')}
             aria-label={t('header.manageShort', '列表')}
             title={t('header.manageShort', '列表')}
           >
             <FiList className="size-4.5 sm:size-5" />
             {timers.length > 0 && (
-              <span className="pointer-events-none absolute -top-1 -right-1 flex min-w-4.5 h-4.5 px-1 items-center justify-center rounded-full text-[10px] font-bold leading-none text-white bg-neutral-900 dark:bg-white dark:text-neutral-900 shadow-xs ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee]">
+              <span className="pointer-events-none absolute -top-1 -right-1 flex min-w-4.5 h-4.5 px-1 items-center justify-center rounded-full text-[10px] font-bold leading-none text-white bg-stone-900/90 dark:bg-white dark:text-stone-900 shadow-xs border border-white/60 dark:border-stone-900/40 ring-1 ring-black/10 dark:ring-white/20">
                 {timers.length}
               </span>
             )}
@@ -939,10 +939,10 @@ export default function Header({ onHeightChange }: HeaderProps) {
         <div className="flex items-center gap-2 sm:gap-2.5">
           {timezoneInfo && (
             <div
-              className="inline-flex h-10 sm:h-11 items-center gap-1.5 px-3 sm:px-3.5 rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 shadow-xs backdrop-blur-xl select-none shrink-0"
+              className="glass-circle-button !h-10 sm:!h-11 !w-auto px-3 sm:px-3.5 gap-1.5 text-xs sm:text-sm font-medium select-none shrink-0"
               title={`${t('modal.timezone.title', '时区')}: ${timezoneInfo.full}`}
             >
-              <FiGlobe className="size-3.5 sm:size-4 shrink-0" style={{ color: accentColor || '#0ea5e9' }} />
+              <FiGlobe className="size-3.5 sm:size-4 shrink-0 text-stone-600 dark:text-stone-300" />
               <span className="truncate max-w-[90px] xs:max-w-[130px] sm:max-w-[200px]">{timezoneInfo.text}</span>
             </div>
           )}
@@ -950,7 +950,7 @@ export default function Header({ onHeightChange }: HeaderProps) {
           {/* 分享 (Share & QR Code) */}
           <button
             type="button"
-            className="inline-flex size-10 sm:size-11 items-center justify-center rounded-full bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14] shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all"
+            className="glass-circle-button size-10 sm:size-11 shrink-0"
             onClick={() => setIsShareOpen(true)}
             aria-label="分享"
             title={t('share.title', '分享与二维码')}
@@ -961,28 +961,20 @@ export default function Header({ onHeightChange }: HeaderProps) {
           {/* 横竖屏切换 (Toggle Screen Orientation) */}
           <button
             type="button"
-            className={`inline-flex size-10 sm:size-11 items-center justify-center rounded-full border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all ${
-              isLandscape
-                ? 'bg-black/10 dark:bg-white/20 text-gray-900 dark:text-white'
-                : 'bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14]'
-            }`}
+            className="glass-circle-button size-10 sm:size-11 shrink-0"
             onClick={() => void toggleOrientation()}
             aria-label={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
             title={isLandscape ? t('header.rotateToPortrait', '切换竖屏') : t('header.rotateToLandscape', '切换横屏')}
             data-insightflare-event="orientation_toggle"
             data-insightflare-event-to={isLandscape ? 'portrait' : 'landscape'}
           >
-            <FiRotateCw className={`size-4.5 sm:size-5 transition-transform duration-300 ${isLandscape ? 'rotate-90 text-primary-500' : ''}`} />
+            <FiRotateCw className={`size-4.5 sm:size-5 transition-transform duration-300 ${isLandscape ? 'rotate-90' : ''}`} />
           </button>
 
           {/* 个人设置 (Personal Settings Route) */}
           <button
             type="button"
-            className={`relative inline-flex size-10 sm:size-11 items-center justify-center rounded-full border border-black/[0.06] cream:border-stone-300/40 dark:border-white/10 shadow-xs backdrop-blur-xl cursor-pointer active:scale-95 transition-all ${
-              view === 'settings'
-                ? 'bg-black/10 dark:bg-white/20 text-gray-900 dark:text-white'
-                : 'bg-white/60 cream:bg-[#faf7ee]/85 dark:bg-white/[0.08] text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-white/[0.14]'
-            }`}
+            className={`glass-circle-button size-10 sm:size-11 shrink-0 ${view === 'settings' ? 'is-active' : ''}`}
             onClick={() => {
               transitionTo('settings');
               setMobileTab('settings');
@@ -992,9 +984,9 @@ export default function Header({ onHeightChange }: HeaderProps) {
           >
             <FiUser className="size-4.5 sm:size-5" />
             {hasUpdate ? (
-              <span className="pointer-events-none absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee] animate-pulse" />
+              <span className="pointer-events-none absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-amber-500 ring-1.5 ring-white/90 dark:ring-stone-900 cream:ring-white/90 animate-pulse" />
             ) : user ? (
-              <span className="pointer-events-none absolute -top-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#141416] cream:ring-[#faf7ee]" />
+              <span className="pointer-events-none absolute -top-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 ring-1.5 ring-white/90 dark:ring-stone-900 cream:ring-white/90" />
             ) : null}
           </button>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import type { ChangeEvent } from 'react';
 import { AnimatePresence, Reorder, motion, useDragControls, useReducedMotion } from 'framer-motion';
 import {
@@ -15,9 +15,11 @@ import { LuSparkles } from 'react-icons/lu';
 import { RxDragHandleDots2 } from 'react-icons/rx';
 import type { CountdownTimer, Timer, TimerType } from '@/domain/timer';
 import { useTranslation } from '@/i18n/useTranslation';
-import { HexColorPicker } from 'react-colorful';
 import { PRESET_COLORS } from '@/constants/colors';
-import DatePicker from '@/components/composed/DatePicker';
+
+// 日期选择器与取色器仅在编辑计时器时用到：懒加载以移出首屏
+const DatePicker = lazy(() => import('@/components/composed/DatePicker'));
+const HexColorPicker = lazy(() => import('react-colorful').then((m) => ({ default: m.HexColorPicker })));
 
 export type MobileTab = 'cheer' | 'timer' | 'todo' | 'list' | 'background' | 'settings';
 
@@ -588,13 +590,15 @@ export default function MobileTabBar({
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                               目标日期
                             </label>
-                            <DatePicker
-                              value={editingTimer.targetDate}
-                              onChange={(e) =>
-                                setEditingTimer({ ...editingTimer, targetDate: e.target.value })
-                              }
-                              triggerClassName="rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm h-auto py-2 px-3"
-                            />
+                            <Suspense fallback={null}>
+                              <DatePicker
+                                value={editingTimer.targetDate}
+                                onChange={(e) =>
+                                  setEditingTimer({ ...editingTimer, targetDate: e.target.value })
+                                }
+                                triggerClassName="rounded-xl bg-white/30 dark:bg-black/30 border border-gray-200/60 dark:border-white/10 text-sm h-auto py-2 px-3"
+                              />
+                            </Suspense>
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -624,11 +628,13 @@ export default function MobileTabBar({
                       />
                       {showColorPicker && (
                         <div className="pt-2 space-y-3">
-                          <HexColorPicker
-                            color={editingTimer.color}
-                            onChange={(color) => setEditingTimer({ ...editingTimer, color })}
-                            className="w-full !w-full"
-                          />
+                          <Suspense fallback={null}>
+                            <HexColorPicker
+                              color={editingTimer.color}
+                              onChange={(color) => setEditingTimer({ ...editingTimer, color })}
+                              className="w-full !w-full"
+                            />
+                          </Suspense>
                           <div className="grid grid-cols-5 gap-2 pt-1">
                             {PRESET_COLORS.map((color) => (
                               <button

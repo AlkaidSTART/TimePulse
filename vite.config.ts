@@ -46,13 +46,19 @@ export default defineConfig({
             return 'vendor-qr';
           }
           if (pkg === 'react-colorful') {
-            return 'vendor-color';
+            // 仅被懒加载的取色器使用：交给 Rollup 放入动态依赖图
+            return undefined;
           }
-          if (pkg === 'date-fns' || pkg === 'solarlunar') {
-            return 'vendor-date';
+          if (pkg === 'solarlunar') {
+            return 'vendor-lunar';
           }
-          if (pkg?.startsWith('@radix-ui') || pkg?.startsWith('@floating-ui')) {
-            return 'vendor-radix';
+          if (pkg === 'date-fns') {
+            // 仅被懒加载的日期选择器使用：交给 Rollup 放入动态依赖图
+            return undefined;
+          }
+          if (pkg?.startsWith('@radix-ui') || pkg?.startsWith('@floating-ui') || pkg === 'radix-ui') {
+            // 仅被懒加载的弹窗/浮层使用：交给 Rollup 放入动态依赖图，避免首屏静态加载
+            return undefined;
           }
           if (pkg?.startsWith('@supabase')) {
             return 'vendor-supabase';
