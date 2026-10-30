@@ -37,6 +37,7 @@ export default function Home() {
   const { isFullscreen, isHeaderVisible } = useFullscreen();
   const { view, direction, transitionTo } = usePageTransition();
   const user = useAuthStore((s) => s.user);
+  const isGuest = useAuthStore((s) => s.isGuest);
   const isAuthInitialized = useAuthStore((s) => s.isInitialized);
   const { t } = useTranslation();
   const showCheerPage = view === 'cheer';
@@ -148,7 +149,7 @@ export default function Home() {
   }
 
   // 2. 独立登录注册路由与未登录拦截（未登录禁止放行，直接展示独立美化后的登录注册页）
-  if (view === 'auth' || !user) {
+  if (view === 'auth' || (!user && !isGuest)) {
     return (
       <Suspense fallback={null}>
         <AuthPage />

@@ -617,6 +617,8 @@
     "resetGuide": "Reset Password Guide",
     "oauthSignIn": "Continue with {provider}",
     "orEmail": "or continue with email",
+    "guestSignIn": "Continue as Guest (No Account)",
+    "guestHint": "Guest data stays on this device only and is never synced; register anytime to enable multi-device sync",
     "email": "Email Address",
     "emailPlaceholder": "Enter email, e.g. name@example.com",
     "password": "Password",
@@ -775,7 +777,15 @@
     "avatarSpecs": "JPG/PNG/WEBP · Max 2MB · Auto-optimized to 256×256 WebP · Deduplicated overwrite",
     "changeAvatarTitle": "Upload custom avatar (auto-compressed and overwrites previous)",
     "avatarSpecsTip": "Sign in to upload custom cloud avatar (5MB quota, max 2MB per image, auto-deduplication)",
-    "uploadAvatarTitle": "Sign in to upload custom avatar to Supabase storage"
+    "uploadAvatarTitle": "Sign in to upload custom avatar to Supabase storage",
+    "guestMode": "Guest Mode",
+    "guestBadge": "Local Only",
+    "guestDesc": "Data stays on this device and is never synced to the cloud",
+    "guestTip": "Register an account to enable multi-device sync and cloud avatars",
+    "guestDefaultName": "Guest",
+    "guestSignInToSync": "Sign In / Register to Sync",
+    "exitGuest": "Exit Guest Mode",
+    "guestAvatarTip": "Cloud avatar upload is unavailable in guest mode. Please sign in or register first."
   },
   "background": {
     "title": "Background Settings",

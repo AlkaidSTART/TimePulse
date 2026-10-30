@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { FiCheck } from 'react-icons/fi';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from './utils';
 
 export type SubmitButtonStatus = 'idle' | 'loading' | 'success' | 'error';
 export type LoadingAnimationType =
+  | 'shimmer'
   | 'wave-dots'
   | 'spinner'
   | 'orbit'
@@ -19,7 +19,7 @@ export interface ProgressSubmitButtonProps
   accentColor?: string;
   /** 兼容旧属性：强调色 */
   progressColor?: string;
-  /** 加载中动效样式（默认 'wave-dots' 灵动波浪三点，亦支持 'spinner' 极简圆环、'orbit' 星轨、'ripple' 呼吸涟漪或 'pulse-bars' 律动柱） */
+  /** 加载中动效样式（默认 'shimmer' 纯文字 + 按钮表面流光扫过，亦支持 'wave-dots' 波浪三点、'spinner' 圆环、'orbit' 星轨、'ripple' 涟漪或 'pulse-bars' 律动柱） */
   loadingAnimation?: LoadingAnimationType;
   /** 空闲/初始状态下的文字 */
   idleText?: React.ReactNode;
@@ -67,7 +67,7 @@ export const ProgressSubmitButton = React.forwardRef<HTMLButtonElement, Progress
       status = 'idle',
       accentColor,
       progressColor,
-      loadingAnimation = 'wave-dots',
+      loadingAnimation = 'shimmer',
       idleText = '立即提交',
       loadingText = '正在安全验证...',
       successText = '提交成功',
@@ -161,7 +161,7 @@ export const ProgressSubmitButton = React.forwardRef<HTMLButtonElement, Progress
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           boxShadow: isSuccess
-            ? `0 10px 28px -4px ${hexToRgba(safeAccent, 0.28)}, inset 0 1px 1px rgba(255, 255, 255, 0.5)`
+            ? `0 4px 16px -4px ${hexToRgba(safeAccent, 0.16)}, inset 0 1px 1px rgba(255, 255, 255, 0.45)`
             : isLoading
             ? `0 6px 20px -2px ${hexToRgba(safeAccent, 0.2)}, inset 0 1px 1px rgba(255, 255, 255, 0.35)`
             : `0 4px 16px -2px ${hexToRgba(safeAccent, 0.1)}, inset 0 1px 1px rgba(255, 255, 255, 0.35)`,
@@ -177,46 +177,25 @@ export const ProgressSubmitButton = React.forwardRef<HTMLButtonElement, Progress
           }}
         />
 
-        {/* 2. Loading 状态下的轻盈毛玻璃呼吸律动 */}
-        {isLoading && (
+        {/* 2. Loading 状态：一道极细的柔光从左至右缓慢掠过按钮表面 */}
+        {isLoading && !shouldReduceMotion && (
           <motion.div
-            className="absolute inset-0 pointer-events-none rounded-2xl"
-            animate={
-              shouldReduceMotion
-                ? { opacity: 0.35 }
-                : {
-                    opacity: [0.15, 0.42, 0.15],
-                    scale: [0.99, 1.01, 0.99],
-                  }
-            }
+            aria-hidden="true"
+            className="absolute inset-y-0 w-1/3 pointer-events-none"
+            animate={{ left: ['-35%', '105%'] }}
             transition={{
-              duration: 2.2,
+              duration: 1.7,
               repeat: Infinity,
+              repeatDelay: 0.4,
               ease: 'easeInOut',
             }}
             style={{
-              background: `radial-gradient(circle at center, ${hexToRgba(safeAccent, 0.3)} 0%, transparent 75%)`,
+              background: `linear-gradient(90deg, transparent 0%, ${hexToRgba(safeAccent, 0.14)} 50%, transparent 100%)`,
             }}
           />
         )}
 
-        {/* 3. 成功瞬间的温润柔和扩散微光 */}
-        <AnimatePresence>
-          {isSuccess && (
-            <motion.div
-              initial={{ opacity: 0.5, scale: 0.95 }}
-              animate={{ opacity: 0, scale: 1.05 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
-              className="absolute inset-0 rounded-2xl pointer-events-none"
-              style={{
-                backgroundColor: hexToRgba(safeAccent, 0.25),
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* 4. 按钮主体文字与图标微动效 */}
+        {/* 3. 按钮主体文字与图标微动效 */}
         <div className="relative z-10 w-full py-3 sm:py-3.5 px-5 flex items-center justify-center font-semibold text-xs sm:text-sm tracking-wide">
           <RenderButtonContent
             status={status}
@@ -230,7 +209,7 @@ export const ProgressSubmitButton = React.forwardRef<HTMLButtonElement, Progress
           />
         </div>
 
-        {/* 5. 若传入显式进度百分比，则在底部展现 2px 极细微高质感毛玻璃进度细线 */}
+        {/* 4. 若传入显式进度百分比，则在底部展现 2px 极细微高质感毛玻璃进度细线 */}
         {typeof progress === 'number' && (
           <div className="absolute bottom-0 inset-x-0 h-0.5 bg-black/[0.04] dark:bg-white/[0.06] overflow-hidden pointer-events-none">
             <motion.div
@@ -399,12 +378,17 @@ function PulseBarsLoader({ className }: { className?: string }) {
  * 加载态指示器路由器
  */
 function LoadingIndicator({
-  animation = 'wave-dots',
+  animation = 'shimmer',
   shouldReduceMotion = false,
 }: {
   animation?: LoadingAnimationType;
   shouldReduceMotion?: boolean | null;
 }) {
+  // 'shimmer' 由按钮表面的流光扫过承担加载暗示，不再渲染任何指示灯或圆环
+  if (animation === 'shimmer') {
+    return null;
+  }
+
   if (shouldReduceMotion) {
     return (
       <span className="inline-flex items-center gap-1.5 h-5 px-0.5 shrink-0" aria-hidden="true">
@@ -460,17 +444,42 @@ function RenderButtonContent({
   successIcon?: React.ReactNode;
 }) {
   if (status === 'success') {
+    const reduce = Boolean(shouldReduceMotion);
     return (
       <span className="flex items-center justify-center gap-2">
         <motion.span
-          initial={{ scale: 0, rotate: -30 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 480, damping: 22 }}
-          className="shrink-0"
+          initial={reduce ? false : { opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: reduce ? 0 : 0.18, ease: 'easeOut' }}
+          className="shrink-0 flex items-center"
         >
-          {successIcon || <FiCheck className="size-4.5 stroke-[2.8]" />}
+          {successIcon || (
+            <svg
+              viewBox="0 0 24 24"
+              className="size-4.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.6}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <motion.path
+                d="M5 12.5 9.8 17.3 19 7"
+                initial={reduce ? false : { pathLength: 0, opacity: 0.5 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: reduce ? 0 : 0.36, ease: 'easeOut' }}
+              />
+            </svg>
+          )}
         </motion.span>
-        <span>{successText}</span>
+        <motion.span
+          initial={reduce ? false : { opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduce ? 0 : 0.26, ease: 'easeOut', delay: reduce ? 0 : 0.08 }}
+        >
+          {successText}
+        </motion.span>
       </span>
     );
   }

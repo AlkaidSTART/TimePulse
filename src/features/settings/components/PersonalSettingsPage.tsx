@@ -42,6 +42,7 @@ export default function PersonalSettingsPage() {
   const currentVersion = useVersionStore((s) => s.currentVersion);
   const hasUpdate = useVersionStore((s) => s.hasUpdate);
   const user = useAuthStore((s) => s.user);
+  const isGuest = useAuthStore((s) => s.isGuest);
   const signOut = useAuthStore((s) => s.signOut);
 
   const nickname = usePersonalSettingsStore((s) => s.nickname);
@@ -54,7 +55,7 @@ export default function PersonalSettingsPage() {
   const [avatarFeedback, setAvatarFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const settingsFileInputRef = useRef<HTMLInputElement>(null);
 
-  const userDisplayName = user?.user_metadata?.nickname || (nickname === '阳光旅人' ? '' : nickname) || (user?.email ? user.email.split('@')[0] : t('personalSettings.memberDefaultName', 'TimePulse 会员'));
+  const userDisplayName = user?.user_metadata?.nickname || (nickname === '阳光旅人' ? '' : nickname) || (user?.email ? user.email.split('@')[0] : isGuest ? t('personalSettings.guestDefaultName', '游客') : t('personalSettings.memberDefaultName', 'TimePulse 会员'));
   const userAvatarUrl = getEffectiveAvatarUrl(user, avatar);
 
   const handleAvatarUpload = async (file: File) => {
@@ -255,9 +256,16 @@ export default function PersonalSettingsPage() {
                   avatarUrl={userAvatarUrl}
                   name={userDisplayName}
                   size="lg"
-                  editable
+                  editable={!isGuest}
                   isUploading={isUploadingAvatar}
                   onUpload={() => {
+                    if (isGuest) {
+                      setAvatarFeedback({
+                        type: 'error',
+                        message: t('personalSettings.guestAvatarTip', '游客模式下无法上传云端头像，请先登录或注册账号'),
+                      });
+                      return;
+                    }
                     setAvatarFeedback({
                       type: 'error',
                       message: t('personalSettings.avatarLoginRequired', '云端存储空间仅 5MB，请先登录账号后再上传专属头像'),
@@ -267,14 +275,27 @@ export default function PersonalSettingsPage() {
                   accentColor={accentColor || '#10A37F'}
                 />
                 <div>
-                  <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-white cream:text-[#26211e]">
-                    {t('personalSettings.signInPrompt', '登录 / 注册 TimePulse 账号')}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-white cream:text-[#26211e]">
+                      {isGuest
+                        ? t('personalSettings.guestMode', '游客模式')
+                        : t('personalSettings.signInPrompt', '登录 / 注册 TimePulse 账号')}
+                    </h3>
+                    {isGuest && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                        {t('personalSettings.guestBadge', '仅本机')}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 cream:text-[#786e63] mt-0.5">
-                    {t('personalSettings.signInPromptDesc', '基于 Supabase BaaS 云端身份认证，数据安全有保障')}
+                    {isGuest
+                      ? t('personalSettings.guestDesc', '数据仅保存在当前设备，不会同步到云端')
+                      : t('personalSettings.signInPromptDesc', '基于 Supabase BaaS 云端身份认证，数据安全有保障')}
                   </p>
                   <p className="text-[11px] text-gray-400 dark:text-gray-500 cream:text-[#8a7f72] mt-0.5">
-                    {t('personalSettings.avatarSpecsTip', '登录后可上传个人专属云端头像（配额 5MB，单图≤2MB，覆盖防冗余）')}
+                    {isGuest
+                      ? t('personalSettings.guestTip', '注册账号后即可开启多端云同步与云端头像')
+                      : t('personalSettings.avatarSpecsTip', '登录后可上传个人专属云端头像（配额 5MB，单图≤2MB，覆盖防冗余）')}
                   </p>
                   {avatarFeedback && (
                     <p className={`text-xs mt-1.5 font-medium ${avatarFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
@@ -285,31 +306,57 @@ export default function PersonalSettingsPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAvatarFeedback({
-                      type: 'error',
-                      message: t('personalSettings.avatarLoginRequired', '云端存储空间仅 5MB，请先登录账号后再上传专属头像'),
-                    });
-                    setTimeout(() => transitionTo('auth'), 800);
-                  }}
-                  disabled={isUploadingAvatar}
-                  className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-gray-800 dark:text-gray-200 cream:text-[#26211e] transition-colors cursor-pointer disabled:opacity-50"
-                  title={t('personalSettings.uploadAvatarTitle', '登录后上传自定义头像到 Supabase touxiang 存储桶')}
-                >
-                  <FiUploadCloud className="size-4 text-primary-500" />
-                  <span>{isUploadingAvatar ? t('personalSettings.uploading', '上传中...') : t('personalSettings.uploadAvatar', '上传头像')}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => transitionTo('auth')}
-                  className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-xs transition-opacity hover:opacity-90 cursor-pointer"
-                  style={{ backgroundColor: accentColor || '#10A37F' }}
-                >
-                  <FiLogIn className="size-4" />
-                  <span>{t('personalSettings.signInNow', '立即登录 / 注册')}</span>
-                </button>
+                {isGuest ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => transitionTo('auth')}
+                      className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-xs transition-opacity hover:opacity-90 cursor-pointer"
+                      style={{ backgroundColor: accentColor || '#10A37F' }}
+                    >
+                      <FiLogIn className="size-4" />
+                      <span>{t('personalSettings.guestSignInToSync', '登录 / 注册开启同步')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await signOut();
+                      }}
+                      className="px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <FiLogOut className="size-3.5" />
+                      <span>{t('personalSettings.exitGuest', '退出游客模式')}</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAvatarFeedback({
+                          type: 'error',
+                          message: t('personalSettings.avatarLoginRequired', '云端存储空间仅 5MB，请先登录账号后再上传专属头像'),
+                        });
+                        setTimeout(() => transitionTo('auth'), 800);
+                      }}
+                      disabled={isUploadingAvatar}
+                      className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-black/[0.08] dark:border-white/15 cream:border-[#d5c7b3] bg-white/80 hover:bg-white dark:bg-white/[0.06] cream:bg-[#eee4d4] dark:hover:bg-white/[0.12] cream:hover:bg-[#e4d9c7] text-gray-800 dark:text-gray-200 cream:text-[#26211e] transition-colors cursor-pointer disabled:opacity-50"
+                      title={t('personalSettings.uploadAvatarTitle', '登录后上传自定义头像到 Supabase touxiang 存储桶')}
+                    >
+                      <FiUploadCloud className="size-4 text-primary-500" />
+                      <span>{isUploadingAvatar ? t('personalSettings.uploading', '上传中...') : t('personalSettings.uploadAvatar', '上传头像')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => transitionTo('auth')}
+                      className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-xs transition-opacity hover:opacity-90 cursor-pointer"
+                      style={{ backgroundColor: accentColor || '#10A37F' }}
+                    >
+                      <FiLogIn className="size-4" />
+                      <span>{t('personalSettings.signInNow', '立即登录 / 注册')}</span>
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* 隐藏的文件输入组件 */}

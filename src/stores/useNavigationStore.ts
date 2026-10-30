@@ -30,8 +30,8 @@ export const PAGE_ORDER: Record<PageView, number> = {
  */
 export function canAccessView(targetView: PageView): boolean {
   if (targetView === 'auth') return true;
-  const { isInitialized, user } = useAuthStore.getState();
-  if (isInitialized && !user) {
+  const { isInitialized, user, isGuest } = useAuthStore.getState();
+  if (isInitialized && !user && !isGuest) {
     return false;
   }
   return true;
@@ -166,8 +166,8 @@ if (typeof window !== 'undefined') {
 
   // 监听 Auth 认证状态变化，严格把控页面访问权限
   useAuthStore.subscribe((state, prevState) => {
-    // 1. 初始化完成且未登录：若当前不是登录注册页，拦截并重定向
-    if (state.isInitialized && !state.user) {
+    // 1. 初始化完成且未登录（且非游客）：若当前不是登录注册页，拦截并重定向
+    if (state.isInitialized && !state.user && !state.isGuest) {
       const currentView = useNavigationStore.getState().view;
       if (currentView !== 'auth') {
         useNavigationStore.getState().setView('auth');
@@ -177,13 +177,20 @@ if (typeof window !== 'undefined') {
         }
       }
     }
-    // 2. 登出：立刻切回登录页并锁定所有路由
-    if (prevState?.user && !state.user) {
+    // 2. 登出或退出游客模式：立刻切回登录页并锁定所有路由
+    if ((prevState?.user && !state.user) || (prevState?.isGuest && !state.isGuest)) {
       useNavigationStore.getState().setView('auth');
       window.location.hash = '#login';
     }
     // 3. 登录成功：如果当前在 auth 页，自动放行进入主页
     if (!prevState?.user && state.user) {
+      const currentView = useNavigationStore.getState().view;
+      if (currentView === 'auth') {
+        useNavigationStore.getState().transitionTo('main');
+      }
+    }
+    // 4. 进入游客模式：放行进入主页
+    if (!prevState?.isGuest && state.isGuest) {
       const currentView = useNavigationStore.getState().view;
       if (currentView === 'auth') {
         useNavigationStore.getState().transitionTo('main');

@@ -64,6 +64,7 @@ export default function AuthPage() {
   const error = useAuthStore((s) => s.error);
   const successMessage = useAuthStore((s) => s.successMessage);
   const signInWithEmail = useAuthStore((s) => s.signInWithEmail);
+  const signInAsGuest = useAuthStore((s) => s.signInAsGuest);
   const signUpWithEmail = useAuthStore((s) => s.signUpWithEmail);
   const signOut = useAuthStore((s) => s.signOut);
   const resetPassword = useAuthStore((s) => s.resetPassword);
@@ -1365,7 +1366,7 @@ export default function AuthPage() {
                       status={isLoading && submitStatus === 'idle' ? 'loading' : submitStatus}
                       accentColor={activeColor}
                       progressColor={activeColor}
-                      loadingAnimation="wave-dots"
+                      loadingAnimation="shimmer"
                       idleText={
                         mode === 'forgot'
                           ? t('auth.submitForgot', '发送重置密码邮件')
@@ -1393,6 +1394,27 @@ export default function AuthPage() {
                     />
                   </div>
                 </motion.form>
+
+                {/* 游客登录：本地使用，不开启云端同步 */}
+                {mode !== 'forgot' && (
+                  <div className="space-y-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        signInAsGuest();
+                        transitionTo('main');
+                      }}
+                      disabled={isLoading}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl border border-dashed border-black/15 dark:border-white/20 cream:border-amber-900/20 bg-black/[0.02] dark:bg-white/[0.03] cream:bg-amber-100/15 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-xs font-semibold text-gray-600 dark:text-gray-300 cream:text-[#5c5348] transition-colors active:scale-[0.99] disabled:opacity-50 cursor-pointer"
+                    >
+                      <FiUserPlus className="size-3.5" />
+                      <span>{t('auth.guestSignIn', '游客登录（无需账号）')}</span>
+                    </button>
+                    <p className="text-center text-[11px] leading-relaxed text-gray-400 dark:text-gray-500 cream:text-[#8a7f72]">
+                      {t('auth.guestHint', '游客模式下数据仅保存在本机，不会开启云端同步；随时注册账号即可开启多端同步')}
+                    </p>
+                  </div>
+                )}
 
                 {/* 找回密码模式下的返回登录切换 */}
                 {mode === 'forgot' && (
