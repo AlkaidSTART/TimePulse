@@ -1,5 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, expect, it, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { describe, expect, it, beforeEach, afterEach } from 'vitest';
 import AuthPage from './AuthPage';
 import { ThemeProvider } from '@/app/providers/ThemeProvider';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -22,6 +22,10 @@ describe('guest nav repro', () => {
     useNavigationStore.getState().setView('auth');
   });
 
+  afterEach(() => {
+    cleanup();
+  });
+
   it('navigates to main after guest login', async () => {
     render(
       <ThemeProvider>
@@ -31,8 +35,20 @@ describe('guest nav repro', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /游客登录/ }));
 
-    console.log('isGuest:', useAuthStore.getState().isGuest);
-    console.log('view:', useNavigationStore.getState().view);
+    await waitFor(() => expect(useNavigationStore.getState().view).toBe('main'));
+  });
+
+  it('navigates to main even when the current view is not auth (e.g. cold start on #main)', async () => {
+    useNavigationStore.getState().setView('cheer');
+
+    render(
+      <ThemeProvider>
+        <AuthPage />
+      </ThemeProvider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /游客登录/ }));
+
     await waitFor(() => expect(useNavigationStore.getState().view).toBe('main'));
   });
 });
