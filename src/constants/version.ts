@@ -2,7 +2,7 @@
  * TimePulse 应用版本与发布管理配置
  */
 
-export const APP_VERSION = '0.10.2';
+export const APP_VERSION = '0.11.0';
 
 export const GITHUB_REPO = 'AlkaidSTART/TimePulse';
 
