@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="zh-CN" data-composition-variables='[
+  {"id":"brandName","type":"string","label":"产品名称","default":"TimePulse","group":"品牌"},
+  {"id":"tagline","type":"string","label":"核心标语","default":"美观、优雅且沉浸的时光管理工作台","group":"品牌"},
+  {"id":"hookLine1","type":"string","label":"开场金句一","default":"时间，不该只是","group":"开场"},
+  {"id":"hookLine2","type":"string","label":"开场金句二","default":"冰冷的数字流逝。","group":"开场"},
+  {"id":"countdownTitle","type":"string","label":"倒数日卡片标题","default":"2027 跨年新愿倒数","group":"计时矩阵"},
+  {"id":"pomodoroDuration","type":"string","label":"番茄钟时长","default":"25:00","group":"计时矩阵"},
+  {"id":"accentEmerald","type":"color","label":"强调色-翡翠绿","default":"#10b981","group":"色彩"},
+  {"id":"accentBlue","type":"color","label":"强调色-科技蓝","default":"#3b82f6","group":"色彩"},
+  {"id":"accentRose","type":"color","label":"强调色-玫瑰粉","default":"#f43f5e","group":"色彩"},
+  {"id":"bpm","type":"number","label":"配乐BPM","default":118,"min":80,"max":160,"step":1,"group":"音频"},
+  {"id":"endHold","type":"number","label":"尾帧定格停留（秒）","default":2.5,"min":1,"max":10,"step":0.1,"group":"节奏"}
+]'>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>TimePulse · 官方产品级发布片</title>
+<script src="vendor/gsap.min.js"></script>
+<script src="vendor/om.js"></script>
+<style>
+  :root {
+    --bg-dark: #080a10;
+    --card-bg: rgba(22, 27, 38, 0.72);
+    --card-border: rgba(255, 255, 255, 0.12);
+    --emerald: #10b981;
+    --blue: #3b82f6;
+    --rose: #f43f5e;
+    --amber: #f59e0b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg-dark);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Inter", sans-serif;
+    color: var(--text-primary);
+  }
+
+  /* Stage Viewport (1920x1080 Native Frame) */
+  #film-container {
+    position: relative;
+    width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: #000;
+  }
+
+  #film {
+    position: relative;
+    width: 1920px; height: 1080px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 35%, #131b2e 0%, #080a11 65%, #040508 100%);
+    box-shadow: 0 0 80px rgba(0, 0, 0, 0.9);
+    transform-origin: center center;
+  }
+
+  /* Ambient Dynamic Mesh & Particle Canvas */
+  #ambient-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    opacity: 0.85;
+    pointer-events: none;
+  }
+
+  .grid-pattern {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(circle at 50% 50%, black 30%, transparent 80%);
+    pointer-events: none;
+  }
+
+  /* Universal Scene Container */
+  .scene-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  /* Glass Card Primitive */
+  .glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--card-border);
+    border-radius: 28px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+  }
+
+  /* Scene 1: Hook */
+  #scene-hook .logo-wrapper {
+    position: relative;
+    width: 160px; height: 160px;
+    margin-bottom: 36px;
+  }
+  #scene-hook .logo-img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 45px rgba(59, 130, 246, 0.55));
+  }
+  #scene-hook .pulse-ring {
+    position: absolute; inset: -20px;
+    border-radius: 50%;
+    border: 2px solid rgba(59, 130, 246, 0.4);
+    animation: ring-pulse 3s infinite ease-out;
+  }
+  @keyframes ring-pulse {
+    0% { transform: scale(0.85); opacity: 0.8; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+
+  .hook-title {
+    font-size: 80px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1.25;
+    text-align: center;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  }
+  .hook-title span.highlight {
+    background: linear-gradient(135deg, #60a5fa 0%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hook-sub {
+    margin-top: 24px;
+    font-size: 28px;
+    color: var(--text-secondary);
+    letter-spacing: 6px;
+    text-transform: uppercase;
+  }
+
+  /* Scene 2: Timers Matrix */
+  .section-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    border-radius: 9999px;
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    color: #93c5fd;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+  .scene-heading {
+    font-size: 64px;
+    font-weight: 800;
+    margin-bottom: 48px;
+    text-align: center;
+    letter-spacing: -1px;
+  }
+  .timers-grid {
+    display: grid;
+    grid-template-columns: 560px 560px 480px;
+    gap: 36px;
+    width: 1640px;
+    perspective: 1200px;
+  }
+  .timer-card {
+    padding: 36px;
+    height: 520px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.5s ease;
+  }
+  .timer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .timer-title { font-size: 26px; font-weight: 700; color: #fff; }
+  .timer-badge {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .badge-emerald { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+  .badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+  .badge-rose { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+
+  .countdown-display {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin: 30px 0;
+  }
+  .countdown-number {
+    font-size: 96px;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    background: linear-gradient(180deg, #ffffff 40%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .countdown-unit { font-size: 32px; color: var(--text-secondary); font-weight: 600; }
+
+  .progress-bar-wrapper {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 12px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #3b82f6, #10b981);
+    border-radius: 6px;
+  }
+
+  .pomodoro-ring-box {
+    position: relative;
+    width: 240px; height: 240px;
+    margin: 20px auto;
+  }
+  .ring-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+  .ring-bg { stroke: rgba(255, 255, 255, 0.08); fill: none; stroke-width: 14; }
+  .ring-progress {
+    stroke: var(--emerald);
+    fill: none;
+    stroke-width: 14;
+    stroke-linecap: round;
+    stroke-dasharray: 691;
+    stroke-dashoffset: 691;
+  }
+  .ring-center-text {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .pomodoro-digits { font-size: 52px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .pomodoro-label { font-size: 16px; color: #34d399; margin-top: 4px; letter-spacing: 2px; }
+
+  /* Scene 3: Cheer & Todo & Widget */
+  .cheer-todo-layout {
+    display: grid;
+    grid-template-columns: 820px 760px;
+    gap: 48px;
+    width: 1628px;
+    align-items: center;
+  }
+  .cheer-preview-card {
+    padding: 44px;
+    height: 560px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .solar-term-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 22px; color: #f59e0b; font-weight: 600;
+  }
+  .greeting-text {
+    font-size: 48px; font-weight: 800; line-height: 1.3; margin: 18px 0;
+  }
+  .quote-box {
+    padding: 24px 30px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border-left: 4px solid var(--blue);
+    font-size: 22px;
+    color: #cbd5e1;
+    line-height: 1.6;
+    font-style: italic;
+  }
+  .cheer-interactive {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .cheer-btn {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 14px 28px; border-radius: 14px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff; font-size: 20px; font-weight: 700;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.35);
+  }
+
+  .todo-panel {
+    padding: 40px;
+    height: 560px;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .todo-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 24px;
+    margin-bottom: 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 20px; font-weight: 500;
+  }
+  .todo-left { display: flex; align-items: center; gap: 16px; }
+  .todo-checkbox {
+    width: 28px; height: 28px; border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .todo-checkbox.checked {
+    background: var(--emerald); border-color: var(--emerald);
+  }
+  .todo-text.done {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+  }
+  .p-tag {
+    padding: 4px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  }
+  .p-high { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+  .p-med { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+  .p-low { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+
+  /* Micro Widget Floating Badge */
+  #micro-widget-flyout {
+    position: absolute;
+    right: 80px; bottom: 80px;
+    width: 320px;
+    padding: 20px;
+    border-radius: 20px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    display: flex; align-items: center; gap: 16px;
+    opacity: 0;
+    transform: scale(0.6) translateY(40px);
+  }
+
+  /* Scene 4: Zen Mode */
+  #scene-zen {
+    background: radial-gradient(circle at center, #0f172a 0%, #030712 100%);
+  }
+  .zen-clock-huge {
+    font-size: 240px;
+    font-weight: 200;
+    letter-spacing: -6px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: #f1f5f9;
+    text-shadow: 0 0 80px rgba(255, 255, 255, 0.18);
+  }
+  .zen-date-sub {
+    font-size: 32px;
+    color: #64748b;
+    letter-spacing: 12px;
+    text-transform: uppercase;
+    margin-top: 30px;
+    font-weight: 300;
+  }
+  .zen-breathe-indicator {
+    margin-top: 48px;
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 8px 24px; border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 18px; color: #94a3b8;
+  }
+  .breathe-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--emerald);
+    box-shadow: 0 0 16px var(--emerald);
+    animation: breathe 4s infinite ease-in-out;
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+
+  /* Scene 5: Ecosystem & Architecture */
+  .eco-container {
+    width: 1600px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .devices-strip {
+    display: flex; gap: 40px; align-items: center; justify-content: center;
+    margin-top: 40px;
+  }
+  .device-mockup {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .device-mac { width: 680px; height: 420px; }
+  .device-win { width: 520px; height: 360px; }
+  .device-phone { width: 220px; height: 440px; border-radius: 36px; border-width: 3px; }
+  .device-img { width: 100%; height: 100%; object-fit: cover; }
+
+  .tech-pills {
+    display: flex; gap: 20px; margin-top: 40px;
+  }
+  .tech-pill {
+    padding: 12px 28px;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 18px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  /* Scene 6: Hero Final */
+  .hero-logo-box {
+    width: 180px; height: 180px;
+    margin-bottom: 30px;
+    position: relative;
+  }
+  .hero-logo-img {
+    width: 100%; height: 100%; object-fit: contain;
+    filter: drop-shadow(0 0 60px rgba(59, 130, 246, 0.8));
+  }
+  .hero-title {
+    font-size: 108px;
+    font-weight: 900;
+    letter-spacing: -3px;
+    line-height: 1;
+    background: linear-gradient(135deg, #ffffff 30%, #cbd5e1 70%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-claim {
+    font-size: 34px;
+    color: #cbd5e1;
+    margin-top: 24px;
+    font-weight: 500;
+    letter-spacing: 2px;
+  }
+  .hero-badges {
+    display: flex; gap: 20px; margin-top: 40px;
+  }
+  .hero-cta {
+    padding: 18px 44px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+    box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
+  }
+  .hero-secondary {
+    padding: 18px 36px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    font-size: 22px; font-weight: 600;
+  }
+
+  /* Subtitles Bar (Synced with Speech) */
+  #subtitles-bar {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 14px 36px;
+    border-radius: 9999px;
+    background: rgba(10, 15, 26, 0.88);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    font-size: 26px;
+    font-weight: 600;
+    color: #f8fafc;
+    letter-spacing: 1px;
+    pointer-events: none;
+    z-index: 900;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  /* Player Controller Overlay (Floating bottom HUD) */
+  #player-controls {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    padding: 12px 24px;
+    border-radius: 20px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    z-index: 1000;
+    transition: opacity 0.3s ease;
+  }
+  #player-controls:hover { opacity: 1; }
+  .ctrl-btn {
+    background: none; border: none; color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 10px;
+    transition: background 0.2s;
+  }
+  .ctrl-btn:hover { background: rgba(255, 255, 255, 0.1); }
+  .play-pause-btn {
+    background: #3b82f6; width: 44px; height: 44px; border-radius: 50%;
+  }
+  .play-pause-btn:hover { background: #2563eb; }
+  .timeline-slider-box {
+    flex: 1; display: flex; flex-direction: column; gap: 6px;
+  }
+  .scrubber {
+    width: 100%; height: 6px;
+    -webkit-appearance: none; appearance: none;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px; outline: none; cursor: pointer;
+  }
+  .scrubber::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #3b82f6; cursor: pointer;
+    box-shadow: 0 0 10px #3b82f6;
+  }
+  .time-stamp {
+    font-size: 13px; font-family: monospace; color: #94a3b8;
+    display: flex; justify-content: space-between;
+  }
+  .scene-pills { display: flex; gap: 8px; }
+  .scene-pill-btn {
+    padding: 4px 10px; border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08); border: none;
+    color: #cbd5e1; font-size: 12px; cursor: pointer;
+  }
+  .scene-pill-btn:hover { background: rgba(59, 130, 246, 0.3); color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="film-container">
+  <div id="film" data-composition-id="film" data-width="1920" data-height="1080">
+    <canvas id="ambient-canvas" width="1920" height="1080"></canvas>
+    <div class="grid-pattern"></div>
+
+    <!-- 1. SCENE: HOOK (00.0s - 03.5s) -->
+    <section id="scene-hook" class="scene-layer" data-om-id="scene-hook">
+      <div class="logo-wrapper">
+        <div class="pulse-ring"></div>
+        <img class="logo-img" src="assets/logo.png" alt="TimePulse Logo" data-om-id="hook-logo" />
+      </div>
+      <h1 class="hook-title" data-om-id="hook-title">
+        时间，不该只是<br />
+        <span class="highlight">冰冷的数字流逝。</span>
+      </h1>
+      <p class="hook-sub" data-om-id="hook-sub">Time · Focus · Elegance</p>
+    </section>
+
+    <!-- 2. SCENE: TIMERS MATRIX (03.5s - 08.8s) -->
+    <section id="scene-timers" class="scene-layer" data-om-id="scene-timers">
+      <div class="section-tag">🕒 MULTI-MODE TIMER SUITE</div>
+      <h2 class="scene-heading">全能时光计时矩阵</h2>
+      <div class="timers-grid">
+        <!-- 长期倒数日 -->
+        <div class="glass-card timer-card" id="card-countdown" data-om-id="card-countdown">
+          <div class="timer-header">
+            <span class="timer-title">长期目标倒数日</span>
+            <span class="timer-badge badge-blue">纪念日 / 里程碑</span>
+          </div>
+          <div class="countdown-display">
+            <span class="countdown-number" id="countdown-days">256</span>
+            <span class="countdown-unit">天</span>
+            <span class="countdown-number" id="countdown-hrs" style="font-size: 64px;">14</span>
+            <span class="countdown-unit">时</span>
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; color:var(--text-secondary); font-size:15px; margin-bottom:6px;">
+              <span>2027 跨年新愿 · 进度</span>
+              <span id="countdown-percent-text">64.8%</span>
+            </div>
+            <div class="progress-bar-wrapper">
+              <div class="progress-bar-fill" id="countdown-progress-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 短期专注番茄钟 -->
+        <div class="glass-card timer-card" id="card-pomodoro" data-om-id="card-pomodoro">
+          <div class="timer-header">
+            <span class="timer-title">短期专注番茄钟</span>
+            <span class="timer-badge badge-emerald">深度冲刺</span>
+          </div>
+          <div class="pomodoro-ring-box">
+            <svg class="ring-svg" viewBox="0 0 240 240">
+              <circle class="ring-bg" cx="120" cy="120" r="100" />
+              <circle class="ring-progress" id="pomodoro-svg-ring" cx="120" cy="120" r="100" />
+            </svg>
+            <div class="ring-center-text">
+              <span class="pomodoro-digits" id="pomodoro-timer-digits">25:00</span>
+              <span class="pomodoro-label">FOCUSING</span>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-around; color:var(--text-secondary); font-size:15px;">
+            <span>🍅 25 分钟标准</span>
+            <span>☕ 5 分钟微憩</span>
+          </div>
+        </div>
+
+        <!-- 毫秒级秒表与世界时钟 -->
+        <div class="glass-card timer-card" id="card-stopwatch" data-om-id="card-stopwatch">
+          <div class="timer-header">
+            <span class="timer-title">精准秒表 & 世界时钟</span>
+            <span class="timer-badge badge-rose">毫秒级</span>
+          </div>
+          <div style="margin: auto 0; text-align:center;">
+            <div style="font-size: 64px; font-weight:900; font-variant-numeric:tabular-nums; color:#fb7185;" id="stopwatch-digits">
+              00:48.35
+            </div>
+            <div style="color:var(--text-secondary); margin-top:8px; font-size:16px;">分圈计次 · 精准捕捉每一瞬</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04); padding:14px; border-radius:12px; font-size:14px; display:flex; justify-content:space-between;">
+            <span>🌐 伦敦 03:14</span>
+            <span>东京 12:14</span>
+            <span>纽约 22:14</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. SCENE: CHEER & TODO (08.8s - 14.5s) -->
+    <section id="scene-cheer" class="scene-layer" data-om-id="scene-cheer">
+      <div class="section-tag" style="background:rgba(245,158,11,0.15); border-color:rgba(245,158,11,0.35); color:#fde68a;">
+        ☀️ DAILY GREETING & TODO
+      </div>
+      <h2 class="scene-heading">元气打气与时光问候</h2>
+      <div class="cheer-todo-layout">
+        <!-- 晨昏问候与节气 -->
+        <div class="glass-card cheer-preview-card" id="cheer-card" data-om-id="cheer-card">
+          <div>
+            <div class="solar-term-badge">
+              <span>🌾 霜降 · 季秋时节</span>
+              <span style="font-size:14px; color:var(--text-secondary); margin-left:8px;">丙午年 九月初十</span>
+            </div>
+            <h3 class="greeting-text">晨曦微露，<br />今天也是值得全心以赴的一天。</h3>
+            <div class="quote-box">
+              “追赶日月，不苟且于每一个当下。”
+            </div>
+          </div>
+          <div class="cheer-interactive">
+            <div class="cheer-btn" id="cheer-interactive-btn">
+              <span>✨ 元气打气 +1</span>
+            </div>
+            <span style="color:var(--text-secondary); font-size:16px;">今日已累计汲取 12 次元气</span>
+          </div>
+        </div>
+
+        <!-- 待办清单与悬浮挂件 -->
+        <div class="glass-card todo-panel" id="todo-panel-card" data-om-id="todo-panel-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+            <span style="font-size:24px; font-weight:700;">专注待办核对清单</span>
+            <span style="font-size:14px; color:#34d399; font-weight:600;">完成率 66%</span>
+          </div>
+
+          <div class="todo-item" id="todo-row-1">
+            <div class="todo-left">
+              <div class="todo-checkbox checked">✓</div>
+              <span class="todo-text done">上午番茄钟完成核心功能重构</span>
+            </div>
+            <span class="p-tag p-high">紧急</span>
+          </div>
+
+          <div class="todo-item" id="todo-row-2">
+            <div class="todo-left">
+              <div class="todo-checkbox checked">✓</div>
+              <span class="todo-text done">整理 TimePulse 跨端发版文档</span>
+            </div>
+            <span class="p-tag p-med">优先</span>
+          </div>
+
+          <div class="todo-item" id="todo-row-3">
+            <div class="todo-left">
+              <div class="todo-checkbox" id="todo-box-3"></div>
+              <span class="todo-text" id="todo-text-3">下午专注时段进入极简禅模式</span>
+            </div>
+            <span class="p-tag p-low">普通</span>
+          </div>
+
+          <div style="margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:15px; color:var(--text-secondary);">📌 支持一键收拢为屏幕角落实时微挂件</span>
+            <span style="font-size:14px; color:#60a5fa; cursor:pointer;">悬浮预览 ↗</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 悬浮微挂件弹出 -->
+      <div id="micro-widget-flyout" class="glass-card" data-om-id="micro-widget-flyout">
+        <div style="width:48px; height:48px; border-radius:12px; background:rgba(59,130,246,0.2); display:flex; align-items:center; justify-content:center; font-size:24px;">
+          ⏱️
+        </div>
+        <div>
+          <div style="font-size:16px; font-weight:700;">专注中 · 24:18</div>
+          <div style="font-size:12px; color:#94a3b8;">常驻桌面角落 · 不占视野</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. SCENE: ZEN FULLSCREEN (14.5s - 21.0s) -->
+    <section id="scene-zen" class="scene-layer" data-om-id="scene-zen">
+      <div class="section-tag" style="background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.15); color:#e2e8f0;">
+        🧘 ZEN FULLSCREEN CLOCK
+      </div>
+      <div class="zen-clock-huge" id="zen-huge-clock">14:28:09</div>
+      <div class="zen-date-sub">OCTOBER 19 · MON · AUTUMN</div>
+      <div class="zen-breathe-indicator">
+        <div class="breathe-dot"></div>
+        <span>防烧屏智能微位移 · 纯净工位沉浸夜钟</span>
+      </div>
+    </section>
+
+    <!-- 5. SCENE: ECOSYSTEM & ARCHITECTURE (21.0s - 25.5s) -->
+    <section id="scene-ecosystem" class="scene-layer" data-om-id="scene-ecosystem">
+      <div class="eco-container">
+        <div class="section-tag" style="background:rgba(99,102,241,0.15); border-color:rgba(99,102,241,0.35); color:#a5b4fc;">
+          🚀 CROSS-PLATFORM & DUAL STORAGE
+        </div>
+        <h2 class="scene-heading" style="margin-bottom:20px;">多端原生支持 · 双轨增量云同步</h2>
+        <div class="devices-strip">
+          <div class="device-mockup device-mac">
+            <img class="device-img" src="assets/01-cheer-greeting.png" alt="macOS" />
+          </div>
+          <div class="device-mockup device-win">
+            <img class="device-img" src="assets/02-timer-countdown.png" alt="Windows" />
+          </div>
+          <div class="device-mockup device-phone">
+            <img class="device-img" src="assets/10-mobile-responsive.png" alt="Android" />
+          </div>
+        </div>
+        <div class="tech-pills">
+          <div class="tech-pill">🍏 macOS (Apple Silicon & Intel)</div>
+          <div class="tech-pill">🪟 Windows (NSIS 极速原生)</div>
+          <div class="tech-pill">🤖 Android (原生触感震动)</div>
+          <div class="tech-pill">☁️ Supabase + SQLite 双轨安全</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. SCENE: HERO OUTRO (25.5s - 30.5s) -->
+    <section id="scene-hero" class="scene-layer" data-om-id="scene-hero">
+      <div class="hero-logo-box">
+        <img class="hero-logo-img" src="assets/logo.png" alt="TimePulse" data-om-id="hero-logo" />
+      </div>
+      <h1 class="hero-title" data-om-id="hero-title">TimePulse</h1>
+      <p class="hero-claim" data-om-id="hero-claim">致力于成为最美观、优雅且沉浸的时光管理与专注陪伴工作台</p>
+      <div class="hero-badges">
+        <div class="hero-cta" data-om-id="hero-cta">开源免费 · 即刻体验</div>
+        <div class="hero-secondary" data-om-id="hero-secondary">支持 Web / 桌面端 / 移动端</div>
+      </div>
+    </section>
+
+    <!-- Floating Synced Subtitle -->
+    <div id="subtitles-bar">TimePulse · 优雅掌控时间</div>
+  </div>
+</div>
+
+<!-- Player HUD Overlay -->
+<div id="player-controls">
+  <button class="ctrl-btn play-pause-btn" id="ctrl-play-pause" title="播放/暂停 (空格)">▶</button>
+  <button class="ctrl-btn" id="ctrl-restart" title="重新开始">↺</button>
+
+  <div class="timeline-slider-box">
+    <input type="range" class="scrubber" id="timeline-scrubber" min="0" max="30.5" step="0.05" value="0" />
+    <div class="time-stamp">
+      <span id="current-time-text">00:00.0</span>
+      <span id="scene-label-text">Hook</span>
+      <span id="total-time-text">00:30.5</span>
+    </div>
+  </div>
+
+  <div class="scene-pills">
+    <button class="scene-pill-btn" onclick="seekToScene('scene:hook')">开场</button>
+    <button class="scene-pill-btn" onclick="seekToScene('scene:timers')">计时</button>
+    <button class="scene-pill-btn" onclick="seekToScene('scene:cheer')">元气</button>
+    <button class="scene-pill-btn" onclick="seekToScene('scene:zen')">禅模式</button>
+    <button class="scene-pill-btn" onclick="seekToScene('scene:ecosystem')">多端</button>
+    <button class="scene-pill-btn" onclick="seekToScene('scene:hero')">尾帧</button>
+  </div>
+
+  <button class="ctrl-btn" id="ctrl-audio-toggle" title="声音开/关">🔊</button>
+  <button class="ctrl-btn" id="ctrl-fullscreen" title="全屏 (F)">⛶</button>
+</div>
+
+<!-- 7. ABC Music Score (huashu-motion Contract: 118 BPM Em Launch Score) -->
+<script type="text/vnd.abc" id="om-score">
+X:1
+T:TimePulse Launch Theme
+M:4/4
+L:1/8
+Q:1/4=118
+K:Em
+V:PNO inst=piano role=melody gain=0.85
+!mark:hook! !mf! [E,B,EG]4 [G,B,EG]4 | [D,A,DF]4 [A,,E,A,C]4 | [C,G,CE]4 [D,A,DF]4 | !mark:timers! !hit! [E,B,EG]8 |
+!mark:timers! E/G/B/e/ B/G/E/G/ D/F/A/d/ A/F/D/F/ | C/E/G/c/ G/E/C/E/ B,/D/F/B/ F/D/B,/D/ |
+!mark:cheer! !mf! [G,B,DG]4 [D,A,DF]4 | [E,B,EG]4 [C,G,CE]4 | [A,,E,A,C]4 [B,,F,B,D]4 |
+!mark:zen! !p! !stop(! [E,B,EG]8 !stop)! | !breath! z8 | !rise(! [E,G,B,E]4 [F,A,C#F]4 !rise)! |
+!mark:ecosystem! !ff! !hit! [G,B,DG]4 [A,CE#A]4 | [B,DF#B]4 [D,F#Ad]4 |
+!mark:hero! !ff! [E,B,EG]4 [G,B,EG]4 | [C,G,CE]4 [B,,F,B,D]4 | !fermata! [E,,B,,E,G,]8 |
+V:SYN inst=synpluck gain=0.65
+!mark:hook! E/B/e/B/ G/B/e/B/ E/B/e/B/ G/B/e/B/ | D/A/d/A/ F/A/d/A/ C/G/c/G/ E/G/c/G/ |
+!mark:timers! E/B/e/B/ G/B/e/B/ E/B/e/B/ G/B/e/B/ | D/A/d/A/ F/A/d/A/ C/G/c/G/ E/G/c/G/ |
+!mark:cheer! G/d/g/d/ B/d/g/d/ D/A/d/A/ F/A/d/A/ | E/B/e/B/ G/B/e/B/ C/G/c/G/ E/G/c/G/ |
+!mark:zen! z8 | z8 | z8 |
+!mark:ecosystem! G/d/g/d/ A/e/a/e/ B/f/b/f/ d/a/d'/a/ |
+!mark:hero! E/B/e/B/ G/B/e/B/ C/G/c/G/ B/F/B/F/ | [E,B,E]8 |
+V:DR inst=drums kit=pop gain=0.8
+!mark:hook! z8 | z8 | z4 [D,,^F,,]4 | !mark:timers! !hit! [C,,^F,,]^F,, [D,,^F,,]^F,, ^F,,^F,, [D,,^F,,]^F,, |
+[C,,^F,,]^F,, [D,,^F,,]^F,, ^F,,^F,, [D,,^F,,]^F,, | [C,,^F,,]^F,, [D,,^F,,]^F,, ^F,,^F,, [D,,^F,,]^F,, |
+!mark:cheer! [C,,^F,,]^F,, [D,,^F,,]^F,, ^F,,^F,, [D,,^F,,]^F,, | [C,,^F,,]^F,, [D,,^F,,]^F,, ^F,,^F,, [D,,^F,,]^F,, |
+!mark:zen! z8 | z8 | z4 [D,,^F,,]2 [D,,^F,,]2 |
+!mark:ecosystem! !hit! [C,,^F,,]^F,, [D,,^F,,]^F,, ^F,,^F,, [D,,^F,,]^F,, | [C,,^F,,]^F,, [D,,^F,,]^F,, ^F,,^F,, [D,,^F,,]^F,, |
+!mark:hero! !hit! [C,,^F,,]4 [D,,^F,,]4 | [C,,^F,,]4 [D,,^F,,]4 | !hit! [C,,^C,]8 |
+</script>
+
+<script>
+/* ----------------------------------------------------
+   1. Composition Setup & Responsive Frame Scaling
+---------------------------------------------------- */
+const V = OM.vars ? OM.vars() : {};
+const film = document.getElementById('film');
+function autoScaleFilm() {
+  const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+  film.style.transform = `scale(${scale})`;
+}
+window.addEventListener('resize', autoScaleFilm);
+autoScaleFilm();
+
+/* ----------------------------------------------------
+   2. Ambient Dynamic Canvas Animation
+---------------------------------------------------- */
+const canvas = document.getElementById('ambient-canvas');
+const ctx = canvas.getContext('2d');
+const particles = Array.from({ length: 45 }, () => ({
+  x: Math.random() * 1920,
+  y: Math.random() * 1080,
+  r: Math.random() * 2.5 + 1,
+  dx: (Math.random() - 0.5) * 0.4,
+  dy: (Math.random() - 0.5) * 0.4,
+  alpha: Math.random() * 0.4 + 0.1
+}));
+
+function renderCanvas(t) {
+  ctx.clearRect(0, 0, 1920, 1080);
+
+  // Radial Soft Auroras
+  const g1 = ctx.createRadialGradient(960 + Math.sin(t * 0.8) * 150, 400 + Math.cos(t * 0.6) * 100, 50, 960, 450, 650);
+  g1.addColorStop(0, 'rgba(59, 130, 246, 0.12)');
+  g1.addColorStop(1, 'transparent');
+  ctx.fillStyle = g1;
+  ctx.fillRect(0, 0, 1920, 1080);
+
+  // Floating Micro Stars
+  particles.forEach(p => {
+    p.x = (p.x + p.dx + 1920) % 1920;
+    p.y = (p.y + p.dy + 1080) % 1080;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
+    ctx.fill();
+  });
+}
+
+/* ----------------------------------------------------
+   3. Web Audio Engine & Sound Synthesis (Real Local Audio)
+---------------------------------------------------- */
+class SoundEngine {
+  constructor() {
+    this.ctx = null;
+    this.muted = false;
+    this.voiceEnabled = true;
+    this.synth = window.speechSynthesis || null;
+  }
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioCtx();
+    }
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+  playTone(freq, type = 'sine', duration = 0.3, gainVal = 0.15) {
+    if (this.muted || !this.ctx) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + duration);
+  }
+  sfx(name) {
+    if (this.muted || !this.ctx) return;
+    switch(name) {
+      case 'whoosh':
+        this.playTone(180, 'sine', 0.5, 0.2);
+        break;
+      case 'tick':
+        this.playTone(1200, 'triangle', 0.05, 0.1);
+        break;
+      case 'pop':
+        this.playTone(650, 'sine', 0.12, 0.22);
+        break;
+      case 'thud':
+        this.playTone(80, 'sine', 0.45, 0.35);
+        break;
+      case 'chime':
+        this.playTone(880, 'sine', 0.6, 0.2);
+        setTimeout(() => this.playTone(1320, 'sine', 0.8, 0.18), 120);
+        break;
+      case 'snap':
+        this.playTone(950, 'triangle', 0.08, 0.25);
+        break;
+      case 'hit':
+        this.playTone(60, 'sawtooth', 0.6, 0.4);
+        this.playTone(520, 'sine', 0.4, 0.2);
+        break;
+    }
+  }
+  speak(text) {
+    if (this.muted || !this.voiceEnabled || !this.synth) return;
+    this.synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN';
+    u.rate = 1.05;
+    u.pitch = 1.0;
+    this.synth.speak(u);
+  }
+}
+const sound = new SoundEngine();
+
+/* ----------------------------------------------------
+   4. Narration & Subtitle Cue Schedule
+---------------------------------------------------- */
+const cues = [
+  { at: 0.2, text: "时间，不该只是冰冷的数字流逝。" },
+  { at: 3.6, text: "长期倒数日精准锚定每一个重要节点。" },
+  { at: 6.2, text: "短期番茄钟沉浸聚焦当下每一分钟。" },
+  { at: 8.8, text: "农历节气与晨昏温润问候。" },
+  { at: 11.2, text: "三色优先级待办清单，一键收纳为悬浮微挂件。" },
+  { at: 14.5, text: "一键进入纯净禅模式，隐去干扰，回归宁静。" },
+  { at: 21.0, text: "双轨存储与云端增量同步，多端原生奔跑。" },
+  { at: 25.5, text: "TimePulse —— 优雅掌控时间，沉浸陪伴每一个当下。" }
+];
+
+let lastSpokenIndex = -1;
+function updateSubtitles(t) {
+  let activeCue = null;
+  let activeIndex = -1;
+  for (let i = 0; i < cues.length; i++) {
+    if (t >= cues[i].at) {
+      activeCue = cues[i];
+      activeIndex = i;
+    }
+  }
+  const bar = document.getElementById('subtitles-bar');
+  if (activeCue) {
+    bar.textContent = activeCue.text;
+    bar.style.opacity = '1';
+    bar.style.transform = 'translateX(-50%) translateY(0)';
+    if (activeIndex !== lastSpokenIndex && tl.isActive()) {
+      lastSpokenIndex = activeIndex;
+      sound.speak(activeCue.text);
+    }
+  } else {
+    bar.style.opacity = '0';
+    bar.style.transform = 'translateX(-50%) translateY(10px)';
+  }
+}
+
+/* ----------------------------------------------------
+   5. GSAP Master Timeline (Contract Complying)
+---------------------------------------------------- */
+const tl = gsap.timeline({
+  paused: true,
+  defaults: { ease: 'power3.out' },
+  onUpdate: () => {
+    const t = tl.time();
+    renderCanvas(t);
+    updateSubtitles(t);
+    updatePlayerHUD(t);
+  }
+});
+
+// Scene 1: Hook (0s - 3.56s)
+tl.addLabel('scene:hook', 0)
+  .call(() => sound.sfx('whoosh'), null, 0.1)
+  .to('#scene-hook', { opacity: 1, scale: 1, duration: 0.8 }, 0.2)
+  .fromTo('#scene-hook .logo-wrapper', { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.9, ease: 'back.out(1.6)' }, 0.3)
+  .fromTo('#scene-hook .hook-title', { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 1.0 }, 0.6)
+  .fromTo('#scene-hook .hook-sub', { opacity: 0, letterSpacing: '14px' }, { opacity: 1, letterSpacing: '6px', duration: 0.8 }, 1.1)
+  .call(() => sound.sfx('tick'), null, 1.8)
+  .call(() => sound.sfx('tick'), null, 2.4)
+  .call(() => sound.sfx('tick'), null, 3.0)
+  .to('#scene-hook', { opacity: 0, scale: 1.08, duration: 0.45, ease: 'power2.in' }, 3.2);
+
+// Scene 2: Timers Matrix (3.56s - 8.64s)
+tl.addLabel('scene:timers', 3.56)
+  .call(() => sound.sfx('hit'), null, 3.56)
+  .to('#scene-timers', { opacity: 1, scale: 1, duration: 0.6 }, 3.56)
+  .fromTo('#card-countdown', { opacity: 0, y: 50, rotateY: 15 }, { opacity: 1, y: 0, rotateY: 0, duration: 0.8 }, 3.7)
+  .fromTo('#countdown-progress-bar', { width: '0%' }, { width: '64.8%', duration: 1.4, ease: 'power2.out' }, 4.0)
+  .fromTo('#card-pomodoro', { opacity: 0, y: 60, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.8 }, 4.3)
+  .call(() => sound.sfx('pop'), null, 4.4)
+  .fromTo('#pomodoro-svg-ring', { strokeDashoffset: 691 }, { strokeDashoffset: 280, duration: 1.8, ease: 'power2.inOut' }, 4.6)
+  .fromTo('#card-stopwatch', { opacity: 0, y: 50, rotateY: -15 }, { opacity: 1, y: 0, rotateY: 0, duration: 0.8 }, 5.0)
+  .call(() => sound.sfx('pop'), null, 5.1)
+  .to('#scene-timers', { opacity: 0, scale: 0.94, duration: 0.45, ease: 'power2.in' }, 8.2);
+
+// Scene 3: Cheer & Todo & Widget (8.64s - 14.50s)
+tl.addLabel('scene:cheer', 8.64)
+  .call(() => sound.sfx('chime'), null, 8.64)
+  .to('#scene-cheer', { opacity: 1, scale: 1, duration: 0.6 }, 8.64)
+  .fromTo('#cheer-card', { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.8 }, 8.8)
+  .fromTo('#todo-panel-card', { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.8 }, 9.1)
+  // Animate Todo Checkmark
+  .call(() => sound.sfx('tick'), null, 10.4)
+  .to('#todo-box-3', { backgroundColor: '#10b981', borderColor: '#10b981', duration: 0.2 }, 10.5)
+  .call(() => { document.getElementById('todo-box-3').textContent = '✓'; }, null, 10.6)
+  .to('#todo-text-3', { className: 'todo-text done', duration: 0.2 }, 10.6)
+  // Collapse Todo into Floating Micro-Widget
+  .addLabel('scene:todo', 11.2)
+  .call(() => sound.sfx('snap'), null, 11.8)
+  .to('#todo-panel-card', { scale: 0.85, opacity: 0.3, duration: 0.6 }, 11.8)
+  .to('#micro-widget-flyout', { opacity: 1, scale: 1, y: 0, duration: 0.7, ease: 'back.out(1.8)' }, 12.0)
+  .to('#scene-cheer', { opacity: 0, duration: 0.5 }, 14.0);
+
+// Scene 4: Zen Mode (14.50s - 21.00s)
+tl.addLabel('scene:zen', 14.50)
+  .call(() => sound.sfx('whoosh'), null, 14.5)
+  .to('#scene-zen', { opacity: 1, scale: 1, duration: 0.8 }, 14.5)
+  .fromTo('#zen-huge-clock', { scale: 0.85, opacity: 0, filter: 'blur(15px)' }, { scale: 1, opacity: 1, filter: 'blur(0px)', duration: 1.2, ease: 'expo.out' }, 14.8)
+  // Anti-burn-in subtle drift
+  .to('#zen-huge-clock', { x: 12, y: -6, duration: 3.0, ease: 'sine.inOut' }, 16.0)
+  .to('#zen-huge-clock', { x: -8, y: 6, duration: 2.0, ease: 'sine.inOut' }, 19.0)
+  .to('#scene-zen', { opacity: 0, scale: 1.05, duration: 0.5 }, 20.5);
+
+// Scene 5: Ecosystem & Architecture (21.00s - 25.50s)
+tl.addLabel('scene:ecosystem', 21.00)
+  .call(() => sound.sfx('hit'), null, 21.0)
+  .to('#scene-ecosystem', { opacity: 1, scale: 1, duration: 0.6 }, 21.0)
+  .fromTo('.device-mac', { opacity: 0, y: 60, rotateX: 20 }, { opacity: 1, y: 0, rotateX: 0, duration: 0.8 }, 21.2)
+  .fromTo('.device-win', { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.8 }, 21.5)
+  .fromTo('.device-phone', { opacity: 0, x: 60 }, { opacity: 1, x: 0, duration: 0.8 }, 21.7)
+  .fromTo('.tech-pill', { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: 0.1, duration: 0.6 }, 22.4)
+  .to('#scene-ecosystem', { opacity: 0, scale: 0.92, duration: 0.5 }, 25.0);
+
+// Scene 6: Hero Final (25.50s - 30.50s)
+tl.addLabel('scene:hero', 25.50)
+  .call(() => sound.sfx('hit'), null, 25.5)
+  .to('#scene-hero', { opacity: 1, scale: 1, duration: 0.8 }, 25.5)
+  .fromTo('.hero-logo-box', { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.0, ease: 'back.out(1.5)' }, 25.7)
+  .fromTo('.hero-title', { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, 26.0)
+  .fromTo('.hero-claim', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, 26.4)
+  .fromTo('.hero-badges', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 }, 26.8)
+  .to({}, { duration: V.endHold || 2.5 }); // Closing hold
+
+// huashu-motion Contract Registry
+window.__timelines = window.__timelines || {};
+window.__timelines['film'] = tl;
+
+/* ----------------------------------------------------
+   6. Interactive Player Controls (HUD)
+---------------------------------------------------- */
+const playPauseBtn = document.getElementById('ctrl-play-pause');
+const scrubber = document.getElementById('timeline-scrubber');
+const currentTimeText = document.getElementById('current-time-text');
+const sceneLabelText = document.getElementById('scene-label-text');
+const audioToggleBtn = document.getElementById('ctrl-audio-toggle');
+
+playPauseBtn.addEventListener('click', togglePlay);
+document.getElementById('ctrl-restart').addEventListener('click', () => {
+  lastSpokenIndex = -1;
+  tl.seek(0);
+  tl.play();
+  playPauseBtn.textContent = '❚❚';
+});
+
+scrubber.addEventListener('input', (e) => {
+  const val = parseFloat(e.target.value);
+  lastSpokenIndex = -1;
+  tl.seek(val);
+});
+
+audioToggleBtn.addEventListener('click', () => {
+  sound.muted = !sound.muted;
+  audioToggleBtn.textContent = sound.muted ? '🔇' : '🔊';
+  if (!sound.muted) sound.init();
+});
+
+document.getElementById('ctrl-fullscreen').addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+});
+
+function togglePlay() {
+  sound.init();
+  if (tl.paused()) {
+    tl.play();
+    playPauseBtn.textContent = '❚❚';
+  } else {
+    tl.pause();
+    playPauseBtn.textContent = '▶';
+  }
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') {
+    e.preventDefault();
+    togglePlay();
+  }
+  if (e.code === 'KeyF') {
+    document.getElementById('ctrl-fullscreen').click();
+  }
+});
+
+function seekToScene(label) {
+  sound.init();
+  lastSpokenIndex = -1;
+  tl.seek(label);
+  updatePlayerHUD(tl.time());
+}
+
+function updatePlayerHUD(t) {
+  scrubber.value = t;
+  const mm = String(Math.floor(t / 60)).padStart(2, '0');
+  const ss = String(Math.floor(t % 60)).padStart(2, '0');
+  const ms = String(Math.floor((t % 1) * 10));
+  currentTimeText.textContent = `${mm}:${ss}.${ms}`;
+
+  // Find nearest scene label
+  let curScene = 'Hook';
+  if (t >= 25.5) curScene = 'Hero (定格)';
+  else if (t >= 21.0) curScene = 'Ecosystem (多端)';
+  else if (t >= 14.5) curScene = 'Zen (禅模式)';
+  else if (t >= 8.64) curScene = 'Cheer & Todo (元气待办)';
+  else if (t >= 3.56) curScene = 'Timers (矩阵)';
+  sceneLabelText.textContent = curScene;
+
+  if (tl.paused()) playPauseBtn.textContent = '▶';
+  else playPauseBtn.textContent = '❚❚';
+}
+</script>
+</body>
+</html>

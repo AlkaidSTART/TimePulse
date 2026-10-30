@@ -5,15 +5,40 @@ import { supabase } from '@/lib/supabase';
 describe('useAuthStore', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    localStorage.clear();
     useAuthStore.setState({
       user: null,
       session: null,
+      isGuest: false,
       isLoading: false,
       isInitialized: false,
       error: null,
       successMessage: null,
       isAuthModalOpen: false,
     });
+  });
+
+  it('signs in as guest without a cloud session', () => {
+    useAuthStore.getState().signInAsGuest();
+
+    const state = useAuthStore.getState();
+    expect(state.isGuest).toBe(true);
+    expect(state.user).toBeNull();
+    expect(state.session).toBeNull();
+    expect(localStorage.getItem('timepulse_guest_mode')).toBe('true');
+  });
+
+  it('clears guest mode on sign out without touching Supabase', async () => {
+    useAuthStore.setState({ isGuest: true });
+    localStorage.setItem('timepulse_guest_mode', 'true');
+
+    const supabaseSignOut = vi.spyOn(supabase.auth, 'signOut');
+    const result = await useAuthStore.getState().signOut();
+
+    expect(result.success).toBe(true);
+    expect(supabaseSignOut).not.toHaveBeenCalled();
+    expect(useAuthStore.getState().isGuest).toBe(false);
+    expect(localStorage.getItem('timepulse_guest_mode')).toBeNull();
   });
 
   it('initializes with default state', () => {

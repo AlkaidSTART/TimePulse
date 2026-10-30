@@ -9,6 +9,7 @@ describe('useNavigationStore', () => {
     useAuthStore.setState({
       user: null,
       session: null,
+      isGuest: false,
       isInitialized: false,
     });
     useNavigationStore.getState().setView('cheer');
@@ -92,6 +93,36 @@ describe('useNavigationStore', () => {
     useNavigationStore.getState().transitionTo('main');
     expect(useNavigationStore.getState().view).toBe('main');
     expect(window.location.hash).toBe('#main');
+  });
+
+  it('allows transition to protected routes in guest mode', () => {
+    useAuthStore.setState({
+      user: null,
+      session: null,
+      isGuest: true,
+      isInitialized: true,
+    });
+
+    expect(canAccessView('main')).toBe(true);
+    expect(canAccessView('settings')).toBe(true);
+    useNavigationStore.getState().transitionTo('main');
+    expect(useNavigationStore.getState().view).toBe('main');
+    expect(window.location.hash).toBe('#main');
+  });
+
+  it('redirects to auth after exiting guest mode', () => {
+    useAuthStore.setState({
+      user: null,
+      session: null,
+      isGuest: true,
+      isInitialized: true,
+    });
+    useNavigationStore.getState().setView('main');
+
+    useAuthStore.setState({ isGuest: false });
+
+    expect(useNavigationStore.getState().view).toBe('auth');
+    expect(window.location.hash).toBe('#login');
   });
 });
 

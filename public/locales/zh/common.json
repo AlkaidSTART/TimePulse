@@ -617,6 +617,8 @@
     "resetGuide": "重置指引向导",
     "oauthSignIn": "使用 {provider} 登录",
     "orEmail": "或使用邮箱继续",
+    "guestSignIn": "游客登录（无需账号）",
+    "guestHint": "游客模式下数据仅保存在本机，不会开启云端同步；随时注册账号即可开启多端同步",
     "email": "电子邮箱",
     "emailPlaceholder": "输入电子邮箱，例如 name@example.com",
     "password": "登录密码",
@@ -775,7 +777,15 @@
     "avatarSpecs": "限 JPG/PNG/WEBP · 单图 ≤ 2MB · 自动优化为 256×256 WebP · 覆盖防冗余",
     "changeAvatarTitle": "上传自定义头像（自动压缩并覆盖旧头像）",
     "avatarSpecsTip": "登录后可上传个人专属云端头像（配额 5MB，单图≤2MB，覆盖防冗余）",
-    "uploadAvatarTitle": "登录后上传自定义头像到 Supabase touxiang 存储桶"
+    "uploadAvatarTitle": "登录后上传自定义头像到 Supabase touxiang 存储桶",
+    "guestMode": "游客模式",
+    "guestBadge": "仅本机",
+    "guestDesc": "数据仅保存在当前设备，不会同步到云端",
+    "guestTip": "注册账号后即可开启多端云同步与云端头像",
+    "guestDefaultName": "游客",
+    "guestSignInToSync": "登录 / 注册开启同步",
+    "exitGuest": "退出游客模式",
+    "guestAvatarTip": "游客模式下无法上传云端头像，请先登录或注册账号"
   },
   "background": {
     "title": "背景设置",

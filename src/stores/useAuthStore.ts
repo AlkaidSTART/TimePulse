@@ -91,6 +91,7 @@ function formatAuthError(error: unknown): string {
 export interface AuthState {
   user: User | null;
   session: Session | null;
+  isGuest: boolean;
   isLoading: boolean;
   isInitialized: boolean;
   error: string | null;
@@ -99,6 +100,7 @@ export interface AuthState {
 
   // Actions
   initialize: () => Promise<void>;
+  signInAsGuest: () => void;
   signInWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signInWithOAuth: (provider: OAuthProvider) => Promise<{ success: boolean; error?: string }>;
   handleOAuthCallback: (url: string) => Promise<{ success: boolean; error?: string }>;
@@ -121,6 +123,28 @@ export interface AuthState {
 }
 
 let authSubscriptionInitialized = false;
+
+const GUEST_STORAGE_KEY = 'timepulse_guest_mode';
+
+function readGuestFlag(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem(GUEST_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function writeGuestFlag(enabled: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (enabled) {
+      localStorage.setItem(GUEST_STORAGE_KEY, 'true');
+    } else {
+      localStorage.removeItem(GUEST_STORAGE_KEY);
+    }
+  } catch {}
+}
 
 /**
  * 智能同步云端用户 Profile（昵称、签名及头像）
@@ -214,6 +238,7 @@ async function syncUserCloudProfile(
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   session: null,
+  isGuest: false,
   isLoading: false,
   isInitialized: false,
   error: null,
@@ -232,10 +257,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const session = data?.session ?? null;
       const user = session?.user ?? null;
+      const isGuest = user ? false : readGuestFlag();
+      if (user) writeGuestFlag(false);
 
       set({
         session,
         user,
+        isGuest,
         isInitialized: true,
       });
 
@@ -245,9 +273,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         authSubscriptionInitialized = true;
         supabase.auth.onAuthStateChange((_event, newSession) => {
           const newUser = newSession?.user ?? null;
+          if (newUser) writeGuestFlag(false);
           set({
             session: newSession,
             user: newUser,
+            ...(newUser ? { isGuest: false } : {}),
           });
 
           void syncUserCloudProfile(newUser, supabase, (u) => set({ user: u }));
@@ -255,8 +285,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } catch (err) {
       console.error('初始化 Auth 异常:', err);
-      set({ isInitialized: true });
+      set({ isInitialized: true, isGuest: readGuestFlag() });
     }
+  },
+
+  signInAsGuest: () => {
+    writeGuestFlag(true);
+    set({
+      user: null,
+      session: null,
+      isGuest: true,
+      isLoading: false,
+      error: null,
+      successMessage: null,
+    });
   },
 
   signInWithEmail: async (email, password) => {
@@ -289,10 +331,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         session: data.session,
         user: data.user,
+        isGuest: false,
         isLoading: false,
         error: null,
         successMessage: '登录成功，欢迎回来！',
       });
+      writeGuestFlag(false);
 
       if (data.user && typeof window !== 'undefined') {
         try {
@@ -417,11 +461,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({
             session: data.session,
             user: data.user,
+            isGuest: false,
             isLoading: false,
             error: null,
             successMessage: '登录成功',
             isAuthModalOpen: false,
           });
+          writeGuestFlag(false);
           await syncUserCloudProfile(data.user, supabase, (u) => set({ user: u }));
           return { success: true };
         }
@@ -442,11 +488,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({
             session: data.session,
             user: data.user,
+            isGuest: false,
             isLoading: false,
             error: null,
             successMessage: '登录成功',
             isAuthModalOpen: false,
           });
+          writeGuestFlag(false);
           await syncUserCloudProfile(data.user, supabase, (u) => set({ user: u }));
           return { success: true };
         }
@@ -517,6 +565,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // 邮箱验证开启时注册不返回会话：必须保持未登录态，
         // 否则会在用户完成邮箱验证前展示“已登录”会员界面。
         user: data.session ? data.user : null,
+        isGuest: data.session ? false : get().isGuest,
         isLoading: false,
         error: null,
         successMessage: message,
@@ -539,6 +588,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    if (get().isGuest) {
+      writeGuestFlag(false);
+      set({
+        user: null,
+        session: null,
+        isGuest: false,
+        isLoading: false,
+        error: null,
+        successMessage: null,
+      });
+      return { success: true };
+    }
+
     set({ isLoading: true, error: null });
     try {
       const supabase = await getSupabaseClient();
@@ -552,6 +614,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         user: null,
         session: null,
+        isGuest: false,
         isLoading: false,
         error: null,
         successMessage: '已成功退出登录',
